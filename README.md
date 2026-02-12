@@ -7,7 +7,7 @@
 <p align="center">An open-source engineering notebook for documenting your daily work.<br>Built with React, BlockNote, and Excalidraw.</p>
 
 <p align="center">
-  <img src="images/product.png" alt="WorkLedger" width="720">
+  <img src="landing/images/product.png" alt="WorkLedger" width="720">
 </p>
 
 ## Features
