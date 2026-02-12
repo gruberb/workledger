@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 40" fill="none">
+  <!-- Book cover -->
+  <rect x="4" y="2" width="28" height="36" rx="3" fill="#f97316" />
+  <!-- Pages -->
+  <rect x="7" y="4" width="23" height="32" rx="2" fill="white" />
+  <!-- Spine detail -->
+  <rect x="4" y="2" width="5" height="36" rx="2" fill="#ea580c" />
+  <!-- Page lines -->
+  <line x1="14" y1="12" x2="26" y2="12" stroke="#e5e7eb" stroke-width="1.2" stroke-linecap="round" />
+  <line x1="14" y1="17" x2="24" y2="17" stroke="#e5e7eb" stroke-width="1.2" stroke-linecap="round" />
+  <line x1="14" y1="22" x2="25" y2="22" stroke="#e5e7eb" stroke-width="1.2" stroke-linecap="round" />
+  <line x1="14" y1="27" x2="22" y2="27" stroke="#e5e7eb" stroke-width="1.2" stroke-linecap="round" />
+  <!-- Bookmark ribbon -->
+  <path d="M22 2 L22 10 L24.5 8 L27 10 L27 2" fill="#fb923c" />
+</svg>

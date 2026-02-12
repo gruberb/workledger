@@ -1,0 +1,1472 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>WorkLedger — Engineering Notebook</title>
+        <meta
+            name="description"
+            content="An open-source, local-first engineering notebook for documenting your daily work. Rich text, inline drawings, tagging, and full-text search."
+        />
+        <link rel="icon" type="image/svg+xml" href="../public/favicon.svg" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            /* ═══════════════════════════════════════
+   RESET & FOUNDATIONS
+   ═══════════════════════════════════════ */
+            *,
+            *::before,
+            *::after {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            :root {
+                --orange: #f97316;
+                --orange-dark: #ea580c;
+                --orange-deep: #c2410c;
+                --orange-light: #fb923c;
+                --orange-pale: #fff7ed;
+                --orange-wash: #fef3e2;
+                --ink: #1a1a1a;
+                --ink-light: #525252;
+                --ink-muted: #78716c;
+                --paper: #fafaf9;
+                --paper-warm: #fdf8f4;
+                --ruling: #e7e5e4;
+                --ruling-light: #f5f5f4;
+                --white: #ffffff;
+
+                --font-display:
+                    "Playfair Display", Georgia, "Times New Roman", serif;
+                --font-body:
+                    "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+                --font-serif: "Source Serif 4", Georgia, serif;
+                --font-mono:
+                    "JetBrains Mono", "SF Mono", "Fira Code", monospace;
+
+                --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+                --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+                --max-w: 1120px;
+                --gutter: 24px;
+            }
+
+            html {
+                scroll-behavior: smooth;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+                font-size: 16px;
+            }
+
+            body {
+                font-family: var(--font-body);
+                color: var(--ink);
+                background: var(--paper);
+                line-height: 1.6;
+                overflow-x: hidden;
+            }
+
+            a {
+                color: inherit;
+                text-decoration: none;
+            }
+            img {
+                max-width: 100%;
+                display: block;
+            }
+            button {
+                font-family: inherit;
+                cursor: pointer;
+                border: none;
+                background: none;
+            }
+
+            /* ═══════════════════════════════════════
+   UTILITY
+   ═══════════════════════════════════════ */
+            .container {
+                max-width: var(--max-w);
+                margin: 0 auto;
+                padding: 0 var(--gutter);
+            }
+
+            /* Reveal animations */
+            .reveal {
+                opacity: 0;
+                transform: translateY(28px);
+                transition:
+                    opacity 0.7s var(--ease-out),
+                    transform 0.7s var(--ease-out);
+            }
+            .reveal.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            .reveal-delay-1 {
+                transition-delay: 0.08s;
+            }
+            .reveal-delay-2 {
+                transition-delay: 0.16s;
+            }
+            .reveal-delay-3 {
+                transition-delay: 0.24s;
+            }
+            .reveal-delay-4 {
+                transition-delay: 0.32s;
+            }
+            .reveal-delay-5 {
+                transition-delay: 0.4s;
+            }
+            .reveal-delay-6 {
+                transition-delay: 0.48s;
+            }
+
+            /* ═══════════════════════════════════════
+   RULED PAPER TEXTURE (background)
+   ═══════════════════════════════════════ */
+            body::before {
+                content: "";
+                position: fixed;
+                inset: 0;
+                pointer-events: none;
+                background: repeating-linear-gradient(
+                    180deg,
+                    transparent,
+                    transparent 31px,
+                    var(--ruling-light) 31px,
+                    var(--ruling-light) 32px
+                );
+                opacity: 0.45;
+                z-index: 0;
+            }
+
+            /* ═══════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════ */
+            .nav {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 100;
+                padding: 16px 0;
+                transition:
+                    background 0.3s ease,
+                    box-shadow 0.3s ease,
+                    padding 0.3s ease;
+            }
+            .nav.scrolled {
+                background: rgba(250, 250, 249, 0.92);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                box-shadow: 0 1px 0 var(--ruling);
+                padding: 12px 0;
+            }
+            .nav-inner {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .nav-brand {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .nav-logo {
+                width: 28px;
+                height: 32px;
+                flex-shrink: 0;
+            }
+            .nav-title {
+                font-family: var(--font-display);
+                font-weight: 700;
+                font-size: 1.2rem;
+                letter-spacing: -0.01em;
+            }
+            .nav-links {
+                display: flex;
+                align-items: center;
+                gap: 32px;
+            }
+            .nav-link {
+                font-size: 0.875rem;
+                font-weight: 500;
+                color: var(--ink-light);
+                transition: color 0.2s ease;
+                letter-spacing: 0.01em;
+            }
+            .nav-link:hover {
+                color: var(--ink);
+            }
+            .nav-cta {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 18px;
+                background: var(--ink);
+                color: var(--white);
+                border-radius: 8px;
+                font-size: 0.85rem;
+                font-weight: 500;
+                transition:
+                    background 0.2s ease,
+                    transform 0.15s ease;
+            }
+            .nav-cta:hover {
+                background: #333;
+                transform: translateY(-1px);
+            }
+            .nav-cta svg {
+                width: 16px;
+                height: 16px;
+            }
+
+            /* Mobile nav */
+            @media (max-width: 640px) {
+                .nav-links {
+                    gap: 16px;
+                }
+                .nav-link.hide-mobile {
+                    display: none;
+                }
+            }
+
+            /* ═══════════════════════════════════════
+   HERO
+   ═══════════════════════════════════════ */
+            .hero {
+                position: relative;
+                z-index: 1;
+                padding: 160px 0 80px;
+                text-align: center;
+            }
+            .hero-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 16px 6px 8px;
+                background: var(--orange-wash);
+                border: 1px solid #fed7aa;
+                border-radius: 100px;
+                font-size: 0.8rem;
+                font-weight: 500;
+                color: var(--orange-dark);
+                margin-bottom: 32px;
+            }
+            .hero-badge-dot {
+                width: 8px;
+                height: 8px;
+                background: var(--orange);
+                border-radius: 50%;
+                animation: pulse-dot 2s ease-in-out infinite;
+            }
+            @keyframes pulse-dot {
+                0%,
+                100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                50% {
+                    opacity: 0.6;
+                    transform: scale(0.85);
+                }
+            }
+
+            .hero h1 {
+                font-family: var(--font-display);
+                font-weight: 800;
+                font-size: clamp(2.8rem, 6vw, 4.5rem);
+                line-height: 1.08;
+                letter-spacing: -0.025em;
+                color: var(--ink);
+                max-width: 720px;
+                margin: 0 auto 24px;
+            }
+            .hero h1 em {
+                font-style: italic;
+                color: var(--orange-dark);
+            }
+            .hero-sub {
+                font-family: var(--font-serif);
+                font-size: clamp(1.05rem, 2vw, 1.25rem);
+                color: var(--ink-muted);
+                max-width: 520px;
+                margin: 0 auto 40px;
+                line-height: 1.65;
+                font-weight: 300;
+            }
+            .hero-actions {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 16px;
+                flex-wrap: wrap;
+            }
+            .btn-primary {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                padding: 14px 28px;
+                background: var(--orange);
+                color: var(--white);
+                border-radius: 10px;
+                font-size: 0.95rem;
+                font-weight: 600;
+                letter-spacing: 0.01em;
+                transition: all 0.2s var(--ease-out);
+                box-shadow:
+                    0 1px 3px rgba(249, 115, 22, 0.3),
+                    0 4px 12px rgba(249, 115, 22, 0.15);
+            }
+            .btn-primary:hover {
+                background: var(--orange-dark);
+                transform: translateY(-2px);
+                box-shadow:
+                    0 2px 6px rgba(249, 115, 22, 0.35),
+                    0 8px 24px rgba(249, 115, 22, 0.2);
+            }
+            .btn-primary svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .btn-secondary {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 14px 24px;
+                background: transparent;
+                color: var(--ink-light);
+                border: 1.5px solid var(--ruling);
+                border-radius: 10px;
+                font-size: 0.95rem;
+                font-weight: 500;
+                transition: all 0.2s ease;
+            }
+            .btn-secondary:hover {
+                border-color: var(--ink-muted);
+                color: var(--ink);
+                background: var(--white);
+            }
+
+            /* ═══════════════════════════════════════
+   SCREENSHOT SHOWCASE
+   ═══════════════════════════════════════ */
+            .showcase {
+                position: relative;
+                z-index: 1;
+                padding: 40px 0 100px;
+            }
+            .showcase-frame {
+                position: relative;
+                max-width: 960px;
+                margin: 0 auto;
+                border-radius: 14px;
+                overflow: hidden;
+                box-shadow:
+                    0 0 0 1px rgba(0, 0, 0, 0.06),
+                    0 4px 8px rgba(0, 0, 0, 0.04),
+                    0 12px 32px rgba(0, 0, 0, 0.06),
+                    0 32px 72px rgba(0, 0, 0, 0.08);
+            }
+
+            /* Browser chrome */
+            .showcase-chrome {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 12px 16px;
+                background: #f9f9f8;
+                border-bottom: 1px solid var(--ruling);
+            }
+            .chrome-dot {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                background: #e5e5e4;
+            }
+            .chrome-dot:nth-child(1) {
+                background: #fca5a5;
+            }
+            .chrome-dot:nth-child(2) {
+                background: #fde68a;
+            }
+            .chrome-dot:nth-child(3) {
+                background: #86efac;
+            }
+            .chrome-bar {
+                flex: 1;
+                margin: 0 48px 0 12px;
+                height: 28px;
+                background: var(--white);
+                border-radius: 6px;
+                border: 1px solid var(--ruling);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.72rem;
+                color: var(--ink-muted);
+                letter-spacing: 0.02em;
+            }
+
+            .showcase-frame img {
+                width: 100%;
+                display: block;
+            }
+
+            /* Decorative side elements */
+            .showcase-decor {
+                position: absolute;
+                z-index: -1;
+            }
+            .showcase-decor-left {
+                left: -60px;
+                top: 40%;
+                width: 120px;
+                height: 120px;
+                border: 2px solid var(--orange-wash);
+                border-radius: 50%;
+                opacity: 0.5;
+            }
+            .showcase-decor-right {
+                right: -40px;
+                top: 20%;
+                width: 80px;
+                height: 80px;
+                border: 2px solid var(--ruling);
+                transform: rotate(45deg);
+                opacity: 0.4;
+            }
+
+            /* ═══════════════════════════════════════
+   FEATURES SECTION
+   ═══════════════════════════════════════ */
+            .features {
+                position: relative;
+                z-index: 1;
+                padding: 100px 0;
+                background: var(--white);
+                border-top: 1px solid var(--ruling);
+                border-bottom: 1px solid var(--ruling);
+            }
+
+            /* Ruling texture on white section */
+            .features::before {
+                content: "";
+                position: absolute;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                width: 64px;
+                background: linear-gradient(
+                    90deg,
+                    var(--orange-pale) 0%,
+                    transparent 100%
+                );
+                opacity: 0.6;
+                pointer-events: none;
+            }
+            .features::after {
+                content: "";
+                position: absolute;
+                left: 60px;
+                top: 0;
+                bottom: 0;
+                width: 2px;
+                background: #fddcb5;
+                opacity: 0.5;
+                pointer-events: none;
+            }
+
+            .section-label {
+                font-family: var(--font-mono);
+                font-size: 0.75rem;
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.12em;
+                color: var(--orange-dark);
+                margin-bottom: 12px;
+            }
+            .section-heading {
+                font-family: var(--font-display);
+                font-weight: 700;
+                font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+                line-height: 1.15;
+                letter-spacing: -0.02em;
+                margin-bottom: 16px;
+            }
+            .section-desc {
+                font-family: var(--font-serif);
+                font-size: 1.05rem;
+                color: var(--ink-muted);
+                max-width: 480px;
+                line-height: 1.65;
+                font-weight: 300;
+            }
+
+            .features-header {
+                margin-bottom: 64px;
+            }
+            .features-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 2px;
+                background: var(--ruling);
+                border: 1px solid var(--ruling);
+                border-radius: 12px;
+                overflow: hidden;
+            }
+            .feature-card {
+                background: var(--white);
+                padding: 36px 32px;
+                transition: background 0.3s ease;
+            }
+            .feature-card:hover {
+                background: var(--paper);
+            }
+            .feature-icon {
+                width: 44px;
+                height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--orange-pale);
+                border-radius: 10px;
+                margin-bottom: 20px;
+                color: var(--orange);
+                transition: transform 0.3s var(--ease-spring);
+            }
+            .feature-card:hover .feature-icon {
+                transform: scale(1.08) rotate(-2deg);
+            }
+            .feature-icon svg {
+                width: 22px;
+                height: 22px;
+                stroke-width: 1.8;
+            }
+            .feature-title {
+                font-family: var(--font-display);
+                font-weight: 600;
+                font-size: 1.1rem;
+                margin-bottom: 8px;
+                letter-spacing: -0.01em;
+            }
+            .feature-desc {
+                font-size: 0.88rem;
+                color: var(--ink-muted);
+                line-height: 1.55;
+            }
+            .feature-kbd {
+                display: inline-flex;
+                align-items: center;
+                padding: 2px 7px;
+                background: var(--ruling-light);
+                border: 1px solid var(--ruling);
+                border-radius: 5px;
+                font-family: var(--font-mono);
+                font-size: 0.72rem;
+                color: var(--ink-light);
+                vertical-align: middle;
+                margin-left: 2px;
+            }
+
+            @media (max-width: 840px) {
+                .features-grid {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+            }
+            @media (max-width: 560px) {
+                .features-grid {
+                    grid-template-columns: 1fr;
+                }
+                .features::before,
+                .features::after {
+                    display: none;
+                }
+            }
+
+            /* ═══════════════════════════════════════
+   HOW IT WORKS
+   ═══════════════════════════════════════ */
+            .how-it-works {
+                position: relative;
+                z-index: 1;
+                padding: 100px 0;
+            }
+            .how-header {
+                text-align: center;
+                margin-bottom: 72px;
+            }
+            .how-header .section-desc {
+                margin: 0 auto;
+            }
+
+            .steps {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 48px;
+                position: relative;
+            }
+
+            /* Connecting line */
+            .steps::before {
+                content: "";
+                position: absolute;
+                top: 32px;
+                left: calc(16.66% + 24px);
+                right: calc(16.66% + 24px);
+                height: 2px;
+                background: repeating-linear-gradient(
+                    90deg,
+                    var(--ruling) 0,
+                    var(--ruling) 6px,
+                    transparent 6px,
+                    transparent 12px
+                );
+            }
+
+            .step {
+                text-align: center;
+            }
+            .step-number {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 64px;
+                height: 64px;
+                border-radius: 50%;
+                background: var(--white);
+                border: 2px solid var(--ruling);
+                font-family: var(--font-display);
+                font-weight: 700;
+                font-size: 1.5rem;
+                color: var(--orange);
+                margin-bottom: 24px;
+                position: relative;
+                transition: all 0.3s var(--ease-spring);
+            }
+            .step:hover .step-number {
+                border-color: var(--orange);
+                background: var(--orange-pale);
+                transform: scale(1.1);
+            }
+            .step-title {
+                font-family: var(--font-display);
+                font-weight: 600;
+                font-size: 1.15rem;
+                margin-bottom: 8px;
+                letter-spacing: -0.01em;
+            }
+            .step-desc {
+                font-size: 0.88rem;
+                color: var(--ink-muted);
+                line-height: 1.6;
+                max-width: 260px;
+                margin: 0 auto;
+            }
+
+            @media (max-width: 640px) {
+                .steps {
+                    grid-template-columns: 1fr;
+                    gap: 40px;
+                }
+                .steps::before {
+                    display: none;
+                }
+            }
+
+            /* ═══════════════════════════════════════
+   TECH STACK
+   ═══════════════════════════════════════ */
+            .tech {
+                position: relative;
+                z-index: 1;
+                padding: 80px 0;
+                background: var(--white);
+                border-top: 1px solid var(--ruling);
+                border-bottom: 1px solid var(--ruling);
+            }
+            .tech-inner {
+                text-align: center;
+            }
+            .tech-inner .section-desc {
+                margin: 0 auto 40px;
+            }
+            .tech-badges {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .tech-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 10px 18px;
+                background: var(--paper);
+                border: 1px solid var(--ruling);
+                border-radius: 8px;
+                font-size: 0.85rem;
+                font-weight: 500;
+                color: var(--ink-light);
+                transition: all 0.2s ease;
+            }
+            .tech-badge:hover {
+                border-color: var(--ink-muted);
+                color: var(--ink);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            }
+            .tech-badge svg,
+            .tech-badge img {
+                width: 18px;
+                height: 18px;
+            }
+
+            /* ═══════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════ */
+            .footer {
+                position: relative;
+                z-index: 1;
+                padding: 40px 0;
+                border-top: 1px solid var(--ruling);
+            }
+            .footer-inner {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 16px;
+                flex-wrap: wrap;
+            }
+            .footer-brand {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .footer-brand svg {
+                width: 20px;
+                height: 22px;
+            }
+            .footer-brand span {
+                font-family: var(--font-display);
+                font-weight: 600;
+                font-size: 0.9rem;
+            }
+            .footer-right {
+                display: flex;
+                align-items: center;
+                gap: 24px;
+            }
+            .footer-link {
+                font-size: 0.82rem;
+                color: var(--ink-muted);
+                transition: color 0.2s ease;
+            }
+            .footer-link:hover {
+                color: var(--ink);
+            }
+            .footer-copy {
+                font-size: 0.8rem;
+                color: var(--ink-muted);
+            }
+
+            /* ═══════════════════════════════════════
+   SCROLL TOP BUTTON
+   ═══════════════════════════════════════ */
+            .scroll-top {
+                position: fixed;
+                bottom: 32px;
+                right: 32px;
+                z-index: 99;
+                width: 40px;
+                height: 40px;
+                background: var(--white);
+                border: 1px solid var(--ruling);
+                border-radius: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--ink-muted);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+                opacity: 0;
+                transform: translateY(8px);
+                transition: all 0.3s ease;
+                pointer-events: none;
+            }
+            .scroll-top.visible {
+                opacity: 1;
+                transform: translateY(0);
+                pointer-events: all;
+            }
+            .scroll-top:hover {
+                border-color: var(--ink-muted);
+                color: var(--ink);
+            }
+            .scroll-top svg {
+                width: 16px;
+                height: 16px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <!-- ─── NAVIGATION ─── -->
+        <nav class="nav" id="nav">
+            <div class="container nav-inner">
+                <a href="#" class="nav-brand">
+                    <svg
+                        class="nav-logo"
+                        viewBox="0 0 36 40"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <rect
+                            x="4"
+                            y="2"
+                            width="28"
+                            height="36"
+                            rx="3"
+                            fill="#f97316"
+                        />
+                        <rect
+                            x="7"
+                            y="4"
+                            width="23"
+                            height="32"
+                            rx="2"
+                            fill="white"
+                        />
+                        <rect
+                            x="4"
+                            y="2"
+                            width="5"
+                            height="36"
+                            rx="2"
+                            fill="#ea580c"
+                        />
+                        <line
+                            x1="14"
+                            y1="12"
+                            x2="26"
+                            y2="12"
+                            stroke="#e5e7eb"
+                            stroke-width="1.2"
+                            stroke-linecap="round"
+                        />
+                        <line
+                            x1="14"
+                            y1="17"
+                            x2="24"
+                            y2="17"
+                            stroke="#e5e7eb"
+                            stroke-width="1.2"
+                            stroke-linecap="round"
+                        />
+                        <line
+                            x1="14"
+                            y1="22"
+                            x2="25"
+                            y2="22"
+                            stroke="#e5e7eb"
+                            stroke-width="1.2"
+                            stroke-linecap="round"
+                        />
+                        <line
+                            x1="14"
+                            y1="27"
+                            x2="22"
+                            y2="27"
+                            stroke="#e5e7eb"
+                            stroke-width="1.2"
+                            stroke-linecap="round"
+                        />
+                        <path
+                            d="M22 2 L22 10 L24.5 8 L27 10 L27 2"
+                            fill="#fb923c"
+                        />
+                    </svg>
+                    <span class="nav-title">WorkLedger</span>
+                </a>
+                <div class="nav-links">
+                    <a href="#features" class="nav-link hide-mobile"
+                        >Features</a
+                    >
+                    <a href="#how-it-works" class="nav-link hide-mobile"
+                        >How it works</a
+                    >
+                    <a
+                        href="https://workledger.org"
+                        class="nav-link"
+                        style="color: var(--orange-dark); font-weight: 600"
+                        >Open App</a
+                    >
+                    <a
+                        href="https://github.com/gruberb/workledger"
+                        class="nav-cta"
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        <svg viewBox="0 0 16 16" fill="currentColor">
+                            <path
+                                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                            />
+                        </svg>
+                        GitHub
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- ─── HERO ─── -->
+        <section class="hero">
+            <div class="container">
+                <h1 class="reveal reveal-delay-1">
+                    Your engineering work, <em>documented.</em>
+                </h1>
+                <p class="hero-sub reveal reveal-delay-2">
+                    A local-first notebook for engineers who want to capture
+                    ideas, meeting notes, and diagrams — without sending data to
+                    a server.
+                </p>
+                <div class="hero-actions reveal reveal-delay-3">
+                    <a href="https://workledger.org" class="btn-primary">
+                        <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <path d="M5 12h14" />
+                            <path d="M12 5l7 7-7 7" />
+                        </svg>
+                        Open App
+                    </a>
+                    <a
+                        href="https://github.com/gruberb/workledger"
+                        class="btn-secondary"
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 16 16"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                            />
+                        </svg>
+                        View on GitHub
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─── SCREENSHOT SHOWCASE ─── -->
+        <section class="showcase">
+            <div class="container">
+                <div class="showcase-frame reveal">
+                    <div class="showcase-chrome">
+                        <div class="chrome-dot"></div>
+                        <div class="chrome-dot"></div>
+                        <div class="chrome-dot"></div>
+                        <div class="chrome-bar">workledger.org</div>
+                    </div>
+                    <img
+                        src="../images/screenshot.png"
+                        alt="WorkLedger — Engineering notebook with rich text editing, inline drawings, and tagging"
+                        loading="lazy"
+                    />
+                </div>
+                <div class="showcase-decor showcase-decor-left"></div>
+                <div class="showcase-decor showcase-decor-right"></div>
+            </div>
+        </section>
+
+        <!-- ─── FEATURES ─── -->
+        <section class="features" id="features">
+            <div class="container">
+                <div class="features-header">
+                    <div class="section-label reveal">Features</div>
+                    <h2 class="section-heading reveal reveal-delay-1">
+                        Everything you need,<br />nothing you don't
+                    </h2>
+                    <p class="section-desc reveal reveal-delay-2">
+                        Built for engineers who document as they build. No
+                        accounts, no cloud sync, no distractions.
+                    </p>
+                </div>
+
+                <div class="features-grid">
+                    <!-- 1: Daily Entries -->
+                    <div class="feature-card reveal">
+                        <div class="feature-icon">
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <rect
+                                    x="3"
+                                    y="4"
+                                    width="18"
+                                    height="18"
+                                    rx="2"
+                                />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Daily Entries</h3>
+                        <p class="feature-desc">
+                            Entries organized by day with timestamps. Hit
+                            <span class="feature-kbd"
+                                >&thinsp;&#8984;J&thinsp;</span
+                            >
+                            to start a new entry instantly.
+                        </p>
+                    </div>
+
+                    <!-- 2: Rich Text -->
+                    <div class="feature-card reveal reveal-delay-1">
+                        <div class="feature-icon">
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path d="M12 20h9" />
+                                <path
+                                    d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"
+                                />
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Rich Text Editing</h3>
+                        <p class="feature-desc">
+                            Powered by BlockNote. Type
+                            <span class="feature-kbd">&thinsp;/&thinsp;</span>
+                            for slash commands — headings, lists, code blocks,
+                            and more.
+                        </p>
+                    </div>
+
+                    <!-- 3: Drawings -->
+                    <div class="feature-card reveal reveal-delay-2">
+                        <div class="feature-icon">
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                <path d="M9 12l2 2 4-4" />
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Inline Drawings</h3>
+                        <p class="feature-desc">
+                            Embed Excalidraw diagrams right in your notes with
+                            the
+                            <span class="feature-kbd"
+                                >&thinsp;/drawing&thinsp;</span
+                            >
+                            command. Resizable canvases.
+                        </p>
+                    </div>
+
+                    <!-- 4: Tagging -->
+                    <div class="feature-card reveal reveal-delay-3">
+                        <div class="feature-icon">
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path
+                                    d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"
+                                />
+                                <line x1="7" y1="7" x2="7.01" y2="7" />
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Tagging System</h3>
+                        <p class="feature-desc">
+                            Categorize entries with color-coded tags. Click any
+                            tag in the sidebar to filter your notes instantly.
+                        </p>
+                    </div>
+
+                    <!-- 5: Search -->
+                    <div class="feature-card reveal reveal-delay-4">
+                        <div class="feature-icon">
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Full-Text Search</h3>
+                        <p class="feature-desc">
+                            Search across all entries, content, and tags. Press
+                            <span class="feature-kbd"
+                                >&thinsp;&#8984;K&thinsp;</span
+                            >
+                            for instant results.
+                        </p>
+                    </div>
+
+                    <!-- 6: Local-first -->
+                    <div class="feature-card reveal reveal-delay-5">
+                        <div class="feature-icon">
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <rect
+                                    x="3"
+                                    y="11"
+                                    width="18"
+                                    height="11"
+                                    rx="2"
+                                />
+                                <path d="M7 11V7a5 5 0 0110 0v4" />
+                            </svg>
+                        </div>
+                        <h3 class="feature-title">Local-First & Private</h3>
+                        <p class="feature-desc">
+                            All data stored in your browser's IndexedDB. No
+                            server, no accounts, no tracking. Your notes stay
+                            yours.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─── HOW IT WORKS ─── -->
+        <section class="how-it-works" id="how-it-works">
+            <div class="container">
+                <div class="how-header">
+                    <div class="section-label reveal">How it works</div>
+                    <h2 class="section-heading reveal reveal-delay-1">
+                        Open. Write. Done.
+                    </h2>
+                    <p class="section-desc reveal reveal-delay-2">
+                        No sign-up, no install. Just open the app and start
+                        documenting your engineering work.
+                    </p>
+                </div>
+
+                <div class="steps">
+                    <div class="step reveal">
+                        <div class="step-number">1</div>
+                        <h3 class="step-title">Open the app</h3>
+                        <p class="step-desc">
+                            Go to
+                            <a
+                                href="https://workledger.org"
+                                style="color: var(--orange); font-weight: 500"
+                                >workledger.org</a
+                            >
+                            — no sign-up, no install. Or self-host from the
+                            repo.
+                        </p>
+                    </div>
+                    <div class="step reveal reveal-delay-2">
+                        <div class="step-number">2</div>
+                        <h3 class="step-title">Write & draw</h3>
+                        <p class="step-desc">
+                            Create entries with rich text, embed diagrams, and
+                            tag your notes. Everything auto-saves locally.
+                        </p>
+                    </div>
+                    <div class="step reveal reveal-delay-4">
+                        <div class="step-number">3</div>
+                        <h3 class="step-title">Search & filter</h3>
+                        <p class="step-desc">
+                            Find anything instantly with full-text search, tag
+                            filtering, and keyboard shortcuts.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─── TECH STACK ─── -->
+        <section class="tech" id="tech">
+            <div class="container">
+                <div class="tech-inner">
+                    <div class="section-label reveal">Built with</div>
+                    <h2 class="section-heading reveal reveal-delay-1">
+                        Modern, lean tech stack
+                    </h2>
+                    <p class="section-desc reveal reveal-delay-2">
+                        No heavy frameworks. No complex backend. Just the tools
+                        that get the job done.
+                    </p>
+
+                    <div class="tech-badges reveal reveal-delay-3">
+                        <span class="tech-badge">
+                            <svg viewBox="0 0 24 24" fill="#61DAFB">
+                                <path
+                                    d="M12 10.11c1.03 0 1.87.84 1.87 1.89 0 1-.84 1.85-1.87 1.85S10.13 13 10.13 12c0-1.05.84-1.89 1.87-1.89M7.37 20c.63.38 2.01-.2 3.6-1.7-.52-.59-1.03-1.23-1.51-1.9a22.7 22.7 0 01-2.4-.36c-.51 2.14-.32 3.61.31 3.96m.71-5.74l-.29-.51c-.11.29-.22.58-.29.86.27.06.57.11.88.16l-.3-.51m6.54-.76l.81-1.5-.81-1.5c-.3-.53-.62-1-.91-1.47C13.17 9 12.6 9 12 9c-.6 0-1.17 0-1.71.03-.29.47-.61.94-.91 1.47L8.57 12l.81 1.5c.3.53.62 1 .91 1.47.54.03 1.11.03 1.71.03.6 0 1.17 0 1.71-.03.29-.47.61-.94.91-1.47M12 6.78c-.19.22-.39.45-.59.72h1.18c-.2-.27-.4-.5-.59-.72m0 10.44c.19-.22.39-.45.59-.72h-1.18c.2.27.4.5.59.72M16.62 4c-.62-.38-2 .2-3.59 1.7.52.59 1.03 1.23 1.51 1.9.82.08 1.63.2 2.4.36.51-2.14.32-3.61-.32-3.96m-.7 5.74l.29.51c.11-.29.22-.58.29-.86-.27-.06-.57-.11-.88-.16l.3.51m1.45-7.05c1.47.84 1.63 3.05 1.01 5.63 2.54.75 4.37 1.99 4.37 3.68 0 1.69-1.83 2.93-4.37 3.68.62 2.58.46 4.79-1.01 5.63-1.46.84-3.45-.12-5.37-1.95-1.92 1.83-3.91 2.79-5.38 1.95-1.46-.84-1.62-3.05-1-5.63-2.54-.75-4.37-1.99-4.37-3.68 0-1.69 1.83-2.93 4.37-3.68-.62-2.58-.46-4.79 1-5.63 1.47-.84 3.46.12 5.38 1.95 1.92-1.83 3.91-2.79 5.37-1.95M17.08 12c.34.75.64 1.5.89 2.26 2.1-.63 3.28-1.53 3.28-2.26 0-.73-1.18-1.63-3.28-2.26-.25.76-.55 1.51-.89 2.26M6.92 12c-.34-.75-.64-1.5-.89-2.26-2.1.63-3.28 1.53-3.28 2.26 0 .73 1.18 1.63 3.28 2.26.25-.76.55-1.51.89-2.26m9 2.26l-.3.51c.31-.05.61-.1.88-.16-.07-.28-.18-.57-.29-.86l-.29.51m-9.82 1.12c.11.29.22.58.29.86.27-.06.57-.11.88-.16l-.29-.51-.88-.19m9.53-6.76c-.11-.29-.22-.58-.29-.86-.27.06-.57.11-.88.16l.29.51.88.19"
+                                />
+                            </svg>
+                            React
+                        </span>
+                        <span class="tech-badge">
+                            <svg viewBox="0 0 24 24" fill="#3178C6">
+                                <path
+                                    d="M1.125 0C.502 0 0 .502 0 1.125v21.75C0 23.498.502 24 1.125 24h21.75c.623 0 1.125-.502 1.125-1.125V1.125C24 .502 23.498 0 22.875 0zm17.363 9.75c.612 0 1.154.037 1.627.111a6.38 6.38 0 011.306.34v2.458a3.95 3.95 0 00-.643-.361 5.093 5.093 0 00-.717-.26 5.453 5.453 0 00-1.426-.2c-.3 0-.573.028-.819.086a2.1 2.1 0 00-.623.242c-.17.104-.3.229-.393.374a.888.888 0 00-.14.49c0 .196.053.373.156.529.104.156.252.304.443.444s.423.276.696.41c.273.135.582.274.926.416.47.197.892.407 1.266.628.374.222.695.473.963.753.268.279.472.598.614.957.142.359.214.776.214 1.253 0 .657-.125 1.21-.373 1.656a3.033 3.033 0 01-1.012 1.085 4.38 4.38 0 01-1.487.596c-.566.12-1.163.18-1.79.18a9.916 9.916 0 01-1.84-.164 5.544 5.544 0 01-1.512-.493v-2.63a5.033 5.033 0 003.237 1.2c.333 0 .624-.03.872-.09.249-.06.456-.144.623-.25.166-.108.29-.234.373-.38a1.023 1.023 0 00-.074-1.089 2.12 2.12 0 00-.537-.5 5.597 5.597 0 00-.807-.444 27.72 27.72 0 00-1.007-.436c-.918-.383-1.602-.852-2.053-1.405-.45-.553-.676-1.222-.676-2.005 0-.614.123-1.141.369-1.582.246-.441.58-.804 1.004-1.089a4.494 4.494 0 011.47-.629 7.536 7.536 0 011.77-.201zm-15.113.188h9.563v2.166H9.506v9.646H6.789v-9.646H3.375z"
+                                />
+                            </svg>
+                            TypeScript
+                        </span>
+                        <span class="tech-badge">
+                            <svg viewBox="0 0 24 24" fill="#646CFF">
+                                <path
+                                    d="m12.001 1.34-11 6.34v8.64l11 6.34 11-6.34V7.68l-11-6.34zM5.5 14.66v-3.32L12 14.66l6.5-3.32v3.32L12 18l-6.5-3.34z"
+                                />
+                            </svg>
+                            Vite
+                        </span>
+                        <span class="tech-badge">
+                            <svg viewBox="0 0 24 24" fill="#06B6D4">
+                                <path
+                                    d="M12.001 4.8c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624C13.666 10.618 15.027 12 18.001 12c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C16.337 6.182 14.976 4.8 12.001 4.8zm-6 7.2c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624 1.177 1.194 2.538 2.576 5.512 2.576 3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C10.337 13.382 8.976 12 6.001 12z"
+                                />
+                            </svg>
+                            Tailwind CSS
+                        </span>
+                        <span class="tech-badge">
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="#f97316"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <path d="M12 20h9" />
+                                <path
+                                    d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"
+                                />
+                            </svg>
+                            BlockNote
+                        </span>
+                        <span class="tech-badge">
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="#6366f1"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M8 12l2 2 4-4" />
+                            </svg>
+                            Excalidraw
+                        </span>
+                        <span class="tech-badge">
+                            <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="#78716c"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <ellipse cx="12" cy="5" rx="9" ry="3" />
+                                <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+                                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                            </svg>
+                            IndexedDB
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─── FOOTER ─── -->
+        <footer class="footer">
+            <div class="container footer-inner">
+                <div class="footer-brand">
+                    <svg
+                        viewBox="0 0 36 40"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <rect
+                            x="4"
+                            y="2"
+                            width="28"
+                            height="36"
+                            rx="3"
+                            fill="#f97316"
+                        />
+                        <rect
+                            x="7"
+                            y="4"
+                            width="23"
+                            height="32"
+                            rx="2"
+                            fill="white"
+                        />
+                        <rect
+                            x="4"
+                            y="2"
+                            width="5"
+                            height="36"
+                            rx="2"
+                            fill="#ea580c"
+                        />
+                        <line
+                            x1="14"
+                            y1="12"
+                            x2="26"
+                            y2="12"
+                            stroke="#e5e7eb"
+                            stroke-width="1.2"
+                            stroke-linecap="round"
+                        />
+                        <line
+                            x1="14"
+                            y1="17"
+                            x2="24"
+                            y2="17"
+                            stroke="#e5e7eb"
+                            stroke-width="1.2"
+                            stroke-linecap="round"
+                        />
+                        <line
+                            x1="14"
+                            y1="22"
+                            x2="25"
+                            y2="22"
+                            stroke="#e5e7eb"
+                            stroke-width="1.2"
+                            stroke-linecap="round"
+                        />
+                        <line
+                            x1="14"
+                            y1="27"
+                            x2="22"
+                            y2="27"
+                            stroke="#e5e7eb"
+                            stroke-width="1.2"
+                            stroke-linecap="round"
+                        />
+                        <path
+                            d="M22 2 L22 10 L24.5 8 L27 10 L27 2"
+                            fill="#fb923c"
+                        />
+                    </svg>
+                    <span>WorkLedger</span>
+                </div>
+                <div class="footer-right">
+                    <a href="https://workledger.org" class="footer-link"
+                        >Open App</a
+                    >
+                    <a
+                        href="https://github.com/gruberb/workledger"
+                        class="footer-link"
+                        target="_blank"
+                        rel="noopener"
+                        >GitHub</a
+                    >
+                    <a
+                        href="https://github.com/gruberb/workledger/issues"
+                        class="footer-link"
+                        target="_blank"
+                        rel="noopener"
+                        >Issues</a
+                    >
+                    <span class="footer-copy">&copy; 2026 WorkLedger</span>
+                </div>
+            </div>
+        </footer>
+
+        <!-- ─── SCROLL TO TOP ─── -->
+        <button
+            class="scroll-top"
+            id="scrollTop"
+            aria-label="Scroll to top"
+            onclick="window.scrollTo({ top: 0 })"
+        >
+            <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M18 15l-6-6-6 6" />
+            </svg>
+        </button>
+
+        <!-- ─── SCRIPTS ─── -->
+        <script>
+            // Nav scroll effect
+            const nav = document.getElementById("nav");
+            const scrollTop = document.getElementById("scrollTop");
+
+            function onScroll() {
+                const y = window.scrollY;
+                nav.classList.toggle("scrolled", y > 40);
+                scrollTop.classList.toggle("visible", y > 600);
+            }
+            window.addEventListener("scroll", onScroll, { passive: true });
+            onScroll();
+
+            // Intersection Observer for reveal animations
+            const revealEls = document.querySelectorAll(".reveal");
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add("visible");
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                },
+                {
+                    threshold: 0.12,
+                    rootMargin: "0px 0px -40px 0px",
+                },
+            );
+
+            revealEls.forEach((el) => observer.observe(el));
+        </script>
+    </body>
+</html>

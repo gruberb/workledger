@@ -1,0 +1,145 @@
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Playfair+Display:wght@500;600;700&display=swap");
+@import "tailwindcss";
+
+/* Notebook theme — clean, bright palette inspired by modern productivity apps */
+@theme {
+  --color-notebook-bg: #fafafa;
+  --color-notebook-text: #1a1a1a;
+  --color-notebook-accent: #f97316;
+  --color-notebook-ruling: #e5e5e5;
+}
+
+/* Sidebar title font */
+.sidebar-title-font {
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Day header handwriting font */
+.day-header-font {
+  font-family: "Caveat", cursive;
+  font-size: 1.75rem;
+  font-weight: 600;
+}
+
+/* Entry ruling line */
+.entry-ruling {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--color-notebook-ruling) 10%,
+    var(--color-notebook-ruling) 90%,
+    transparent
+  );
+}
+
+/* BlockNote overrides for notebook feel */
+[data-workledger-editor] .bn-editor {
+  background: transparent;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--color-notebook-text);
+  /* Remove left padding so text aligns with header/tags above.
+     The side menu (+/drag handle) will overflow into the left margin. */
+  padding-inline: 0;
+}
+
+[data-workledger-editor] .bn-container {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  overflow: visible;
+}
+
+[data-workledger-editor] .bn-block-group {
+  padding: 0;
+}
+
+/* Let side menu overflow to the left of the content area */
+[data-workledger-editor] .bn-side-menu {
+  margin-left: -54px;
+}
+
+/* Excalidraw preview sizing */
+.excalidraw-preview svg {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+}
+
+/* Excalidraw container — prevent canvas from stealing focus */
+.excalidraw-container .excalidraw {
+  --ui-font: system-ui, -apple-system, sans-serif;
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.35s ease-out;
+}
+
+/* Scale in animation for search panel */
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
+/* Search panel line clamp */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Body base styles */
+body {
+  background-color: var(--color-notebook-bg);
+  color: var(--color-notebook-text);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
