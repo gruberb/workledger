@@ -34,16 +34,13 @@ export default function App() {
   // Debounced sidebar filter
   useEffect(() => {
     if (!sidebarFilter.trim()) {
-      setFilteredDayKeys(null);
       setFilteredEntryIds(null);
       return;
     }
 
     const timer = setTimeout(async () => {
       const results = await searchEntries(sidebarFilter);
-      const matchingDays = [...new Set(results.map((r) => r.dayKey))];
       const matchingIds = new Set(results.map((r) => r.entryId));
-      setFilteredDayKeys(matchingDays);
       setFilteredEntryIds(matchingIds);
     }, 200);
 
