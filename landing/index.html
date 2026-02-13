@@ -802,49 +802,7 @@
                 }
             }
 
-            /* Small images row: enable + open source */
-            .ai-setup-row {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 32px;
-                margin-bottom: 48px;
-            }
-            .ai-setup-card {
-                background: var(--paper);
-                border: 1px solid var(--ruling);
-                border-radius: 12px;
-                overflow: hidden;
-                transition: all 0.3s ease;
-            }
-            .ai-setup-card:hover {
-                border-color: var(--orange-light);
-                box-shadow: 0 4px 16px rgba(249, 115, 22, 0.08);
-            }
-            .ai-setup-card img {
-                width: 100%;
-                display: block;
-            }
-            .ai-setup-caption {
-                padding: 16px 20px;
-            }
-            .ai-setup-caption h4 {
-                font-family: var(--font-display);
-                font-weight: 600;
-                font-size: 0.95rem;
-                margin-bottom: 4px;
-            }
-            .ai-setup-caption p {
-                font-size: 0.82rem;
-                color: var(--ink-muted);
-                line-height: 1.5;
-            }
-
-            /* Big images: note_models + note_conversation */
-            .ai-showcase-row {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 32px;
-            }
+            /* Screenshot showcase card */
             .ai-showcase-card {
                 border-radius: 12px;
                 overflow: hidden;
@@ -883,51 +841,95 @@
                 line-height: 1.5;
             }
 
-            /* Frameworks list */
+            /* Frameworks grid */
             .ai-frameworks {
-                margin-top: 48px;
-                padding-top: 40px;
-                border-top: 1px solid var(--ruling);
-                text-align: center;
+                margin-top: 56px;
             }
             .ai-frameworks-label {
                 font-family: var(--font-mono);
-                font-size: 0.7rem;
+                font-size: 0.75rem;
                 text-transform: uppercase;
-                letter-spacing: 0.1em;
-                color: var(--ink-muted);
-                margin-bottom: 16px;
+                letter-spacing: 0.12em;
+                color: var(--orange-dark);
+                margin-bottom: 24px;
+                text-align: center;
             }
-            .ai-framework-tags {
+            .ai-frameworks-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            .ai-fw-card {
+                background: var(--white);
+                border: 1px solid var(--ruling);
+                border-radius: 10px;
+                padding: 14px 16px;
+                transition: all 0.25s ease;
+            }
+            .ai-fw-card:hover {
+                border-color: var(--orange-light);
+                box-shadow: 0 4px 16px rgba(249, 115, 22, 0.08);
+            }
+            .ai-fw-header {
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+                margin-bottom: 8px;
+            }
+            .ai-fw-icon {
+                font-size: 1.15rem;
+                line-height: 1;
+                flex-shrink: 0;
+                margin-top: 2px;
+            }
+            .ai-fw-name {
+                font-family: var(--font-display);
+                font-weight: 600;
+                font-size: 0.9rem;
+                letter-spacing: -0.01em;
+                margin-bottom: 1px;
+            }
+            .ai-fw-author {
+                font-size: 0.7rem;
+                color: var(--ink-muted);
+            }
+            .ai-fw-desc {
+                font-size: 0.78rem;
+                color: var(--ink-light);
+                line-height: 1.5;
+                margin-bottom: 10px;
+            }
+            .ai-fw-steps {
                 display: flex;
                 flex-wrap: wrap;
-                justify-content: center;
-                gap: 8px;
+                gap: 4px;
             }
-            .ai-framework-tag {
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                padding: 6px 14px;
-                background: var(--paper);
+            .ai-fw-step {
+                font-size: 0.65rem;
+                padding: 2px 8px;
+                background: var(--ruling-light);
                 border: 1px solid var(--ruling);
                 border-radius: 100px;
-                font-size: 0.8rem;
+                color: var(--ink-muted);
                 font-weight: 500;
-                color: var(--ink-light);
-                transition: all 0.2s ease;
             }
-            .ai-framework-tag:hover {
-                border-color: var(--orange-light);
-                color: var(--orange-dark);
-                background: var(--orange-pale);
+            .ai-fw-category {
+                font-family: var(--font-mono);
+                font-size: 0.58rem;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                color: var(--orange);
+                font-weight: 500;
+                margin-bottom: 2px;
+            }
+
+            @media (max-width: 640px) {
+                .ai-frameworks-grid {
+                    grid-template-columns: 1fr;
+                }
             }
 
             @media (max-width: 720px) {
-                .ai-setup-row,
-                .ai-showcase-row {
-                    grid-template-columns: 1fr;
-                }
                 .ai-section::before,
                 .ai-section::after {
                     display: none;
@@ -1601,36 +1603,201 @@
                     </div>
                 </div>
 
-                <!-- Showcase: full-width stacked -->
-                <div class="ai-showcase-card reveal" style="margin-bottom: 32px;">
-                    <img src="./images/ai/note_models.png" alt="Choosing a thinking framework for a note" />
-                    <div class="ai-showcase-caption">
-                        <h4>Choose a thinking framework</h4>
-                        <p>Click the lightbulb on any note, then pick a framework — from First Principles to Six Thinking Hats.</p>
-                    </div>
-                </div>
-                <div class="ai-showcase-card reveal reveal-delay-1">
-                    <img src="./images/ai/note_conversation.png" alt="AI conversation using Six Thinking Hats on a note" />
+                <!-- Screenshot -->
+                <div class="ai-showcase-card reveal" style="margin-bottom: 0;">
+                    <img src="./images/ai/ai_in_action.png" alt="AI conversation using Six Thinking Hats on a note" />
                     <div class="ai-showcase-caption">
                         <h4>Structured AI conversation</h4>
                         <p>The framework is applied to your note's content. Switch steps, ask follow-ups, copy results.</p>
                     </div>
                 </div>
 
-                <!-- 10 frameworks -->
-                <div class="ai-frameworks reveal reveal-delay-4">
-                    <p class="ai-frameworks-label">10 thinking frameworks included</p>
-                    <div class="ai-framework-tags">
-                        <span class="ai-framework-tag">&#x1f9f0; The Thinker's Toolkit</span>
-                        <span class="ai-framework-tag">&#x1f52c; First Principles</span>
-                        <span class="ai-framework-tag">&#x1f3a9; Six Thinking Hats</span>
-                        <span class="ai-framework-tag">&#x1f4a1; TRIZ</span>
-                        <span class="ai-framework-tag">&#x1f3a8; Design Thinking</span>
-                        <span class="ai-framework-tag">&#x1f3db;&#xfe0f; Socratic Method</span>
-                        <span class="ai-framework-tag">&#x1f310; Systems Thinking</span>
-                        <span class="ai-framework-tag">&#x1f500; Lateral Thinking</span>
-                        <span class="ai-framework-tag">&#x1f3af; OODA Loop</span>
-                        <span class="ai-framework-tag">&#x26d3;&#xfe0f; Theory of Constraints</span>
+                <!-- 10 frameworks as full cards -->
+                <div class="ai-frameworks">
+                    <p class="ai-frameworks-label reveal">10 thinking frameworks included</p>
+                    <div class="ai-frameworks-grid">
+
+                        <div class="ai-fw-card reveal">
+                            <div class="ai-fw-header">
+                                <span class="ai-fw-icon">&#x1f9f0;</span>
+                                <div>
+                                    <div class="ai-fw-category">Analytical</div>
+                                    <div class="ai-fw-name">The Thinker's Toolkit</div>
+                                    <div class="ai-fw-author">Morgan D. Jones</div>
+                                </div>
+                            </div>
+                            <p class="ai-fw-desc">14 powerful techniques for structured analysis — from problem definition through stress testing.</p>
+                            <div class="ai-fw-steps">
+                                <span class="ai-fw-step">Problem Definition</span>
+                                <span class="ai-fw-step">Information Analysis</span>
+                                <span class="ai-fw-step">Option Generation</span>
+                                <span class="ai-fw-step">Structured Evaluation</span>
+                                <span class="ai-fw-step">Stress Testing</span>
+                            </div>
+                        </div>
+
+                        <div class="ai-fw-card reveal reveal-delay-1">
+                            <div class="ai-fw-header">
+                                <span class="ai-fw-icon">&#x1f52c;</span>
+                                <div>
+                                    <div class="ai-fw-category">Analytical</div>
+                                    <div class="ai-fw-name">First Principles Thinking</div>
+                                    <div class="ai-fw-author">Aristotle</div>
+                                </div>
+                            </div>
+                            <p class="ai-fw-desc">Break down problems to fundamental truths and rebuild from the ground up.</p>
+                            <div class="ai-fw-steps">
+                                <span class="ai-fw-step">Deconstruct Assumptions</span>
+                                <span class="ai-fw-step">Identify Fundamental Truths</span>
+                                <span class="ai-fw-step">Rebuild from Ground Up</span>
+                            </div>
+                        </div>
+
+                        <div class="ai-fw-card reveal">
+                            <div class="ai-fw-header">
+                                <span class="ai-fw-icon">&#x1f3a9;</span>
+                                <div>
+                                    <div class="ai-fw-category">Creative</div>
+                                    <div class="ai-fw-name">Six Thinking Hats</div>
+                                    <div class="ai-fw-author">Edward de Bono</div>
+                                </div>
+                            </div>
+                            <p class="ai-fw-desc">Explore a problem from six distinct perspectives — facts, emotions, caution, optimism, creativity, and process.</p>
+                            <div class="ai-fw-steps">
+                                <span class="ai-fw-step">White Hat — Facts</span>
+                                <span class="ai-fw-step">Red Hat — Emotions</span>
+                                <span class="ai-fw-step">Black Hat — Caution</span>
+                                <span class="ai-fw-step">Yellow Hat — Optimism</span>
+                                <span class="ai-fw-step">Green Hat — Creativity</span>
+                                <span class="ai-fw-step">Blue Hat — Process</span>
+                            </div>
+                        </div>
+
+                        <div class="ai-fw-card reveal reveal-delay-1">
+                            <div class="ai-fw-header">
+                                <span class="ai-fw-icon">&#x1f4a1;</span>
+                                <div>
+                                    <div class="ai-fw-category">Creative</div>
+                                    <div class="ai-fw-name">TRIZ</div>
+                                    <div class="ai-fw-author">Genrich Altshuller</div>
+                                </div>
+                            </div>
+                            <p class="ai-fw-desc">Theory of Inventive Problem Solving — model contradictions and apply inventive principles.</p>
+                            <div class="ai-fw-steps">
+                                <span class="ai-fw-step">Model the Problem</span>
+                                <span class="ai-fw-step">Analyze Contradictions</span>
+                                <span class="ai-fw-step">Apply Inventive Principles</span>
+                            </div>
+                        </div>
+
+                        <div class="ai-fw-card reveal">
+                            <div class="ai-fw-header">
+                                <span class="ai-fw-icon">&#x1f3a8;</span>
+                                <div>
+                                    <div class="ai-fw-category">Creative</div>
+                                    <div class="ai-fw-name">Design Thinking</div>
+                                    <div class="ai-fw-author">IDEO / Stanford d.school</div>
+                                </div>
+                            </div>
+                            <p class="ai-fw-desc">Human-centered innovation — empathize, define, ideate, prototype, test.</p>
+                            <div class="ai-fw-steps">
+                                <span class="ai-fw-step">Empathize</span>
+                                <span class="ai-fw-step">Define</span>
+                                <span class="ai-fw-step">Ideate</span>
+                                <span class="ai-fw-step">Prototype</span>
+                                <span class="ai-fw-step">Test</span>
+                            </div>
+                        </div>
+
+                        <div class="ai-fw-card reveal reveal-delay-1">
+                            <div class="ai-fw-header">
+                                <span class="ai-fw-icon">&#x1f3db;&#xfe0f;</span>
+                                <div>
+                                    <div class="ai-fw-category">Analytical</div>
+                                    <div class="ai-fw-name">Socratic Method</div>
+                                    <div class="ai-fw-author">Socrates</div>
+                                </div>
+                            </div>
+                            <p class="ai-fw-desc">Systematic questioning to examine ideas, expose contradictions, and stimulate critical thinking.</p>
+                            <div class="ai-fw-steps">
+                                <span class="ai-fw-step">Clarification Questions</span>
+                                <span class="ai-fw-step">Assumption Probing</span>
+                                <span class="ai-fw-step">Evidence Examination</span>
+                                <span class="ai-fw-step">Implication Exploration</span>
+                            </div>
+                        </div>
+
+                        <div class="ai-fw-card reveal">
+                            <div class="ai-fw-header">
+                                <span class="ai-fw-icon">&#x1f310;</span>
+                                <div>
+                                    <div class="ai-fw-category">Strategic</div>
+                                    <div class="ai-fw-name">Systems Thinking</div>
+                                    <div class="ai-fw-author">Peter Senge / Donella Meadows</div>
+                                </div>
+                            </div>
+                            <p class="ai-fw-desc">See the whole system — map relationships, feedback loops, and find leverage points.</p>
+                            <div class="ai-fw-steps">
+                                <span class="ai-fw-step">Map the System</span>
+                                <span class="ai-fw-step">Identify Feedback Loops</span>
+                                <span class="ai-fw-step">Find Leverage Points</span>
+                            </div>
+                        </div>
+
+                        <div class="ai-fw-card reveal reveal-delay-1">
+                            <div class="ai-fw-header">
+                                <span class="ai-fw-icon">&#x1f500;</span>
+                                <div>
+                                    <div class="ai-fw-category">Creative</div>
+                                    <div class="ai-fw-name">Lateral Thinking</div>
+                                    <div class="ai-fw-author">Edward de Bono</div>
+                                </div>
+                            </div>
+                            <p class="ai-fw-desc">Break free from logical patterns — use randomness, provocation, and alternatives.</p>
+                            <div class="ai-fw-steps">
+                                <span class="ai-fw-step">Random Entry</span>
+                                <span class="ai-fw-step">Provocation</span>
+                                <span class="ai-fw-step">Alternative Generation</span>
+                            </div>
+                        </div>
+
+                        <div class="ai-fw-card reveal">
+                            <div class="ai-fw-header">
+                                <span class="ai-fw-icon">&#x1f3af;</span>
+                                <div>
+                                    <div class="ai-fw-category">Decision Making</div>
+                                    <div class="ai-fw-name">OODA Loop</div>
+                                    <div class="ai-fw-author">John Boyd</div>
+                                </div>
+                            </div>
+                            <p class="ai-fw-desc">Rapid decision-making cycle — Observe, Orient, Decide, Act.</p>
+                            <div class="ai-fw-steps">
+                                <span class="ai-fw-step">Observe</span>
+                                <span class="ai-fw-step">Orient</span>
+                                <span class="ai-fw-step">Decide</span>
+                                <span class="ai-fw-step">Act</span>
+                            </div>
+                        </div>
+
+                        <div class="ai-fw-card reveal reveal-delay-1">
+                            <div class="ai-fw-header">
+                                <span class="ai-fw-icon">&#x26d3;&#xfe0f;</span>
+                                <div>
+                                    <div class="ai-fw-category">Strategic</div>
+                                    <div class="ai-fw-name">Theory of Constraints</div>
+                                    <div class="ai-fw-author">Eliyahu Goldratt</div>
+                                </div>
+                            </div>
+                            <p class="ai-fw-desc">Find the bottleneck, exploit it, and elevate system throughput.</p>
+                            <div class="ai-fw-steps">
+                                <span class="ai-fw-step">Identify the Constraint</span>
+                                <span class="ai-fw-step">Exploit</span>
+                                <span class="ai-fw-step">Subordinate</span>
+                                <span class="ai-fw-step">Elevate</span>
+                                <span class="ai-fw-step">Repeat</span>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
