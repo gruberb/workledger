@@ -35,12 +35,29 @@ export function EmptyEntries() {
   );
 }
 
-export function EmptyFilterResults({ filterQuery, onClearFilter }: { filterQuery: string; onClearFilter?: () => void }) {
+interface EmptyFilterResultsProps {
+  selectedTags: string[];
+  textQuery: string;
+  onClearAllFilters?: () => void;
+}
+
+export function EmptyFilterResults({ selectedTags, textQuery, onClearAllFilters }: EmptyFilterResultsProps) {
+  const description = [
+    ...selectedTags.map((t) => `#${t}`),
+    ...(textQuery.trim() ? [`"${textQuery.trim()}"`] : []),
+  ].join(" + ");
+
   return (
     <div className="entry-stream">
-      <FilterBanner query={filterQuery} count={0} onClear={onClearFilter} />
+      <FilterBanner
+        selectedTags={selectedTags}
+        textQuery={textQuery}
+        count={0}
+        onRemoveTag={() => {}}
+        onClearAll={onClearAllFilters ?? (() => {})}
+      />
       <div className="flex flex-col items-center text-center py-16">
-        <p className="text-gray-400 text-sm">No entries match "{filterQuery}"</p>
+        <p className="text-gray-400 text-sm">No entries match {description}</p>
       </div>
     </div>
   );

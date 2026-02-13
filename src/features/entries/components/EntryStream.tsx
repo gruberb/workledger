@@ -13,15 +13,18 @@ interface EntryStreamProps {
   onDelete?: (id: string) => void;
   onUnarchive?: (id: string) => void;
   isArchiveView?: boolean;
-  filterQuery?: string;
-  onClearFilter?: () => void;
+  textQuery?: string;
+  selectedTags?: string[];
+  hasActiveFilters?: boolean;
+  onRemoveTag?: (tag: string) => void;
+  onClearAllFilters?: () => void;
   onOpenAI?: (entry: WorkLedgerEntry) => void;
   focusedEntryId?: string | null;
   onFocusEntry?: (entry: WorkLedgerEntry) => void;
   onExitFocus?: () => void;
 }
 
-export function EntryStream({ entriesByDay, onSave, onTagsChange, onArchive, onDelete, onUnarchive, isArchiveView, filterQuery, onClearFilter, onOpenAI, focusedEntryId, onFocusEntry, onExitFocus }: EntryStreamProps) {
+export function EntryStream({ entriesByDay, onSave, onTagsChange, onArchive, onDelete, onUnarchive, isArchiveView, textQuery, selectedTags, hasActiveFilters, onRemoveTag, onClearAllFilters, onOpenAI, focusedEntryId, onFocusEntry, onExitFocus }: EntryStreamProps) {
   // Focus mode: render only the focused entry
   if (focusedEntryId) {
     let focusedEntry: WorkLedgerEntry | undefined;
@@ -81,7 +84,7 @@ export function EntryStream({ entriesByDay, onSave, onTagsChange, onArchive, onD
     b.localeCompare(a),
   );
 
-  const isFiltering = !!filterQuery?.trim();
+  const isFiltering = !!hasActiveFilters;
   const totalFilteredEntries = isFiltering
     ? sortedDays.reduce((sum, dk) => sum + (entriesByDay.get(dk)?.length || 0), 0)
     : 0;
@@ -95,13 +98,19 @@ export function EntryStream({ entriesByDay, onSave, onTagsChange, onArchive, onD
   }
 
   if (sortedDays.length === 0 && isFiltering) {
-    return <EmptyFilterResults filterQuery={filterQuery!} onClearFilter={onClearFilter} />;
+    return <EmptyFilterResults selectedTags={selectedTags ?? []} textQuery={textQuery ?? ""} onClearAllFilters={onClearAllFilters} />;
   }
 
   return (
     <div className="entry-stream">
       {isFiltering && (
-        <FilterBanner query={filterQuery!} count={totalFilteredEntries} onClear={onClearFilter} />
+        <FilterBanner
+          selectedTags={selectedTags ?? []}
+          textQuery={textQuery ?? ""}
+          count={totalFilteredEntries}
+          onRemoveTag={onRemoveTag ?? (() => {})}
+          onClearAll={onClearAllFilters ?? (() => {})}
+        />
       )}
       {sortedDays.map((dayKey) => {
         const entries = entriesByDay.get(dayKey) || [];

@@ -7,7 +7,7 @@ import { useSearch } from "../features/search/hooks/useSearch.ts";
 
 export function useKeyboardShortcuts() {
   const { createEntry } = useEntriesActions();
-  const { archiveView, filter, setFilter, toggleSidebar } = useSidebarContext();
+  const { archiveView, hasActiveFilters, clearAllFilters, toggleSidebar } = useSidebarContext();
   const { focusedEntryId, handleExitFocus } = useFocusModeContext();
   const { settings: aiSettings, handleToggleAISidebar } = useAIContext();
   const { isOpen: searchOpen, open: openSearch, close: closeSearch } = useSearch();
@@ -45,14 +45,14 @@ export function useKeyboardShortcuts() {
       }
       if (e.key === "Escape" && focusedEntryId) {
         handleExitFocus();
-      } else if (e.key === "Escape" && filter) {
-        setFilter("");
+      } else if (e.key === "Escape" && hasActiveFilters) {
+        clearAllFilters();
       }
     };
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleNewEntry, searchOpen, closeSearch, openSearch, filter, archiveView, aiSettings.enabled, handleToggleAISidebar, focusedEntryId, handleExitFocus, toggleSidebar, setFilter]);
+  }, [handleNewEntry, searchOpen, closeSearch, openSearch, hasActiveFilters, archiveView, aiSettings.enabled, handleToggleAISidebar, focusedEntryId, handleExitFocus, toggleSidebar, clearAllFilters]);
 
   return { handleNewEntry };
 }

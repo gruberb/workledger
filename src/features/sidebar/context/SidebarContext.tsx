@@ -9,9 +9,13 @@ interface SidebarContextValue {
   isOpen: boolean;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
-  filter: string;
-  setFilter: (query: string) => void;
-  clearFilter: () => void;
+  selectedTags: string[];
+  toggleTag: (tag: string) => void;
+  removeTag: (tag: string) => void;
+  textQuery: string;
+  setTextQuery: (query: string) => void;
+  clearAllFilters: () => void;
+  hasActiveFilters: boolean;
   archiveView: boolean;
   toggleArchiveView: () => void;
   activeDayKey: string | null;
@@ -32,69 +36,109 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const { refresh, refreshArchive } = useEntriesActions();
 
   const [isOpen, setIsOpen] = useState(true);
-  const [filter, setFilter] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [textQuery, setTextQuery] = useState("");
   const [filteredEntryIds, setFilteredEntryIds] = useState<Set<string> | null>(null);
   const [archiveView, setArchiveView] = useState(false);
   const [activeDayKey, setActiveDayKey] = useState<string | null>(null);
 
   const toggleSidebar = useCallback(() => setIsOpen((prev) => !prev), []);
   const setSidebarOpen = useCallback((open: boolean) => setIsOpen(open), []);
-  const clearFilter = useCallback(() => setFilter(""), []);
 
-  // Debounced sidebar filter
+  const toggleTag = useCallback((tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
+  }, []);
+
+  const removeTag = useCallback((tag: string) => {
+    setSelectedTags((prev) => prev.filter((t) => t !== tag));
+  }, []);
+
+  const clearAllFilters = useCallback(() => {
+    setSelectedTags([]);
+    setTextQuery("");
+  }, []);
+
+  const hasActiveFilters = selectedTags.length > 0 || textQuery.trim() !== "";
+
+  // Debounced text search
   useEffect(() => {
     const timer = setTimeout(async () => {
-      if (!filter.trim()) {
+      if (!textQuery.trim()) {
         setFilteredEntryIds(null);
         return;
       }
-      const results = await searchEntries(filter);
+      const results = await searchEntries(textQuery);
       setFilteredEntryIds(new Set(results.map((r) => r.entryId)));
     }, 200);
     return () => clearTimeout(timer);
-  }, [filter]);
+  }, [textQuery]);
 
   const displayEntriesByDay = useMemo(() => {
-    if (!filter.trim()) return entriesByDay;
-    const filterLower = filter.trim().toLowerCase();
+    const hasTagFilter = selectedTags.length > 0;
+    const hasTextFilter = textQuery.trim() !== "";
+    if (!hasTagFilter && !hasTextFilter) return entriesByDay;
+
+    const textLower = textQuery.trim().toLowerCase();
     const filtered = new Map<string, WorkLedgerEntry[]>();
     for (const [dayKey, entries] of entriesByDay) {
       const matching = entries.filter((e) => {
-        if (e.tags?.some((t) => t.toLowerCase().includes(filterLower))) return true;
-        if (filteredEntryIds?.has(e.id)) return true;
-        return false;
+        // Tag filter: entry must have every selected tag (exact match, AND logic)
+        if (hasTagFilter) {
+          const entryTags = e.tags ?? [];
+          if (!selectedTags.every((st) => entryTags.includes(st))) return false;
+        }
+        // Text filter: search index + in-memory tag substring match
+        if (hasTextFilter) {
+          const tagMatch = e.tags?.some((t) => t.toLowerCase().includes(textLower));
+          const indexMatch = filteredEntryIds?.has(e.id);
+          if (!tagMatch && !indexMatch) return false;
+        }
+        return true;
       });
       if (matching.length > 0) {
         filtered.set(dayKey, matching);
       }
     }
     return filtered;
-  }, [entriesByDay, filteredEntryIds, filter]);
+  }, [entriesByDay, filteredEntryIds, selectedTags, textQuery]);
 
   const sidebarDayKeys = useMemo(
-    () => (filter.trim() ? [...displayEntriesByDay.keys()].sort((a, b) => b.localeCompare(a)) : dayKeys),
-    [filter, displayEntriesByDay, dayKeys],
+    () => (hasActiveFilters ? [...displayEntriesByDay.keys()].sort((a, b) => b.localeCompare(a)) : dayKeys),
+    [hasActiveFilters, displayEntriesByDay, dayKeys],
   );
 
   const displayArchivedEntriesByDay = useMemo(() => {
-    if (!filter.trim()) return archivedEntries;
-    const filterLower = filter.trim().toLowerCase();
+    const hasTagFilter = selectedTags.length > 0;
+    const hasTextFilter = textQuery.trim() !== "";
+    if (!hasTagFilter && !hasTextFilter) return archivedEntries;
+
+    const textLower = textQuery.trim().toLowerCase();
     const filtered = new Map<string, WorkLedgerEntry[]>();
     for (const [dayKey, entries] of archivedEntries) {
       const matching = entries.filter((e) => {
-        if (e.tags?.some((t) => t.toLowerCase().includes(filterLower))) return true;
-        if (e.blocks?.length) {
-          const text = extractTextFromBlocks(e.blocks as Block[]).toLowerCase();
-          if (text.includes(filterLower)) return true;
+        if (hasTagFilter) {
+          const entryTags = e.tags ?? [];
+          if (!selectedTags.every((st) => entryTags.includes(st))) return false;
         }
-        return false;
+        if (hasTextFilter) {
+          const tagMatch = e.tags?.some((t) => t.toLowerCase().includes(textLower));
+          let textMatch = false;
+          if (e.blocks?.length) {
+            const text = extractTextFromBlocks(e.blocks as Block[]).toLowerCase();
+            if (text.includes(textLower)) textMatch = true;
+          }
+          if (!tagMatch && !textMatch) return false;
+        }
+        return true;
       });
       if (matching.length > 0) {
         filtered.set(dayKey, matching);
       }
     }
     return filtered;
-  }, [archivedEntries, filter]);
+  }, [archivedEntries, selectedTags, textQuery]);
 
   const archivedDayKeys = useMemo(
     () => [...displayArchivedEntriesByDay.keys()].sort((a, b) => b.localeCompare(a)),
@@ -128,7 +172,8 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
       }
       return !prev;
     });
-    setFilter("");
+    setSelectedTags([]);
+    setTextQuery("");
   }, [refreshArchive]);
 
   const handleDeleteAll = useCallback(async () => {
@@ -142,9 +187,13 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     isOpen,
     toggleSidebar,
     setSidebarOpen,
-    filter,
-    setFilter,
-    clearFilter,
+    selectedTags,
+    toggleTag,
+    removeTag,
+    textQuery,
+    setTextQuery,
+    clearAllFilters,
+    hasActiveFilters,
     archiveView,
     toggleArchiveView,
     activeDayKey,

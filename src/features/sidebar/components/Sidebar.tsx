@@ -11,11 +11,12 @@ interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
   onDayClick: (dayKey: string) => void;
-  sidebarSearchQuery: string;
-  onSidebarSearch: (query: string) => void;
+  textQuery: string;
+  onTextSearch: (query: string) => void;
   onSearchOpen: () => void;
   allTags: string[];
-  onTagClick: (tag: string) => void;
+  selectedTags: string[];
+  onToggleTag: (tag: string) => void;
   onRefresh: () => void;
   isArchiveView: boolean;
   onToggleArchiveView: () => void;
@@ -34,11 +35,12 @@ export function Sidebar({
   isOpen,
   onToggle,
   onDayClick,
-  sidebarSearchQuery,
-  onSidebarSearch,
+  textQuery,
+  onTextSearch,
   onSearchOpen,
   allTags,
-  onTagClick,
+  selectedTags,
+  onToggleTag,
   onRefresh,
   isArchiveView,
   onToggleArchiveView,
@@ -127,15 +129,15 @@ export function Sidebar({
             </svg>
             <input
               type="text"
-              value={sidebarSearchQuery}
-              onChange={(e) => onSidebarSearch(e.target.value)}
+              value={textQuery}
+              onChange={(e) => onTextSearch(e.target.value)}
               placeholder={isArchiveView ? "Filter archive..." : "Filter entries..."}
               className="w-full text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg pl-8 pr-7 py-2 outline-none focus:border-orange-300 focus:bg-white dark:focus:bg-gray-800 focus:ring-1 focus:ring-orange-100 dark:focus:ring-orange-900 transition-all text-gray-600 dark:text-gray-300 placeholder:text-gray-400 dark:placeholder:text-gray-500"
               autoComplete="off"
               data-1p-ignore
             />
-            {sidebarSearchQuery && (
-              <button onClick={() => onSidebarSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            {textQuery && (
+              <button onClick={() => onTextSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -185,8 +187,8 @@ export function Sidebar({
         {!isArchiveView && (
           <SidebarTagCloud
             allTags={allTags}
-            sidebarSearchQuery={sidebarSearchQuery}
-            onTagClick={onTagClick}
+            selectedTags={selectedTags}
+            onToggleTag={onToggleTag}
           />
         )}
 

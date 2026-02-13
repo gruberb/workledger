@@ -3,11 +3,11 @@ import { getTagColor } from "../../entries/utils/tag-colors.ts";
 
 interface SidebarTagCloudProps {
   allTags: string[];
-  sidebarSearchQuery: string;
-  onTagClick: (tag: string) => void;
+  selectedTags: string[];
+  onToggleTag: (tag: string) => void;
 }
 
-export function SidebarTagCloud({ allTags, sidebarSearchQuery, onTagClick }: SidebarTagCloudProps) {
+export function SidebarTagCloud({ allTags, selectedTags, onToggleTag }: SidebarTagCloudProps) {
   const [tagsExpanded, setTagsExpanded] = useState(true);
   const [tagsHeight, setTagsHeight] = useState(120);
   const dragRef = useRef<{ startY: number; startHeight: number } | null>(null);
@@ -74,12 +74,12 @@ export function SidebarTagCloud({ allTags, sidebarSearchQuery, onTagClick }: Sid
             {allTags.map((tag) => (
               <button
                 key={tag}
-                onClick={() => onTagClick(tag)}
+                onClick={() => onToggleTag(tag)}
                 className={`
                   px-2 py-0.5 rounded-full text-[11px] font-medium
                   transition-opacity hover:opacity-80
                   ${getTagColor(tag)}
-                  ${sidebarSearchQuery === tag ? "ring-2 ring-offset-1 ring-gray-300" : ""}
+                  ${selectedTags.includes(tag) ? "ring-2 ring-offset-1 ring-gray-400 dark:ring-gray-500" : ""}
                 `}
               >
                 {tag}

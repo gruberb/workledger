@@ -30,9 +30,13 @@ function AppContent() {
   const {
     isOpen: sidebarOpen,
     archiveView,
-    filter: sidebarFilter,
-    setFilter: setSidebarFilter,
-    clearFilter,
+    selectedTags,
+    toggleTag,
+    removeTag,
+    textQuery,
+    setTextQuery,
+    clearAllFilters,
+    hasActiveFilters,
     displayEntriesByDay,
     displayArchivedEntriesByDay,
     sidebarDayKeys,
@@ -72,11 +76,12 @@ function AppContent() {
         isOpen={sidebarOpen}
         onToggle={toggleSidebar}
         onDayClick={handleDayClick}
-        sidebarSearchQuery={sidebarFilter}
-        onSidebarSearch={setSidebarFilter}
+        textQuery={textQuery}
+        onTextSearch={setTextQuery}
         onSearchOpen={() => search("")}
         allTags={allTags}
-        onTagClick={(tag) => setSidebarFilter(tag)}
+        selectedTags={selectedTags}
+        onToggleTag={toggleTag}
         onRefresh={() => {}}
         isArchiveView={archiveView}
         onToggleArchiveView={toggleArchiveView}
@@ -98,8 +103,11 @@ function AppContent() {
           onDelete={deleteEntry}
           onUnarchive={archiveView ? unarchiveEntry : undefined}
           isArchiveView={archiveView}
-          filterQuery={sidebarFilter}
-          onClearFilter={clearFilter}
+          textQuery={textQuery}
+          selectedTags={selectedTags}
+          hasActiveFilters={hasActiveFilters}
+          onRemoveTag={removeTag}
+          onClearAllFilters={clearAllFilters}
           onOpenAI={aiSettings.enabled && aiAvailable ? handleOpenAI : undefined}
           focusedEntryId={focusedEntryId}
           onFocusEntry={handleFocusEntry}
