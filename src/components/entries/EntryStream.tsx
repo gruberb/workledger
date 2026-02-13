@@ -13,9 +13,10 @@ interface EntryStreamProps {
   isArchiveView?: boolean;
   filterQuery?: string;
   onClearFilter?: () => void;
+  onOpenAI?: (entry: WorkLedgerEntry) => void;
 }
 
-export function EntryStream({ entriesByDay, onSave, onTagsChange, onArchive, onDelete, onUnarchive, isArchiveView, filterQuery, onClearFilter }: EntryStreamProps) {
+export function EntryStream({ entriesByDay, onSave, onTagsChange, onArchive, onDelete, onUnarchive, isArchiveView, filterQuery, onClearFilter, onOpenAI }: EntryStreamProps) {
   const sortedDays = [...entriesByDay.keys()].sort((a, b) =>
     b.localeCompare(a),
   );
@@ -94,6 +95,7 @@ export function EntryStream({ entriesByDay, onSave, onTagsChange, onArchive, onD
                 onDelete={onDelete}
                 onUnarchive={isArchiveView ? onUnarchive : undefined}
                 isArchiveView={isArchiveView}
+                onOpenAI={isArchiveView ? undefined : onOpenAI}
               />
             ))}
           </div>

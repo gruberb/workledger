@@ -13,9 +13,10 @@ interface EntryCardProps {
   onDelete?: (id: string) => void;
   onUnarchive?: (id: string) => void;
   isArchiveView?: boolean;
+  onOpenAI?: (entry: WorkLedgerEntry) => void;
 }
 
-export function EntryCard({ entry, isLatest, onSave, onTagsChange, onArchive, onDelete, onUnarchive, isArchiveView }: EntryCardProps) {
+export function EntryCard({ entry, isLatest, onSave, onTagsChange, onArchive, onDelete, onUnarchive, isArchiveView, onOpenAI }: EntryCardProps) {
   const isOld = entry.dayKey < todayKey();
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -39,6 +40,19 @@ export function EntryCard({ entry, isLatest, onSave, onTagsChange, onArchive, on
 
         {/* Action buttons */}
         <div className="ml-auto flex items-center gap-1">
+          {/* Think with AI button */}
+          {onOpenAI && !isArchiveView && !confirmArchive && !confirmDelete && (
+            <button
+              onClick={() => onOpenAI(entry)}
+              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-orange-50 text-gray-300 hover:text-orange-500"
+              title="Think with AI"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2a8 8 0 0 0-8 8c0 3.36 2.07 6.24 5 7.42V19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1.58c2.93-1.18 5-4.06 5-7.42a8 8 0 0 0-8-8z" />
+                <line x1="9" y1="22" x2="15" y2="22" />
+              </svg>
+            </button>
+          )}
           {/* Normal view: archive + delete */}
           {!isArchiveView && (confirmArchive || confirmDelete) ? (
             confirmArchive ? (

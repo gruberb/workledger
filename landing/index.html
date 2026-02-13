@@ -684,6 +684,257 @@
             }
 
             /* ═══════════════════════════════════════
+   OPTIONAL AI SECTION
+   ═══════════════════════════════════════ */
+            .ai-section {
+                position: relative;
+                z-index: 1;
+                padding: 100px 0;
+                background: var(--white);
+                border-top: 1px solid var(--ruling);
+                border-bottom: 1px solid var(--ruling);
+                overflow: hidden;
+            }
+            .ai-section::before {
+                content: "";
+                position: absolute;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                width: 64px;
+                background: linear-gradient(
+                    270deg,
+                    var(--orange-pale) 0%,
+                    transparent 100%
+                );
+                opacity: 0.6;
+                pointer-events: none;
+            }
+            .ai-section::after {
+                content: "";
+                position: absolute;
+                right: 60px;
+                top: 0;
+                bottom: 0;
+                width: 2px;
+                background: #fddcb5;
+                opacity: 0.5;
+                pointer-events: none;
+            }
+
+            .ai-header {
+                text-align: center;
+                margin-bottom: 56px;
+            }
+            .ai-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 5px 14px 5px 10px;
+                background: var(--orange-wash);
+                border: 1px solid #fed7aa;
+                border-radius: 100px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                color: var(--orange-dark);
+                margin-bottom: 20px;
+                letter-spacing: 0.03em;
+            }
+            .ai-intro {
+                font-family: var(--font-serif);
+                font-size: 1.05rem;
+                color: var(--ink-muted);
+                max-width: 560px;
+                margin: 16px auto 0;
+                line-height: 1.65;
+                font-weight: 300;
+            }
+
+            /* Step-by-step how to use */
+            .ai-steps {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 24px;
+                margin-bottom: 56px;
+            }
+            .ai-step {
+                text-align: center;
+            }
+            .ai-step-num {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                background: var(--orange-pale);
+                border: 1.5px solid #fed7aa;
+                font-family: var(--font-display);
+                font-weight: 700;
+                font-size: 1rem;
+                color: var(--orange);
+                margin-bottom: 12px;
+            }
+            .ai-step h4 {
+                font-family: var(--font-display);
+                font-weight: 600;
+                font-size: 0.95rem;
+                margin-bottom: 4px;
+                letter-spacing: -0.01em;
+            }
+            .ai-step p {
+                font-size: 0.82rem;
+                color: var(--ink-muted);
+                line-height: 1.5;
+                max-width: 200px;
+                margin: 0 auto;
+            }
+
+            @media (max-width: 720px) {
+                .ai-steps {
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 32px 24px;
+                }
+            }
+            @media (max-width: 480px) {
+                .ai-steps {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            /* Small images row: enable + open source */
+            .ai-setup-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 32px;
+                margin-bottom: 48px;
+            }
+            .ai-setup-card {
+                background: var(--paper);
+                border: 1px solid var(--ruling);
+                border-radius: 12px;
+                overflow: hidden;
+                transition: all 0.3s ease;
+            }
+            .ai-setup-card:hover {
+                border-color: var(--orange-light);
+                box-shadow: 0 4px 16px rgba(249, 115, 22, 0.08);
+            }
+            .ai-setup-card img {
+                width: 100%;
+                display: block;
+            }
+            .ai-setup-caption {
+                padding: 16px 20px;
+            }
+            .ai-setup-caption h4 {
+                font-family: var(--font-display);
+                font-weight: 600;
+                font-size: 0.95rem;
+                margin-bottom: 4px;
+            }
+            .ai-setup-caption p {
+                font-size: 0.82rem;
+                color: var(--ink-muted);
+                line-height: 1.5;
+            }
+
+            /* Big images: note_models + note_conversation */
+            .ai-showcase-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 32px;
+            }
+            .ai-showcase-card {
+                border-radius: 12px;
+                overflow: hidden;
+                border: 1px solid var(--ruling);
+                box-shadow:
+                    0 0 0 1px rgba(0, 0, 0, 0.04),
+                    0 4px 12px rgba(0, 0, 0, 0.04),
+                    0 12px 32px rgba(0, 0, 0, 0.06);
+                transition: all 0.3s ease;
+            }
+            .ai-showcase-card:hover {
+                box-shadow:
+                    0 0 0 1px rgba(249, 115, 22, 0.15),
+                    0 8px 24px rgba(0, 0, 0, 0.08),
+                    0 24px 48px rgba(0, 0, 0, 0.06);
+                transform: translateY(-4px);
+            }
+            .ai-showcase-card img {
+                width: 100%;
+                display: block;
+            }
+            .ai-showcase-caption {
+                padding: 16px 20px;
+                background: var(--white);
+                border-top: 1px solid var(--ruling-light);
+            }
+            .ai-showcase-caption h4 {
+                font-family: var(--font-display);
+                font-weight: 600;
+                font-size: 0.95rem;
+                margin-bottom: 4px;
+            }
+            .ai-showcase-caption p {
+                font-size: 0.82rem;
+                color: var(--ink-muted);
+                line-height: 1.5;
+            }
+
+            /* Frameworks list */
+            .ai-frameworks {
+                margin-top: 48px;
+                padding-top: 40px;
+                border-top: 1px solid var(--ruling);
+                text-align: center;
+            }
+            .ai-frameworks-label {
+                font-family: var(--font-mono);
+                font-size: 0.7rem;
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                color: var(--ink-muted);
+                margin-bottom: 16px;
+            }
+            .ai-framework-tags {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 8px;
+            }
+            .ai-framework-tag {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 6px 14px;
+                background: var(--paper);
+                border: 1px solid var(--ruling);
+                border-radius: 100px;
+                font-size: 0.8rem;
+                font-weight: 500;
+                color: var(--ink-light);
+                transition: all 0.2s ease;
+            }
+            .ai-framework-tag:hover {
+                border-color: var(--orange-light);
+                color: var(--orange-dark);
+                background: var(--orange-pale);
+            }
+
+            @media (max-width: 720px) {
+                .ai-setup-row,
+                .ai-showcase-row {
+                    grid-template-columns: 1fr;
+                }
+                .ai-section::before,
+                .ai-section::after {
+                    display: none;
+                }
+            }
+
+            /* ═══════════════════════════════════════
    TECH STACK
    ═══════════════════════════════════════ */
             .tech {
@@ -903,6 +1154,9 @@
                     >
                     <a href="#how-it-works" class="nav-link hide-mobile"
                         >How it works</a
+                    >
+                    <a href="#ai" class="nav-link hide-mobile"
+                        >AI</a
                     >
                     <a
                         href="https://workledger.org"
@@ -1299,6 +1553,84 @@
                             Find anything instantly with full-text search, tag
                             filtering, and keyboard shortcuts.
                         </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ─── OPTIONAL AI ─── -->
+        <section class="ai-section" id="ai">
+            <div class="container">
+                <div class="ai-header">
+                    <span class="ai-badge reveal">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a8 8 0 0 0-8 8c0 3.36 2.07 6.24 5 7.42V19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1.58c2.93-1.18 5-4.06 5-7.42a8 8 0 0 0-8-8z" />
+                            <line x1="9" y1="22" x2="15" y2="22" />
+                        </svg>
+                        Optional &middot; v1.1
+                    </span>
+                    <h2 class="section-heading reveal reveal-delay-1">
+                        Think with AI
+                    </h2>
+                    <p class="ai-intro reveal reveal-delay-2">
+                        Click the lightbulb next to any note, choose from 10 structured thinking frameworks, and let an open-source LLM challenge your assumptions, find blind spots, and stress-test your ideas. Runs locally via <strong>Ollama</strong> or remotely via <strong>Hugging Face</strong> — your choice, your data.
+                    </p>
+                </div>
+
+                <!-- How to use: 4 steps -->
+                <div class="ai-steps">
+                    <div class="ai-step reveal">
+                        <div class="ai-step-num">1</div>
+                        <h4>Enable AI</h4>
+                        <p>Click the gear icon in the sidebar and select "Enable AI"</p>
+                    </div>
+                    <div class="ai-step reveal reveal-delay-1">
+                        <div class="ai-step-num">2</div>
+                        <h4>Pick a provider</h4>
+                        <p>Connect Ollama locally, Hugging Face remotely, or your own server</p>
+                    </div>
+                    <div class="ai-step reveal reveal-delay-2">
+                        <div class="ai-step-num">3</div>
+                        <h4>Click the lightbulb</h4>
+                        <p>Hover over any note and click the lightbulb icon to open the AI sidebar</p>
+                    </div>
+                    <div class="ai-step reveal reveal-delay-3">
+                        <div class="ai-step-num">4</div>
+                        <h4>Choose a framework</h4>
+                        <p>Pick one of 10 thinking models and start a structured conversation</p>
+                    </div>
+                </div>
+
+                <!-- Showcase: full-width stacked -->
+                <div class="ai-showcase-card reveal" style="margin-bottom: 32px;">
+                    <img src="./images/ai/note_models.png" alt="Choosing a thinking framework for a note" />
+                    <div class="ai-showcase-caption">
+                        <h4>Choose a thinking framework</h4>
+                        <p>Click the lightbulb on any note, then pick a framework — from First Principles to Six Thinking Hats.</p>
+                    </div>
+                </div>
+                <div class="ai-showcase-card reveal reveal-delay-1">
+                    <img src="./images/ai/note_conversation.png" alt="AI conversation using Six Thinking Hats on a note" />
+                    <div class="ai-showcase-caption">
+                        <h4>Structured AI conversation</h4>
+                        <p>The framework is applied to your note's content. Switch steps, ask follow-ups, copy results.</p>
+                    </div>
+                </div>
+
+                <!-- 10 frameworks -->
+                <div class="ai-frameworks reveal reveal-delay-4">
+                    <p class="ai-frameworks-label">10 thinking frameworks included</p>
+                    <div class="ai-framework-tags">
+                        <span class="ai-framework-tag">&#x1f9f0; The Thinker's Toolkit</span>
+                        <span class="ai-framework-tag">&#x1f52c; First Principles</span>
+                        <span class="ai-framework-tag">&#x1f3a9; Six Thinking Hats</span>
+                        <span class="ai-framework-tag">&#x1f4a1; TRIZ</span>
+                        <span class="ai-framework-tag">&#x1f3a8; Design Thinking</span>
+                        <span class="ai-framework-tag">&#x1f3db;&#xfe0f; Socratic Method</span>
+                        <span class="ai-framework-tag">&#x1f310; Systems Thinking</span>
+                        <span class="ai-framework-tag">&#x1f500; Lateral Thinking</span>
+                        <span class="ai-framework-tag">&#x1f3af; OODA Loop</span>
+                        <span class="ai-framework-tag">&#x26d3;&#xfe0f; Theory of Constraints</span>
                     </div>
                 </div>
             </div>

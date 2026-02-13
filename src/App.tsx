@@ -4,11 +4,15 @@ import { Sidebar } from "./components/layout/Sidebar.tsx";
 import { EntryStream } from "./components/entries/EntryStream.tsx";
 import { NewEntryButton } from "./components/entries/NewEntryButton.tsx";
 import { SearchPanel } from "./components/search/SearchPanel.tsx";
+import { AISidebar } from "./components/ai/AISidebar.tsx";
 import { useEntries } from "./hooks/useEntries.ts";
 import { useSearch } from "./hooks/useSearch.ts";
+import { useAISettings } from "./hooks/useAISettings.ts";
+import { useAIFeatureGate } from "./hooks/useAIFeatureGate.ts";
 import { searchEntries, extractTextFromBlocks } from "./storage/search-index.ts";
 import { clearAllData } from "./storage/db.ts";
 import type { Block } from "@blocknote/core";
+import type { WorkLedgerEntry } from "./types/entry.ts";
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -34,6 +38,25 @@ export default function App() {
   } = useEntries();
   const { query, results, isOpen: searchOpen, search, open: openSearch, close: closeSearch } = useSearch();
 
+  // AI state
+  const { settings: aiSettings, updateSettings: updateAISettings } = useAISettings();
+  const { available: aiAvailable } = useAIFeatureGate(aiSettings);
+  const [aiSidebarOpen, setAISidebarOpen] = useState(false);
+  const [aiTargetEntry, setAITargetEntry] = useState<WorkLedgerEntry | null>(null);
+
+  // Auto-collapse left sidebar when both sidebars open on narrow screens
+  useEffect(() => {
+    if (!aiSidebarOpen || !sidebarOpen) return;
+    const check = () => {
+      if (window.innerWidth < 1200) {
+        setSidebarOpen(false);
+      }
+    };
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [aiSidebarOpen, sidebarOpen]);
+
   // Debounced sidebar filter
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -53,7 +76,7 @@ export default function App() {
   const displayEntriesByDay = useMemo(() => {
     if (!sidebarFilter.trim()) return entriesByDay;
     const filterLower = sidebarFilter.trim().toLowerCase();
-    const filtered = new Map<string, import("./types/entry.ts").WorkLedgerEntry[]>();
+    const filtered = new Map<string, WorkLedgerEntry[]>();
     for (const [dayKey, entries] of entriesByDay) {
       const matching = entries.filter((e) => {
         // Match by tag directly (handles entries not yet in search index)
@@ -193,7 +216,7 @@ export default function App() {
   const displayArchivedEntriesByDay = useMemo(() => {
     if (!sidebarFilter.trim()) return archivedEntries;
     const filterLower = sidebarFilter.trim().toLowerCase();
-    const filtered = new Map<string, import("./types/entry.ts").WorkLedgerEntry[]>();
+    const filtered = new Map<string, WorkLedgerEntry[]>();
     for (const [dayKey, entries] of archivedEntries) {
       const matching = entries.filter((e) => {
         if (e.tags?.some((t) => t.toLowerCase().includes(filterLower))) return true;
@@ -224,6 +247,24 @@ export default function App() {
     return count;
   }, [archivedEntries]);
 
+  // AI handlers
+  const handleToggleAI = useCallback(() => {
+    const newEnabled = !aiSettings.enabled;
+    updateAISettings({ enabled: newEnabled });
+    if (!newEnabled) {
+      setAISidebarOpen(false);
+    }
+  }, [aiSettings.enabled, updateAISettings]);
+
+  const handleOpenAI = useCallback((entry: WorkLedgerEntry) => {
+    setAITargetEntry(entry);
+    setAISidebarOpen(true);
+  }, []);
+
+  const handleToggleAISidebar = useCallback(() => {
+    setAISidebarOpen((prev) => !prev);
+  }, []);
+
   // Global keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -243,6 +284,12 @@ export default function App() {
         e.preventDefault();
         setSidebarOpen((prev) => !prev);
       }
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === "i" || e.key === "I")) {
+        e.preventDefault();
+        if (aiSettings.enabled) {
+          handleToggleAISidebar();
+        }
+      }
       if (e.key === "Escape" && sidebarFilter) {
         setSidebarFilter("");
       }
@@ -250,7 +297,7 @@ export default function App() {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleNewEntry, searchOpen, closeSearch, openSearch, sidebarFilter, archiveView]);
+  }, [handleNewEntry, searchOpen, closeSearch, openSearch, sidebarFilter, archiveView, aiSettings.enabled, handleToggleAISidebar]);
 
   if (loading) {
     return (
@@ -279,9 +326,11 @@ export default function App() {
         archivedCount={archivedCount}
         activeDayKey={activeDayKey}
         onDeleteAll={handleDeleteAll}
+        aiEnabled={aiSettings.enabled}
+        onToggleAI={handleToggleAI}
       />
 
-      <AppShell sidebarOpen={sidebarOpen}>
+      <AppShell sidebarOpen={sidebarOpen} aiSidebarOpen={aiSidebarOpen}>
         <EntryStream
           entriesByDay={archiveView ? displayArchivedEntriesByDay : displayEntriesByDay}
           onSave={updateEntry}
@@ -292,6 +341,7 @@ export default function App() {
           isArchiveView={archiveView}
           filterQuery={sidebarFilter}
           onClearFilter={clearFilter}
+          onOpenAI={aiSettings.enabled && aiAvailable ? handleOpenAI : undefined}
         />
       </AppShell>
 
@@ -305,6 +355,16 @@ export default function App() {
         onClose={closeSearch}
         onResultClick={handleSearchResultClick}
       />
+
+      {aiSettings.enabled && (
+        <AISidebar
+          isOpen={aiSidebarOpen}
+          onClose={handleToggleAISidebar}
+          settings={aiSettings}
+          onUpdateSettings={updateAISettings}
+          targetEntry={aiTargetEntry}
+        />
+      )}
     </>
   );
 }

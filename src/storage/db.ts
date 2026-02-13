@@ -1,7 +1,7 @@
 import { openDB, type IDBPDatabase } from "idb";
 
 const DB_NAME = "workledger";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 export interface WorkLedgerDB {
   entries: {
@@ -41,6 +41,22 @@ export interface WorkLedgerDB {
       value: string;
     };
   };
+  aiConversations: {
+    key: string;
+    value: {
+      id: string;
+      entryId: string;
+      frameworkId: string;
+      currentStepId: string;
+      messages: unknown[];
+      createdAt: number;
+      updatedAt: number;
+    };
+    indexes: {
+      "by-entryId": string;
+      "by-updatedAt": number;
+    };
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<WorkLedgerDB>> | null = null;
@@ -66,6 +82,12 @@ export function getDB(): Promise<IDBPDatabase<WorkLedgerDB>> {
           const entryStore = transaction.objectStore("entries");
           entryStore.createIndex("by-tags", "tags", { multiEntry: true });
         }
+
+        if (oldVersion < 3) {
+          const aiStore = db.createObjectStore("aiConversations", { keyPath: "id" });
+          aiStore.createIndex("by-entryId", "entryId");
+          aiStore.createIndex("by-updatedAt", "updatedAt");
+        }
       },
     });
   }
@@ -76,4 +98,5 @@ export async function clearAllData(): Promise<void> {
   const db = await getDB();
   await db.clear("entries");
   await db.clear("searchIndex");
+  await db.clear("aiConversations");
 }

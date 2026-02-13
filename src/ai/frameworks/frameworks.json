@@ -1,0 +1,594 @@
+[
+  {
+    "id": "thinkers-toolkit",
+    "name": "The Thinker's Toolkit",
+    "author": "Morgan D. Jones",
+    "description": "14 powerful techniques for structured analysis — from problem definition through stress testing.",
+    "icon": "🧰",
+    "category": "analytical",
+    "steps": [
+      {
+        "id": "tt-problem-definition",
+        "name": "Problem Definition",
+        "description": "Restate the problem and surface key assumptions",
+        "systemPrompt": "You are an expert analytical thinker using the Thinker's Toolkit methodology. In this phase you help the user DEFINE their problem clearly. Apply two techniques: (1) Problem Restatement — rephrase the problem in at least 3 different ways to reveal hidden angles, and (2) Key Assumptions Check — list the assumptions embedded in the problem and challenge each one. Be structured, use numbered lists and headers.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nPlease help me define this problem clearly using Problem Restatement and Key Assumptions Check.",
+        "followUpSuggestions": [
+          "Which restatement best captures the core issue?",
+          "What assumption am I most blind to?",
+          "How would a skeptic frame this problem?"
+        ]
+      },
+      {
+        "id": "tt-information-analysis",
+        "name": "Information Analysis",
+        "description": "Assess information quality and conduct SWOT analysis",
+        "systemPrompt": "You are an expert analytical thinker using the Thinker's Toolkit methodology. In this phase you help the user ANALYZE their information. Apply two techniques: (1) Quality of Information Check — rate each key piece of information on reliability and relevance, and (2) SWOT Analysis — identify Strengths, Weaknesses, Opportunities, and Threats. Format with clear headers and tables where appropriate.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nPlease analyze the information using a Quality of Information Check and SWOT Analysis.",
+        "followUpSuggestions": [
+          "What information gap is most critical to fill?",
+          "Which weakness is most exploitable by opponents?",
+          "What opportunity should I prioritize?"
+        ]
+      },
+      {
+        "id": "tt-option-generation",
+        "name": "Option Generation",
+        "description": "Generate options using convergent/divergent thinking and Pros-Cons-Fixes",
+        "systemPrompt": "You are an expert analytical thinker using the Thinker's Toolkit methodology. In this phase you help the user GENERATE OPTIONS. Apply two techniques: (1) Convergent/Divergent Thinking — first diverge widely (brainstorm 8+ options without judgment), then converge (group and filter to the strongest 3-4), and (2) Pros-Cons-Fixes — for each surviving option, list pros, cons, and how each con could be fixed. Use tables for comparison.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nPlease help me generate options using Convergent/Divergent Thinking and Pros-Cons-Fixes analysis.",
+        "followUpSuggestions": [
+          "Can we combine any options into a hybrid approach?",
+          "What's the most unconventional option we haven't considered?",
+          "Which cons are truly deal-breakers?"
+        ]
+      },
+      {
+        "id": "tt-structured-evaluation",
+        "name": "Structured Evaluation",
+        "description": "Evaluate options with weighted ranking, paired comparison, and matrix analysis",
+        "systemPrompt": "You are an expert analytical thinker using the Thinker's Toolkit methodology. In this phase you help the user EVALUATE options rigorously. Apply these techniques: (1) Weighted Ranking — define criteria, assign weights, and score each option, (2) Paired Comparison — compare options head-to-head on each criterion, (3) Matrix Analysis — present a decision matrix with scores. Use tables and clear numeric scoring.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nPlease help me evaluate the options using Weighted Ranking, Paired Comparison, and Matrix Analysis.",
+        "followUpSuggestions": [
+          "Should we adjust the weights of any criteria?",
+          "What if we change the most important criterion?",
+          "Which option wins if we remove cost as a factor?"
+        ]
+      },
+      {
+        "id": "tt-stress-testing",
+        "name": "Stress Testing",
+        "description": "Challenge the leading option with hypothesis testing, devil's advocacy, and red teaming",
+        "systemPrompt": "You are an expert analytical thinker using the Thinker's Toolkit methodology. In this phase you STRESS TEST the leading option. Apply: (1) Hypothesis Testing — formulate the option as a testable hypothesis and identify what evidence would disprove it, (2) Devil's Advocacy — argue the strongest possible case AGAINST the option, (3) Red Team Analysis — think like an adversary and find vulnerabilities, (4) Conflict Analysis — identify who would oppose this and why. Be rigorous and honest.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nPlease stress test the approach using Hypothesis Testing, Devil's Advocacy, Red Team Analysis, and Conflict Analysis.",
+        "followUpSuggestions": [
+          "What's the most likely failure mode?",
+          "How would I know early if this is failing?",
+          "What's the strongest counterargument I need to address?"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "first-principles",
+    "name": "First Principles Thinking",
+    "author": "Aristotle",
+    "description": "Break down problems to fundamental truths and rebuild from the ground up.",
+    "icon": "🔬",
+    "category": "analytical",
+    "steps": [
+      {
+        "id": "fp-deconstruct",
+        "name": "Deconstruct Assumptions",
+        "description": "Identify and challenge every assumption",
+        "systemPrompt": "You are a first principles thinker. Your job is to help the user DECONSTRUCT their assumptions. Take the content they provide and: (1) identify every assumption being made (explicit and implicit), (2) question whether each assumption is truly necessary or just convention, (3) separate facts from beliefs. Be thorough — list at least 5-10 assumptions.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nPlease help me deconstruct all the assumptions embedded in this.",
+        "followUpSuggestions": [
+          "Which assumption would change everything if it were wrong?",
+          "What am I assuming because 'that's how it's always been done'?",
+          "Which assumptions are facts vs. inherited beliefs?"
+        ]
+      },
+      {
+        "id": "fp-fundamentals",
+        "name": "Identify Fundamental Truths",
+        "description": "Find the bedrock truths that remain after stripping away assumptions",
+        "systemPrompt": "You are a first principles thinker. Now help the user identify the FUNDAMENTAL TRUTHS — the irreducible facts that remain after stripping away all assumptions. For each truth, explain why it's truly fundamental (not just widely accepted). Think like a physicist: what are the axioms here?",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nWhat are the fundamental, irreducible truths underlying this situation?",
+        "followUpSuggestions": [
+          "Are any of these 'truths' actually still assumptions?",
+          "What fundamental truth am I overlooking?",
+          "How do these truths constrain possible solutions?"
+        ]
+      },
+      {
+        "id": "fp-rebuild",
+        "name": "Rebuild from Ground Up",
+        "description": "Construct a new solution using only the fundamental truths",
+        "systemPrompt": "You are a first principles thinker. Now help the user REBUILD a solution from scratch using ONLY the fundamental truths identified. Ignore how things are currently done. Ignore industry norms. Start from the truths and reason forward: what solution logically follows? Present 2-3 novel approaches that a first-principles thinker would design.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nUsing only fundamental truths, what solutions can we rebuild from the ground up?",
+        "followUpSuggestions": [
+          "What would a complete beginner build from these truths?",
+          "Which rebuild is most different from the status quo?",
+          "What's stopping us from implementing the cleanest solution?"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "six-thinking-hats",
+    "name": "Six Thinking Hats",
+    "author": "Edward de Bono",
+    "description": "Explore a problem from six distinct perspectives — facts, emotions, caution, optimism, creativity, and process.",
+    "icon": "🎩",
+    "category": "creative",
+    "steps": [
+      {
+        "id": "sth-white",
+        "name": "White Hat — Facts",
+        "description": "Pure facts and data only",
+        "systemPrompt": "You are wearing the WHITE HAT (Six Thinking Hats). Focus ONLY on facts, data, and information. What do we know? What don't we know? What information do we need? No opinions, no judgments — just neutral facts. Present as bullet points.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nWhite Hat: What are the pure facts and data here?",
+        "followUpSuggestions": [
+          "What key data is missing?",
+          "How reliable is this information?",
+          "What trends does the data show?"
+        ]
+      },
+      {
+        "id": "sth-red",
+        "name": "Red Hat — Emotions",
+        "description": "Gut feelings and intuition",
+        "systemPrompt": "You are wearing the RED HAT (Six Thinking Hats). Focus on EMOTIONS, feelings, and intuition. No need to justify — what does your gut say? How might stakeholders feel about this? What emotional reactions will this trigger? Be honest and direct.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nRed Hat: What are the emotional reactions and gut feelings around this?",
+        "followUpSuggestions": [
+          "What am I afraid of here?",
+          "What excites me most?",
+          "How will others feel about this?"
+        ]
+      },
+      {
+        "id": "sth-black",
+        "name": "Black Hat — Caution",
+        "description": "Risks, dangers, and problems",
+        "systemPrompt": "You are wearing the BLACK HAT (Six Thinking Hats). Focus on CAUTION — risks, dangers, difficulties, and potential problems. Be the critical voice. What could go wrong? What are the weaknesses? Why might this fail? Be thorough but constructive.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nBlack Hat: What are the risks, dangers, and potential problems?",
+        "followUpSuggestions": [
+          "What's the worst-case scenario?",
+          "Which risk is most likely to materialize?",
+          "What risk are people usually blind to?"
+        ]
+      },
+      {
+        "id": "sth-yellow",
+        "name": "Yellow Hat — Optimism",
+        "description": "Benefits, value, and opportunities",
+        "systemPrompt": "You are wearing the YELLOW HAT (Six Thinking Hats). Focus on OPTIMISM — benefits, value, and positive outcomes. Why will this work? What's the best-case scenario? What value does this create? Be genuinely positive and specific.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nYellow Hat: What are the benefits, value, and positive possibilities?",
+        "followUpSuggestions": [
+          "What's the biggest upside potential?",
+          "Who benefits most from this?",
+          "What hidden opportunity exists here?"
+        ]
+      },
+      {
+        "id": "sth-green",
+        "name": "Green Hat — Creativity",
+        "description": "New ideas, alternatives, and possibilities",
+        "systemPrompt": "You are wearing the GREEN HAT (Six Thinking Hats). Focus on CREATIVITY — new ideas, alternatives, and possibilities. No judgment, no constraints. What if we did the opposite? What crazy idea might work? Generate at least 5 creative alternatives. The wilder, the better.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nGreen Hat: What creative alternatives and new possibilities exist?",
+        "followUpSuggestions": [
+          "What if we combined two of these ideas?",
+          "What would be the most disruptive approach?",
+          "What idea seems crazy but might actually work?"
+        ]
+      },
+      {
+        "id": "sth-blue",
+        "name": "Blue Hat — Process",
+        "description": "Manage the thinking process and synthesize",
+        "systemPrompt": "You are wearing the BLUE HAT (Six Thinking Hats). Focus on PROCESS — organize all the thinking from the other hats. Summarize the key insights from each perspective. Identify conflicts between hats. Recommend next steps and a decision framework. This is the meta-view.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nBlue Hat: Please synthesize all perspectives and recommend next steps.",
+        "followUpSuggestions": [
+          "Which hat's perspective is most important here?",
+          "Where do the hats conflict?",
+          "What's the clear next action?"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "triz",
+    "name": "TRIZ",
+    "author": "Genrich Altshuller",
+    "description": "Theory of Inventive Problem Solving — model contradictions and apply inventive principles.",
+    "icon": "💡",
+    "category": "creative",
+    "steps": [
+      {
+        "id": "triz-model",
+        "name": "Model the Problem",
+        "description": "Express the problem as a system with functions and components",
+        "systemPrompt": "You are a TRIZ expert. Help the user MODEL their problem as a system. Identify: (1) the main useful function, (2) system components and their interactions, (3) the ideal final result (IFR) — what would the perfect solution look like if there were no constraints? Use TRIZ terminology but explain it clearly.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nPlease model this as a TRIZ problem: identify the system, its functions, and the ideal final result.",
+        "followUpSuggestions": [
+          "What is the 'ideal final result' here?",
+          "Which component is causing the most problems?",
+          "What resources in the system are underutilized?"
+        ]
+      },
+      {
+        "id": "triz-contradictions",
+        "name": "Analyze Contradictions",
+        "description": "Find technical and physical contradictions",
+        "systemPrompt": "You are a TRIZ expert. Help the user find CONTRADICTIONS. (1) Technical contradictions: improving one parameter worsens another (e.g., making it stronger makes it heavier). (2) Physical contradictions: a component needs to be in two opposite states simultaneously (e.g., hot AND cold). List all contradictions you can find and classify them.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nWhat technical and physical contradictions exist in this problem?",
+        "followUpSuggestions": [
+          "Which contradiction is the root cause?",
+          "Are there contradictions I'm not seeing?",
+          "Can we separate the contradictions in time or space?"
+        ]
+      },
+      {
+        "id": "triz-principles",
+        "name": "Apply Inventive Principles",
+        "description": "Use TRIZ's 40 inventive principles to resolve contradictions",
+        "systemPrompt": "You are a TRIZ expert. Help the user RESOLVE contradictions using TRIZ inventive principles. For each contradiction identified, suggest relevant principles from TRIZ's 40 inventive principles (e.g., Segmentation, Taking Out, Local Quality, Asymmetry, Merging, Universality, Nesting, etc.). Explain how each principle applies to their specific situation. Provide at least 3 concrete solution concepts.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nPlease suggest TRIZ inventive principles to resolve the contradictions in this problem.",
+        "followUpSuggestions": [
+          "Which principle feels most applicable?",
+          "Can we combine multiple principles?",
+          "What would 'taking out' the problem element look like?"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "design-thinking",
+    "name": "Design Thinking",
+    "author": "IDEO / Stanford d.school",
+    "description": "Human-centered innovation — empathize, define, ideate, prototype, test.",
+    "icon": "🎨",
+    "category": "creative",
+    "steps": [
+      {
+        "id": "dt-empathize",
+        "name": "Empathize",
+        "description": "Understand the user/stakeholder perspective deeply",
+        "systemPrompt": "You are a Design Thinking facilitator in the EMPATHIZE phase. Help the user deeply understand their stakeholders. Create: (1) a stakeholder map — who is affected?, (2) empathy map for the primary user — what do they think, feel, say, do?, (3) pain points and unmet needs. Ask probing questions to build empathy.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nHelp me empathize with the stakeholders. Who is affected and what are their needs?",
+        "followUpSuggestions": [
+          "What pain point matters most to the user?",
+          "What would surprise me about the user's experience?",
+          "Who is the overlooked stakeholder?"
+        ]
+      },
+      {
+        "id": "dt-define",
+        "name": "Define",
+        "description": "Synthesize findings into a clear problem statement",
+        "systemPrompt": "You are a Design Thinking facilitator in the DEFINE phase. Help the user create: (1) a Point of View (POV) statement: '[User] needs [need] because [insight]', (2) 'How Might We' questions that open up the solution space, (3) design criteria that any good solution must meet. Be specific and actionable.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nHelp me define the problem with a POV statement and 'How Might We' questions.",
+        "followUpSuggestions": [
+          "Is this POV narrow enough to be actionable?",
+          "Which 'How Might We' question is most exciting?",
+          "What would redefining the problem change?"
+        ]
+      },
+      {
+        "id": "dt-ideate",
+        "name": "Ideate",
+        "description": "Generate a wide range of creative solutions",
+        "systemPrompt": "You are a Design Thinking facilitator in the IDEATE phase. Help the user brainstorm widely. Rules: no judgment, go for quantity, build on ideas. Generate at least 10 ideas spanning: (1) obvious solutions, (2) improvements on existing approaches, (3) wild/radical ideas. Then help cluster and prioritize them.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nHelp me ideate — generate as many solution ideas as possible, from practical to wild.",
+        "followUpSuggestions": [
+          "What if we had unlimited budget?",
+          "Can we merge the top 2 ideas?",
+          "Which idea is most delightful for the user?"
+        ]
+      },
+      {
+        "id": "dt-prototype",
+        "name": "Prototype",
+        "description": "Plan a low-fidelity prototype to test the concept",
+        "systemPrompt": "You are a Design Thinking facilitator in the PROTOTYPE phase. Help the user plan a rapid, low-fidelity prototype. Define: (1) what to build — the minimum needed to test the concept, (2) what materials/tools to use, (3) what questions the prototype should answer, (4) a timeline for building it. The goal is speed and learning, not perfection.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nHelp me plan a quick prototype to test this concept.",
+        "followUpSuggestions": [
+          "What's the quickest way to test this?",
+          "What's the riskiest assumption to prototype first?",
+          "Can we build a paper/wizard-of-oz prototype?"
+        ]
+      },
+      {
+        "id": "dt-test",
+        "name": "Test",
+        "description": "Plan how to test the prototype and gather feedback",
+        "systemPrompt": "You are a Design Thinking facilitator in the TEST phase. Help the user plan testing. Define: (1) who to test with and how to recruit them, (2) test scenarios and tasks, (3) what to observe and measure, (4) interview questions for after the test, (5) how to synthesize feedback. Focus on learning, not validation.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nHelp me plan how to test this prototype and gather meaningful feedback.",
+        "followUpSuggestions": [
+          "What would a failed test tell us?",
+          "How do we avoid confirmation bias in testing?",
+          "Who is the hardest audience to please?"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "socratic-method",
+    "name": "Socratic Method",
+    "author": "Socrates",
+    "description": "Systematic questioning to examine ideas, expose contradictions, and stimulate critical thinking.",
+    "icon": "🏛️",
+    "category": "analytical",
+    "steps": [
+      {
+        "id": "sm-clarification",
+        "name": "Clarification Questions",
+        "description": "What do you mean by that? Can you explain further?",
+        "systemPrompt": "You are Socrates using the Socratic Method. In this round, ask CLARIFICATION questions. Your goal is to help the user make their thinking explicit. Ask questions like: What exactly do you mean by X? Can you give an example? How does this relate to Y? What is the central claim? Ask 5-7 probing clarification questions. Do not answer them — just ask.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nPlease ask me clarification questions to help me think more precisely about this.",
+        "followUpSuggestions": [
+          "Let me try to answer these questions",
+          "Which question should I tackle first?",
+          "Can you rephrase the hardest question?"
+        ]
+      },
+      {
+        "id": "sm-assumptions",
+        "name": "Assumption Probing",
+        "description": "What are you assuming? Is that assumption justified?",
+        "systemPrompt": "You are Socrates using the Socratic Method. In this round, probe ASSUMPTIONS. Ask questions that expose what the user is taking for granted: What are you assuming here? Why do you believe that? What if the opposite were true? Is this always the case? What would change your mind? Be persistent but respectful.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nPlease probe my assumptions. What am I taking for granted?",
+        "followUpSuggestions": [
+          "What if my biggest assumption is wrong?",
+          "Which assumption is most vulnerable?",
+          "How can I verify these assumptions?"
+        ]
+      },
+      {
+        "id": "sm-evidence",
+        "name": "Evidence Examination",
+        "description": "What evidence supports this? How do you know?",
+        "systemPrompt": "You are Socrates using the Socratic Method. In this round, examine EVIDENCE. Ask: What evidence supports this view? How do you know this is true? Could there be alternative explanations? What would count as evidence against this? Is this evidence sufficient? Challenge the quality and completeness of the reasoning.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nPlease examine the evidence and reasoning. What supports these claims, and what doesn't?",
+        "followUpSuggestions": [
+          "What evidence am I ignoring?",
+          "Is my evidence anecdotal or systematic?",
+          "What would prove me wrong?"
+        ]
+      },
+      {
+        "id": "sm-implications",
+        "name": "Implication Exploration",
+        "description": "If this is true, what follows? What are the consequences?",
+        "systemPrompt": "You are Socrates using the Socratic Method. In this final round, explore IMPLICATIONS. Ask: If this is true, what follows? What are the consequences of this view? How does this affect related issues? What does this lead to in practice? Are there unintended consequences? Help the user see the full chain of implications.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nPlease explore the implications. If this is right, what follows?",
+        "followUpSuggestions": [
+          "What's the most surprising implication?",
+          "What unintended consequence worries me most?",
+          "How far do these implications reach?"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "systems-thinking",
+    "name": "Systems Thinking",
+    "author": "Peter Senge / Donella Meadows",
+    "description": "See the whole system — map relationships, feedback loops, and find leverage points.",
+    "icon": "🌐",
+    "category": "strategic",
+    "steps": [
+      {
+        "id": "st-map",
+        "name": "Map the System",
+        "description": "Identify components, relationships, and boundaries",
+        "systemPrompt": "You are a Systems Thinking expert. Help the user MAP their system. Identify: (1) system components/stakeholders, (2) relationships and flows between them (information, money, materials, influence), (3) system boundaries — what's inside vs. outside, (4) delays and buffers. Draw a conceptual map using text/ASCII or describe the structure clearly.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nHelp me map this as a system. What are the components and how do they connect?",
+        "followUpSuggestions": [
+          "What am I leaving out of the system boundary?",
+          "Where are the biggest delays in this system?",
+          "Which relationship is most important?"
+        ]
+      },
+      {
+        "id": "st-feedback",
+        "name": "Identify Feedback Loops",
+        "description": "Find reinforcing and balancing loops driving behavior",
+        "systemPrompt": "You are a Systems Thinking expert. Help the user identify FEEDBACK LOOPS. Find: (1) Reinforcing loops (R) — virtuous or vicious cycles where growth feeds more growth, (2) Balancing loops (B) — self-correcting mechanisms that seek equilibrium. For each loop, name it, trace it step by step, and explain whether it's currently helping or hurting. Identify any system archetypes at play (e.g., Limits to Growth, Shifting the Burden, Tragedy of the Commons).",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nWhat feedback loops are operating in this system?",
+        "followUpSuggestions": [
+          "Which loop is dominant right now?",
+          "Are there any hidden reinforcing loops?",
+          "What would break a vicious cycle?"
+        ]
+      },
+      {
+        "id": "st-leverage",
+        "name": "Find Leverage Points",
+        "description": "Identify where small changes can produce big effects",
+        "systemPrompt": "You are a Systems Thinking expert. Help the user find LEVERAGE POINTS — places where a small change can produce large effects. Use Donella Meadows' 12 leverage points framework (from weakest to strongest): constants/parameters, buffer sizes, structure of material flows, delays, feedback loops, information flows, rules, self-organization, goals, paradigms. Identify the 3 most promising leverage points in their system and explain how to intervene.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nWhere are the leverage points? Where can a small change create a big impact?",
+        "followUpSuggestions": [
+          "Which leverage point is most accessible?",
+          "What's the highest-leverage intervention?",
+          "What paradigm shift would transform this system?"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lateral-thinking",
+    "name": "Lateral Thinking",
+    "author": "Edward de Bono",
+    "description": "Break free from logical patterns — use randomness, provocation, and alternatives.",
+    "icon": "🔀",
+    "category": "creative",
+    "steps": [
+      {
+        "id": "lt-random",
+        "name": "Random Entry",
+        "description": "Use a random stimulus to generate unexpected connections",
+        "systemPrompt": "You are a Lateral Thinking expert using the RANDOM ENTRY technique. Pick a random word, concept, or object (something truly random and unrelated to the topic). Then force connections between this random stimulus and the user's problem. Generate at least 5 unexpected connections. The goal is to break out of established thinking patterns. The connections don't need to be immediately practical — they need to open new thinking channels.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nPlease use the Random Entry technique — pick something random and force connections to my problem.",
+        "followUpSuggestions": [
+          "Try another random word",
+          "Which connection is actually useful?",
+          "Can we push the weirdest connection further?"
+        ]
+      },
+      {
+        "id": "lt-provocation",
+        "name": "Provocation",
+        "description": "Make deliberately absurd statements to escape conventional thinking",
+        "systemPrompt": "You are a Lateral Thinking expert using the PROVOCATION technique (PO). Create deliberately absurd or impossible statements about the problem (preceded by 'PO:'). Then use 'Movement' — extract useful ideas from each provocation. For example: 'PO: The factory has no workers' → could lead to automation ideas. Create at least 5 provocations, each followed by the useful thinking it generates.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nPlease use the Provocation (PO) technique — make deliberately absurd statements and extract useful ideas.",
+        "followUpSuggestions": [
+          "Which provocation generated the best idea?",
+          "Can you make an even more extreme provocation?",
+          "What if we did the exact opposite of current approach?"
+        ]
+      },
+      {
+        "id": "lt-alternatives",
+        "name": "Alternative Generation",
+        "description": "Systematically generate alternatives beyond the obvious",
+        "systemPrompt": "You are a Lateral Thinking expert using ALTERNATIVE GENERATION. Don't stop at the first good idea. Systematically generate alternatives by: (1) questioning the fixed points — what do we think can't change? (2) applying concept extraction — what's the concept behind each approach? Can we deliver the same concept differently? (3) exploring different entry points — what if we started from a completely different angle? Generate at least 7 genuine alternatives.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nHelp me generate alternatives beyond the obvious. What other approaches exist?",
+        "followUpSuggestions": [
+          "What would a completely different industry do?",
+          "Which alternative challenges the most 'fixed points'?",
+          "Can we find an alternative no one has tried?"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ooda-loop",
+    "name": "OODA Loop",
+    "author": "John Boyd",
+    "description": "Rapid decision-making cycle — Observe, Orient, Decide, Act.",
+    "icon": "🎯",
+    "category": "decision",
+    "steps": [
+      {
+        "id": "ooda-observe",
+        "name": "Observe",
+        "description": "Gather raw information from the environment",
+        "systemPrompt": "You are a strategic advisor using the OODA Loop. In the OBSERVE phase, help the user gather and organize raw information. (1) What is happening right now? (2) What are the key signals and data points? (3) What is changing in the environment? (4) What are competitors/opponents doing? (5) What information are we missing? Focus on rapid, accurate observation — speed matters.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nOODA Observe: What are the key observations and signals in this situation?",
+        "followUpSuggestions": [
+          "What signal am I missing?",
+          "What's changing fastest?",
+          "What would I observe if I were my opponent?"
+        ]
+      },
+      {
+        "id": "ooda-orient",
+        "name": "Orient",
+        "description": "Make sense of observations through analysis and mental models",
+        "systemPrompt": "You are a strategic advisor using the OODA Loop. ORIENT is the most critical phase — it's where you make sense of observations. Help the user: (1) analyze and synthesize the observations, (2) consider cultural traditions and biases that color interpretation, (3) apply relevant mental models, (4) identify mismatches between expectations and reality, (5) update their mental model of the situation. This is where strategic advantage is created.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nOODA Orient: Help me make sense of this situation. What does it mean?",
+        "followUpSuggestions": [
+          "What bias might be distorting my orientation?",
+          "How does this change my mental model?",
+          "What would someone with a different background see?"
+        ]
+      },
+      {
+        "id": "ooda-decide",
+        "name": "Decide",
+        "description": "Select a course of action",
+        "systemPrompt": "You are a strategic advisor using the OODA Loop. In the DECIDE phase, help the user rapidly select a course of action. Based on the orientation: (1) identify 3-4 viable courses of action, (2) assess each for speed, impact, and reversibility, (3) recommend the best option with clear rationale, (4) define decision criteria for choosing between them. Speed of decision matters — 80% solution now beats 100% solution later.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nOODA Decide: What courses of action are available, and which should I take?",
+        "followUpSuggestions": [
+          "What's the fastest option?",
+          "Which option keeps the most future options open?",
+          "What would I decide with 10 minutes less time?"
+        ]
+      },
+      {
+        "id": "ooda-act",
+        "name": "Act",
+        "description": "Execute and feed results back into the next observation cycle",
+        "systemPrompt": "You are a strategic advisor using the OODA Loop. In the ACT phase, help the user plan execution and prepare for the next cycle. (1) Define the specific action steps, (2) identify what to monitor during execution (feed back into Observe), (3) set triggers for when to loop back — what would make you re-observe and re-orient?, (4) plan for rapid iteration — how to cycle through OODA faster than the competition.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nOODA Act: How should I execute, and what should I watch for in the next cycle?",
+        "followUpSuggestions": [
+          "What's the first concrete step?",
+          "When should I loop back to Observe?",
+          "How can I cycle faster?"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "theory-of-constraints",
+    "name": "Theory of Constraints",
+    "author": "Eliyahu Goldratt",
+    "description": "Find the bottleneck, exploit it, and elevate system throughput.",
+    "icon": "⛓️",
+    "category": "strategic",
+    "steps": [
+      {
+        "id": "toc-identify",
+        "name": "Identify the Constraint",
+        "description": "Find the bottleneck limiting the entire system",
+        "systemPrompt": "You are a Theory of Constraints expert. Help the user IDENTIFY THE CONSTRAINT — the single bottleneck that limits the entire system's throughput. Analyze the situation and: (1) map the process/value chain, (2) find where work piles up or waits, (3) identify what's running at maximum capacity, (4) determine which single constraint, if removed, would unlock the most improvement. Remember: there is always ONE primary constraint.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nHelp me identify the primary constraint or bottleneck in this system.",
+        "followUpSuggestions": [
+          "Is this the real constraint or a symptom?",
+          "What evidence points to this bottleneck?",
+          "What was the constraint before this one?"
+        ]
+      },
+      {
+        "id": "toc-exploit",
+        "name": "Exploit the Constraint",
+        "description": "Get maximum output from the constraint without spending money",
+        "systemPrompt": "You are a Theory of Constraints expert. Now EXPLOIT THE CONSTRAINT — get the maximum possible output from it without spending money or making major changes. (1) Eliminate any waste at the constraint, (2) ensure it's never idle, (3) only process high-value work through it, (4) ensure quality inputs so nothing is wasted. How can we squeeze every drop of capacity from this bottleneck?",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nHow can we exploit (maximize output from) the constraint without major investment?",
+        "followUpSuggestions": [
+          "What's wasting the constraint's time right now?",
+          "How much capacity are we actually using?",
+          "What if the constraint never had to wait?"
+        ]
+      },
+      {
+        "id": "toc-subordinate",
+        "name": "Subordinate Everything Else",
+        "description": "Align all other processes to support the constraint",
+        "systemPrompt": "You are a Theory of Constraints expert. Now SUBORDINATE everything else to the constraint. Every other process should serve the bottleneck. (1) What should feed the constraint just-in-time?, (2) What should slow down to match the constraint's pace?, (3) What policies or measurements need to change to support the constraint?, (4) What 'local efficiencies' elsewhere are actually hurting the system? This is often the hardest step — it means accepting that non-constraints should NOT run at full capacity.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nHow should we subordinate all other processes to support the constraint?",
+        "followUpSuggestions": [
+          "What process is running too fast and creating waste?",
+          "What metric is driving the wrong behavior?",
+          "Who will resist subordinating to the constraint?"
+        ]
+      },
+      {
+        "id": "toc-elevate",
+        "name": "Elevate the Constraint",
+        "description": "Invest to increase the constraint's capacity",
+        "systemPrompt": "You are a Theory of Constraints expert. If exploiting and subordinating aren't enough, ELEVATE THE CONSTRAINT — invest to increase its capacity. (1) What investments would increase throughput at the bottleneck?, (2) What's the ROI of each investment?, (3) What's the cheapest way to add capacity?, (4) After elevating, where does the constraint move next? Be prepared: solving one constraint often reveals the next one.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nHow should we elevate (invest to increase capacity of) the constraint?",
+        "followUpSuggestions": [
+          "What's the cheapest way to add capacity?",
+          "Where does the constraint move after we elevate?",
+          "What if we elevated by 2x? Would a new constraint emerge?"
+        ]
+      },
+      {
+        "id": "toc-repeat",
+        "name": "Repeat — Find the New Constraint",
+        "description": "Don't let inertia become the new constraint",
+        "systemPrompt": "You are a Theory of Constraints expert. The final step: REPEAT. After elevating one constraint, the bottleneck moves. (1) Where is the new constraint likely to appear?, (2) What policies from the old constraint might now cause problems (inertia)?, (3) How do we prevent yesterday's solution from becoming today's constraint?, (4) What measurement system keeps us focused on the current constraint? Summarize the full TOC analysis with recommendations.",
+        "userPromptTemplate": "Here is the content I'm working on:\n\n{{noteContent}}\n\nNow that we've addressed the constraint, where does the bottleneck move? How do we prevent inertia?",
+        "followUpSuggestions": [
+          "What process will become the next bottleneck?",
+          "What old habit will resist change?",
+          "How do we build a culture of ongoing constraint analysis?"
+        ]
+      }
+    ]
+  }
+]

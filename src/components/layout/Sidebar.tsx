@@ -20,6 +20,8 @@ interface SidebarProps {
   archivedCount: number;
   activeDayKey?: string | null;
   onDeleteAll?: () => void;
+  aiEnabled?: boolean;
+  onToggleAI?: () => void;
 }
 
 export function Sidebar({
@@ -39,6 +41,8 @@ export function Sidebar({
   archivedCount,
   activeDayKey,
   onDeleteAll,
+  aiEnabled,
+  onToggleAI,
 }: SidebarProps) {
   const today = todayKey();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -231,6 +235,28 @@ export function Sidebar({
                       </>
                     )}
                   </button>
+
+                  {onToggleAI && (
+                    <>
+                      <div className="my-1 border-t border-gray-100" />
+                      <button
+                        onClick={() => {
+                          onToggleAI();
+                          setSettingsOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 2a8 8 0 0 0-8 8c0 3.36 2.07 6.24 5 7.42V19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1.58c2.93-1.18 5-4.06 5-7.42a8 8 0 0 0-8-8z" />
+                          <line x1="9" y1="22" x2="15" y2="22" />
+                        </svg>
+                        {aiEnabled ? "Disable AI" : "Enable AI"}
+                        {aiEnabled && (
+                          <span className="ml-auto w-2 h-2 rounded-full bg-green-500" />
+                        )}
+                      </button>
+                    </>
+                  )}
 
                   <div className="my-1 border-t border-gray-100" />
 
