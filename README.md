@@ -40,7 +40,7 @@ An optional AI sidebar with 10 structured thinking frameworks. Off by default, z
 **10 frameworks included:** The Thinker's Toolkit, First Principles, Six Thinking Hats, TRIZ, Design Thinking, Socratic Method, Systems Thinking, Lateral Thinking, OODA Loop, Theory of Constraints
 
 <p align="center">
-  <img src="landing/images/ai/note_conversation.png" alt="AI thinking sidebar" width="720">
+  <img src="landing/images/ai/ai_in_action.png" alt="AI thinking sidebar" width="720">
 </p>
 
 ## Getting Started
