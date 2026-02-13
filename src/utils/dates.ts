@@ -1,4 +1,4 @@
-import { format, parseISO, subDays, isToday, isYesterday } from "date-fns";
+import { format, parseISO, isToday, isYesterday } from "date-fns";
 
 export function todayKey(): string {
   return format(new Date(), "yyyy-MM-dd");
@@ -13,13 +13,4 @@ export function formatDayKey(dayKey: string): string {
 
 export function formatTime(timestamp: number): string {
   return format(new Date(timestamp), "h:mm a");
-}
-
-export function getLast30DayKeys(): string[] {
-  const keys: string[] = [];
-  const now = new Date();
-  for (let i = 0; i < 30; i++) {
-    keys.push(format(subDays(now, i), "yyyy-MM-dd"));
-  }
-  return keys;
 }

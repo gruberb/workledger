@@ -23,9 +23,9 @@
 - **Local-first** -- All data stored in IndexedDB, no server required
 - **Keyboard-driven** -- `Cmd+J` new entry, `Cmd+K` search, `Cmd+\` toggle sidebar, `Escape` clear filter
 
-### Optional: Think with AI (v1.1)
+### Optional: Think with AI
 
-An optional AI sidebar with 10 structured thinking frameworks. Off by default, zero impact on the core app when disabled.
+An optional AI sidebar with 10 structured thinking frameworks. Off by default, zero impact on the core app when disabled. Easy to remove if unwanted — fork and delete the `src/ai/` and `src/components/ai/` directories without affecting anything else.
 
 **Quick start:**
 

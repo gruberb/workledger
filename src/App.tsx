@@ -151,7 +151,7 @@ export default function App() {
 
       // Find the entry's dayKey from current state to highlight sidebar
       for (const [dayKey, entries] of entriesByDay) {
-        if ((entries as { id: string }[]).some((e) => e.id === entryId)) {
+        if (entries.some((e) => e.id === entryId)) {
           setActiveDayKey(dayKey);
           break;
         }

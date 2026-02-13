@@ -4,9 +4,6 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  define: {
-    "process.env.IS_PREACT": JSON.stringify("false"),
-  },
   optimizeDeps: {
     include: [
       "@excalidraw/excalidraw",

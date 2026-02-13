@@ -80,6 +80,8 @@ export function TagEditor({ tags, onChange }: TagEditorProps) {
           }}
           placeholder="tag name"
           className="text-xs bg-transparent outline-none border-b border-stone-300 px-1 py-0.5 w-20 text-stone-600 placeholder:text-stone-300"
+          autoComplete="off"
+          data-1p-ignore
         />
       ) : (
         <button

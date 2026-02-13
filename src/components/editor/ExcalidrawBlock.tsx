@@ -145,62 +145,8 @@ function ExcalidrawRenderer({
     ? JSON.parse(block.props.drawingData)
     : undefined;
 
-  const handleHeightResizeStart = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const startY = e.clientY;
-      const startHeight = resizeHeight ?? (block.props.height || CANVAS_HEIGHT);
-
-      const handleMouseMove = (moveEvent: MouseEvent) => {
-        const dy = moveEvent.clientY - startY;
-        setResizeHeight(Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, startHeight + dy)));
-      };
-
-      const handleMouseUp = (upEvent: MouseEvent) => {
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
-        const dy = upEvent.clientY - startY;
-        const newHeight = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, startHeight + dy));
-        setResizeHeight(null);
-        editor.updateBlock(block, { props: { height: newHeight } });
-      };
-
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-    },
-    [block, editor, resizeHeight],
-  );
-
-  const handleWidthResizeStart = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const startX = e.clientX;
-      const startWidth = resizeWidth ?? (block.props.width || maxWidth);
-
-      const handleMouseMove = (moveEvent: MouseEvent) => {
-        const dx = moveEvent.clientX - startX;
-        setResizeWidth(Math.min(maxWidth, Math.max(MIN_WIDTH, startWidth + dx)));
-      };
-
-      const handleMouseUp = (upEvent: MouseEvent) => {
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
-        const dx = upEvent.clientX - startX;
-        const newWidth = Math.min(maxWidth, Math.max(MIN_WIDTH, startWidth + dx));
-        setResizeWidth(null);
-        editor.updateBlock(block, { props: { width: newWidth } });
-      };
-
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-    },
-    [block, editor, resizeWidth, maxWidth],
-  );
-
-  const handleCornerResizeStart = useCallback(
-    (e: React.MouseEvent) => {
+  const createResizeHandler = useCallback(
+    (axis: "height" | "width" | "corner") => (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
       const startX = e.clientX;
@@ -211,8 +157,12 @@ function ExcalidrawRenderer({
       const handleMouseMove = (moveEvent: MouseEvent) => {
         const dx = moveEvent.clientX - startX;
         const dy = moveEvent.clientY - startY;
-        setResizeWidth(Math.min(maxWidth, Math.max(MIN_WIDTH, startWidth + dx)));
-        setResizeHeight(Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, startHeight + dy)));
+        if (axis === "width" || axis === "corner") {
+          setResizeWidth(Math.min(maxWidth, Math.max(MIN_WIDTH, startWidth + dx)));
+        }
+        if (axis === "height" || axis === "corner") {
+          setResizeHeight(Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, startHeight + dy)));
+        }
       };
 
       const handleMouseUp = (upEvent: MouseEvent) => {
@@ -220,11 +170,16 @@ function ExcalidrawRenderer({
         document.removeEventListener("mouseup", handleMouseUp);
         const dx = upEvent.clientX - startX;
         const dy = upEvent.clientY - startY;
-        const newWidth = Math.min(maxWidth, Math.max(MIN_WIDTH, startWidth + dx));
-        const newHeight = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, startHeight + dy));
-        setResizeWidth(null);
-        setResizeHeight(null);
-        editor.updateBlock(block, { props: { width: newWidth, height: newHeight } });
+        const props: { width?: number; height?: number } = {};
+        if (axis === "width" || axis === "corner") {
+          props.width = Math.min(maxWidth, Math.max(MIN_WIDTH, startWidth + dx));
+          setResizeWidth(null);
+        }
+        if (axis === "height" || axis === "corner") {
+          props.height = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, startHeight + dy));
+          setResizeHeight(null);
+        }
+        editor.updateBlock(block, { props });
       };
 
       document.addEventListener("mousemove", handleMouseMove);
@@ -232,6 +187,10 @@ function ExcalidrawRenderer({
     },
     [block, editor, resizeHeight, resizeWidth, maxWidth],
   );
+
+  const handleHeightResizeStart = createResizeHandler("height");
+  const handleWidthResizeStart = createResizeHandler("width");
+  const handleCornerResizeStart = createResizeHandler("corner");
 
   const handleChange = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

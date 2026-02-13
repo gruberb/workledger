@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import type { AISettings } from "../../types/ai.ts";
 import { createProvider } from "../../ai/providers/provider-factory.ts";
 
@@ -8,18 +8,17 @@ interface AISettingsPanelProps {
 }
 
 export function AISettingsPanel({ settings, onUpdateSettings }: AISettingsPanelProps) {
-  const [connected, setConnected] = useState<boolean | null>(null);
+  const [pingResult, setPingResult] = useState<{ provider: unknown; ok: boolean } | null>(null);
   const [models, setModels] = useState<string[]>([]);
 
+  const provider = useMemo(() => createProvider(settings), [settings]);
+  const connected = !provider ? false : pingResult?.provider === provider ? pingResult.ok : null;
+
   useEffect(() => {
-    const provider = createProvider(settings);
-    if (!provider) {
-      Promise.resolve().then(() => setConnected(false));
-      return;
-    }
-    provider.ping().then(setConnected);
+    if (!provider) return;
+    provider.ping().then((ok) => setPingResult({ provider, ok }));
     provider.listModels().then(setModels);
-  }, [settings]);
+  }, [provider]);
 
   return (
     <div className="px-4 py-4 overflow-y-auto h-full">

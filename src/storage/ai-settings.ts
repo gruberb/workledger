@@ -23,9 +23,11 @@ export async function loadAISettings(): Promise<AISettings> {
         settings[key] = val === "true";
       } else if (key === "temperature" || key === "maxTokens") {
         settings[key] = Number(val);
+      } else if (key === "provider") {
+        settings[key] = val as AISettings["provider"];
       } else {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (settings as any)[key] = val;
+        const k = key as keyof Pick<AISettings, "ollamaUrl" | "ollamaModel" | "hfApiKey" | "hfModel" | "customUrl" | "customApiKey" | "customModel">;
+        settings[k] = val;
       }
     }
   }

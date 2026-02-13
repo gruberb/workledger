@@ -1,29 +1,25 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { AISettings } from "../types/ai.ts";
 import { createProvider } from "../ai/providers/provider-factory.ts";
 
 export function useAIFeatureGate(settings: AISettings) {
-  const [available, setAvailable] = useState(false);
-  const [checking, setChecking] = useState(false);
+  const [pingResult, setPingResult] = useState<{ provider: unknown; ok: boolean } | null>(null);
 
-  useEffect(() => {
-    if (!settings.enabled) {
-      Promise.resolve().then(() => setAvailable(false));
-      return;
-    }
-
-    const provider = createProvider(settings);
-    if (!provider) {
-      Promise.resolve().then(() => setAvailable(false));
-      return;
-    }
-
-    Promise.resolve().then(() => setChecking(true));
-    provider.ping().then((ok) => {
-      setAvailable(ok);
-      setChecking(false);
-    });
+  const provider = useMemo(() => {
+    if (!settings.enabled) return null;
+    return createProvider(settings);
   }, [settings]);
 
-  return { available, checking };
+  // Derive available and loading from provider + ping result
+  const available = !!provider && pingResult?.provider === provider && pingResult.ok;
+  const loading = !!provider && pingResult?.provider !== provider;
+
+  useEffect(() => {
+    if (!provider) return;
+    provider.ping().then((ok) => {
+      setPingResult({ provider, ok });
+    });
+  }, [provider]);
+
+  return { available, loading };
 }

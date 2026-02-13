@@ -27,9 +27,8 @@ export function buildMessages(
     return messages;
   }
 
-  // Add full conversation history (skip system messages)
+  // Add full conversation history
   for (const msg of conversationHistory) {
-    if (msg.role === "system") continue;
     messages.push({ role: msg.role, content: msg.content });
   }
 

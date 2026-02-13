@@ -4,6 +4,31 @@ import { formatTime, todayKey } from "../../utils/dates.ts";
 import { EntryEditor } from "../editor/EntryEditor.tsx";
 import { TagEditor } from "./TagEditor.tsx";
 
+function ConfirmAction({ label, onConfirm, onCancel, danger }: {
+  label: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  danger?: boolean;
+}) {
+  return (
+    <span className="flex items-center gap-1.5">
+      <span className="text-[10px] text-gray-400">{label}</span>
+      <button
+        onClick={onConfirm}
+        className={`text-[10px] font-medium ${danger ? "text-red-500 hover:text-red-600" : "text-amber-600 hover:text-amber-700"}`}
+      >
+        Yes
+      </button>
+      <button
+        onClick={onCancel}
+        className="text-[10px] text-gray-400 hover:text-gray-500"
+      >
+        No
+      </button>
+    </span>
+  );
+}
+
 interface EntryCardProps {
   entry: WorkLedgerEntry;
   isLatest: boolean;
@@ -56,43 +81,18 @@ export function EntryCard({ entry, isLatest, onSave, onTagsChange, onArchive, on
           {/* Normal view: archive + delete */}
           {!isArchiveView && (confirmArchive || confirmDelete) ? (
             confirmArchive ? (
-              <span className="flex items-center gap-1.5">
-                <span className="text-[10px] text-gray-400">Archive?</span>
-                <button
-                  onClick={() => {
-                    onArchive?.(entry.id);
-                    setConfirmArchive(false);
-                  }}
-                  className="text-[10px] text-amber-600 hover:text-amber-700 font-medium"
-                >
-                  Yes
-                </button>
-                <button
-                  onClick={() => setConfirmArchive(false)}
-                  className="text-[10px] text-gray-400 hover:text-gray-500"
-                >
-                  No
-                </button>
-              </span>
+              <ConfirmAction
+                label="Archive?"
+                onConfirm={() => { onArchive?.(entry.id); setConfirmArchive(false); }}
+                onCancel={() => setConfirmArchive(false)}
+              />
             ) : (
-              <span className="flex items-center gap-1.5">
-                <span className="text-[10px] text-gray-400">Delete forever?</span>
-                <button
-                  onClick={() => {
-                    onDelete?.(entry.id);
-                    setConfirmDelete(false);
-                  }}
-                  className="text-[10px] text-red-500 hover:text-red-600 font-medium"
-                >
-                  Yes
-                </button>
-                <button
-                  onClick={() => setConfirmDelete(false)}
-                  className="text-[10px] text-gray-400 hover:text-gray-500"
-                >
-                  No
-                </button>
-              </span>
+              <ConfirmAction
+                label="Delete forever?"
+                onConfirm={() => { onDelete?.(entry.id); setConfirmDelete(false); }}
+                onCancel={() => setConfirmDelete(false)}
+                danger
+              />
             )
           ) : !isArchiveView ? (
             <>
@@ -128,24 +128,12 @@ export function EntryCard({ entry, isLatest, onSave, onTagsChange, onArchive, on
 
           {/* Archive view: restore + delete */}
           {isArchiveView && confirmDelete ? (
-            <span className="flex items-center gap-1.5">
-              <span className="text-[10px] text-gray-400">Delete forever?</span>
-              <button
-                onClick={() => {
-                  onDelete?.(entry.id);
-                  setConfirmDelete(false);
-                }}
-                className="text-[10px] text-red-500 hover:text-red-600 font-medium"
-              >
-                Yes
-              </button>
-              <button
-                onClick={() => setConfirmDelete(false)}
-                className="text-[10px] text-gray-400 hover:text-gray-500"
-              >
-                No
-              </button>
-            </span>
+            <ConfirmAction
+              label="Delete forever?"
+              onConfirm={() => { onDelete?.(entry.id); setConfirmDelete(false); }}
+              onCancel={() => setConfirmDelete(false)}
+              danger
+            />
           ) : isArchiveView ? (
             <>
               {onUnarchive && (

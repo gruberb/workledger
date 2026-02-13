@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import type { AISettings } from "../../types/ai.ts";
 import type { WorkLedgerEntry } from "../../types/entry.ts";
 import type { ThinkingFramework, FrameworkStep } from "../../ai/frameworks/types.ts";
@@ -41,26 +41,26 @@ export function AISidebar({
     clearConversation,
   } = useAIConversation(settings);
 
-  const [mode, setMode] = useState<SidebarMode>("frameworks");
+  const [userMode, setUserMode] = useState<SidebarMode>("frameworks");
   const [activeFramework, setActiveFramework] = useState<ThinkingFramework | null>(null);
   const [activeStep, setActiveStep] = useState<FrameworkStep | null>(null);
 
-  // Determine initial mode based on connection status
-  useEffect(() => {
-    if (!settings.enabled) return;
-    if (!available && mode !== "settings") {
-      Promise.resolve().then(() => setMode("setup"));
-    } else if (available && mode === "setup") {
-      Promise.resolve().then(() => setMode("frameworks"));
-    }
-  }, [available, settings.enabled, mode]);
+  // Derive effective mode from connection status + user selection
+  const mode = useMemo(() => {
+    if (!settings.enabled) return userMode;
+    if (!available && userMode !== "settings" && userMode !== "conversation") return "setup";
+    if (available && userMode === "setup") return "frameworks";
+    return userMode;
+  }, [settings.enabled, available, userMode]);
 
   // Reset when target entry changes
+  const targetEntryId = targetEntry?.id;
+  const activeFrameworkId = activeFramework?.id;
   useEffect(() => {
-    if (targetEntry && activeFramework) {
-      loadConversation(targetEntry.id, activeFramework.id);
+    if (targetEntryId && activeFrameworkId) {
+      loadConversation(targetEntryId, activeFrameworkId);
     }
-  }, [targetEntry?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [targetEntryId, activeFrameworkId, loadConversation]);
 
   const handleSelectFramework = useCallback(
     (framework: ThinkingFramework) => {
@@ -78,7 +78,7 @@ export function AISidebar({
           const noteText = extractTextFromBlocks(targetEntry.blocks as Block[]);
           sendMessage(conv, firstStep, noteText);
         }
-        setMode("conversation");
+        setUserMode("conversation");
       });
     },
     [targetEntry, loadConversation, startConversation, sendMessage],
@@ -101,7 +101,7 @@ export function AISidebar({
       const conv = startConversation(targetEntry.id, conversation.frameworkId, step.id);
       const noteText = extractTextFromBlocks(targetEntry.blocks as Block[]);
       sendMessage(conv, step, noteText);
-      setMode("conversation");
+      setUserMode("conversation");
     },
     [conversation, targetEntry, startConversation, sendMessage],
   );
@@ -111,9 +111,9 @@ export function AISidebar({
       clearConversation();
       setActiveFramework(null);
       setActiveStep(null);
-      setMode("frameworks");
+      setUserMode("frameworks");
     } else if (mode === "settings") {
-      setMode(available ? "frameworks" : "setup");
+      setUserMode(available ? "frameworks" : "setup");
     }
   }, [mode, available, clearConversation]);
 
@@ -180,7 +180,7 @@ export function AISidebar({
           {/* Step tabs for conversation mode */}
           {mode !== "settings" && mode !== "setup" && (
             <button
-              onClick={() => setMode("settings")}
+              onClick={() => setUserMode("settings")}
               className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors shrink-0"
               title="AI Settings"
             >

@@ -11,6 +11,3 @@ export function getFramework(id: string): ThinkingFramework | undefined {
   return frameworks.find((f) => f.id === id);
 }
 
-export function getFrameworksByCategory(category: ThinkingFramework["category"]): ThinkingFramework[] {
-  return frameworks.filter((f) => f.category === category);
-}

@@ -48,20 +48,28 @@ export class OllamaProvider implements LLMProvider {
 
       for (const line of lines) {
         if (!line.trim()) continue;
-        const json = JSON.parse(line);
-        yield {
-          content: json.message?.content || "",
-          done: json.done || false,
-        };
+        try {
+          const json = JSON.parse(line);
+          yield {
+            content: json.message?.content || "",
+            done: json.done || false,
+          };
+        } catch {
+          // skip malformed chunks
+        }
       }
     }
 
     if (buffer.trim()) {
-      const json = JSON.parse(buffer);
-      yield {
-        content: json.message?.content || "",
-        done: json.done || false,
-      };
+      try {
+        const json = JSON.parse(buffer);
+        yield {
+          content: json.message?.content || "",
+          done: json.done || false,
+        };
+      } catch {
+        // skip malformed final chunk
+      }
     }
   }
 

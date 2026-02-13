@@ -126,8 +126,10 @@ export function useAIConversation(settings: AISettings) {
         setConversation(updated);
         await saveConversation(updated);
       } catch (err) {
-        if ((err as Error).name !== "AbortError") {
-          setError((err as Error).message);
+        if (err instanceof Error && err.name !== "AbortError") {
+          setError(err.message);
+        } else if (!(err instanceof Error)) {
+          setError(String(err));
         }
       } finally {
         setStreaming(false);

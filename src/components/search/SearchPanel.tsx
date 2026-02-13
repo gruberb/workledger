@@ -71,6 +71,8 @@ export function SearchPanel({
             onChange={(e) => onSearch(e.target.value)}
             placeholder="Search entries and tags..."
             className="flex-1 text-sm bg-transparent outline-none text-gray-800 placeholder:text-gray-400"
+            autoComplete="off"
+            data-1p-ignore
           />
           <kbd className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-400 rounded">
             ESC
