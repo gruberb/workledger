@@ -1,0 +1,200 @@
+import { useState, useRef, useEffect } from "react";
+import { useIsMobile } from "../../../hooks/useIsMobile.ts";
+import { SidebarSettings } from "./SidebarSettings.tsx";
+import { SidebarDayList } from "./SidebarDayList.tsx";
+import { SidebarTagCloud } from "./SidebarTagCloud.tsx";
+import { ImportExport } from "./ImportExport.tsx";
+
+interface SidebarProps {
+  dayKeys: string[];
+  entriesByDay: Map<string, unknown[]>;
+  isOpen: boolean;
+  onToggle: () => void;
+  onDayClick: (dayKey: string) => void;
+  sidebarSearchQuery: string;
+  onSidebarSearch: (query: string) => void;
+  onSearchOpen: () => void;
+  allTags: string[];
+  onTagClick: (tag: string) => void;
+  onRefresh: () => void;
+  isArchiveView: boolean;
+  onToggleArchiveView: () => void;
+  archivedCount: number;
+  activeDayKey?: string | null;
+  onDeleteAll?: () => void;
+  aiEnabled?: boolean;
+  onToggleAI?: () => void;
+  themeMode?: "light" | "dark";
+  onToggleTheme?: () => void;
+}
+
+export function Sidebar({
+  dayKeys,
+  entriesByDay,
+  isOpen,
+  onToggle,
+  onDayClick,
+  sidebarSearchQuery,
+  onSidebarSearch,
+  onSearchOpen,
+  allTags,
+  onTagClick,
+  onRefresh,
+  isArchiveView,
+  onToggleArchiveView,
+  archivedCount,
+  activeDayKey,
+  onDeleteAll,
+  aiEnabled,
+  onToggleAI,
+  themeMode,
+  onToggleTheme,
+}: SidebarProps) {
+  const isMobile = useIsMobile();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
+
+  // Close settings dropdown when clicking outside
+  useEffect(() => {
+    if (!settingsOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+        setSettingsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [settingsOpen]);
+
+  return (
+    <>
+      {/* Toggle button — only visible when sidebar is closed */}
+      {!isOpen && (
+        <button
+          onClick={onToggle}
+          className="fixed top-4 left-4 z-50 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          title="Expand sidebar (⌘\)"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      )}
+
+      {/* Mobile backdrop */}
+      {isMobile && isOpen && (
+        <div className="fixed inset-0 z-30 bg-black/40 transition-opacity duration-300" onClick={onToggle} />
+      )}
+
+      {/* Sidebar panel */}
+      <aside
+        className={`
+          fixed top-0 left-0 h-full z-40
+          bg-white dark:bg-[#0f0f0f] border-r border-gray-100 dark:border-gray-800
+          shadow-[1px_0_12px_rgba(0,0,0,0.03)] dark:shadow-[1px_0_12px_rgba(0,0,0,0.3)]
+          transition-transform duration-300 ease-in-out
+          ${isMobile ? "w-full" : "w-80"} pt-[23px] pb-5 px-[22px]
+          flex flex-col
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+        `}
+      >
+        {/* Header */}
+        <div className="mb-6 flex items-center gap-3 shrink-0">
+          <a href="https://about.workledger.org" target="_blank" rel="noopener" className="flex items-center gap-3 flex-1 min-w-0">
+            <img src="/logo.svg" alt="WorkLedger" className="w-9 h-9 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <h1 className="text-3xl text-gray-800 dark:text-gray-100 sidebar-title-font leading-tight">WorkLedger</h1>
+              <p className="text-xs text-gray-400 dark:text-gray-500 -mt-0.5">Engineering Notebook</p>
+            </div>
+          </a>
+          <button
+            onClick={onToggle}
+            className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors shrink-0"
+            title="Collapse sidebar (⌘\)"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Filter */}
+        <div className="mb-5 shrink-0">
+          <div className="relative">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              value={sidebarSearchQuery}
+              onChange={(e) => onSidebarSearch(e.target.value)}
+              placeholder={isArchiveView ? "Filter archive..." : "Filter entries..."}
+              className="w-full text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg pl-8 pr-7 py-2 outline-none focus:border-orange-300 focus:bg-white dark:focus:bg-gray-800 focus:ring-1 focus:ring-orange-100 dark:focus:ring-orange-900 transition-all text-gray-600 dark:text-gray-300 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+              autoComplete="off"
+              data-1p-ignore
+            />
+            {sidebarSearchQuery && (
+              <button onClick={() => onSidebarSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            )}
+          </div>
+          <div className="flex items-center justify-between mt-2 px-2">
+            {isArchiveView ? (
+              <p className="text-[11px] uppercase tracking-wider text-amber-500 font-medium flex items-center gap-2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" /><line x1="10" y1="12" x2="14" y2="12" />
+                </svg>
+                Archive
+              </p>
+            ) : (
+              <button onClick={onSearchOpen} className="text-sm text-gray-400 hover:text-gray-500 transition-colors">
+                Full search <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-[10px]">⌘K</kbd>
+              </button>
+            )}
+            <SidebarSettings
+              settingsOpen={settingsOpen}
+              setSettingsOpen={setSettingsOpen}
+              settingsRef={settingsRef}
+              isArchiveView={isArchiveView}
+              onToggleArchiveView={onToggleArchiveView}
+              archivedCount={archivedCount}
+              onToggleAI={onToggleAI}
+              aiEnabled={aiEnabled}
+              fileInputRef={fileInputRef}
+              onDeleteAll={onDeleteAll}
+              themeMode={themeMode}
+              onToggleTheme={onToggleTheme}
+            />
+          </div>
+        </div>
+
+        {/* Day list */}
+        <SidebarDayList
+          dayKeys={dayKeys}
+          entriesByDay={entriesByDay}
+          isArchiveView={isArchiveView}
+          activeDayKey={activeDayKey}
+          onDayClick={onDayClick}
+        />
+
+        {/* Tags */}
+        {!isArchiveView && (
+          <SidebarTagCloud
+            allTags={allTags}
+            sidebarSearchQuery={sidebarSearchQuery}
+            onTagClick={onTagClick}
+          />
+        )}
+
+        {/* Import file input */}
+        <ImportExport fileInputRef={fileInputRef} onRefresh={onRefresh} />
+      </aside>
+
+      {/* Import toast is rendered by ImportExport */}
+    </>
+  );
+}

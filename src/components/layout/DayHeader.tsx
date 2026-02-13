@@ -1,4 +1,4 @@
-import { formatDayKey } from "../../utils/dates.ts";
+import { formatDayKey } from "../../features/entries/utils/dates.ts";
 
 interface DayHeaderProps {
   dayKey: string;
