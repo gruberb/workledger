@@ -122,6 +122,12 @@
   max-height: 400px;
 }
 
+@media (max-width: 767px) {
+  .excalidraw-preview svg {
+    max-height: 280px;
+  }
+}
+
 /* Invert Excalidraw preview in dark mode so light-bg drawings look correct */
 .dark .excalidraw-preview svg {
   filter: invert(1) hue-rotate(180deg);

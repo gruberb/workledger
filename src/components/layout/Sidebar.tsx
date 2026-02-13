@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { formatDayKey, todayKey } from "../../utils/dates.ts";
 import { getTagColor } from "../../utils/tag-colors.ts";
 import { exportAllEntries, importEntries } from "../../storage/import-export.ts";
+import { useIsMobile } from "../../hooks/useIsMobile.ts";
 
 function SidebarSettings({
   settingsOpen,
@@ -259,6 +260,7 @@ export function Sidebar({
   themeMode,
   onToggleTheme,
 }: SidebarProps) {
+  const isMobile = useIsMobile();
   const today = todayKey();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [importStatus, setImportStatus] = useState<string | null>(null);
@@ -314,6 +316,14 @@ export function Sidebar({
         </button>
       )}
 
+      {/* Mobile backdrop */}
+      {isMobile && isOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/40 transition-opacity duration-300"
+          onClick={onToggle}
+        />
+      )}
+
       {/* Sidebar panel */}
       <aside
         className={`
@@ -321,7 +331,7 @@ export function Sidebar({
           bg-white dark:bg-[#0f0f0f] border-r border-gray-100 dark:border-gray-800
           shadow-[1px_0_12px_rgba(0,0,0,0.03)] dark:shadow-[1px_0_12px_rgba(0,0,0,0.3)]
           transition-transform duration-300 ease-in-out
-          w-80 pt-[23px] pb-5 px-[22px]
+          ${isMobile ? "w-full" : "w-80"} pt-[23px] pb-5 px-[22px]
           flex flex-col
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}

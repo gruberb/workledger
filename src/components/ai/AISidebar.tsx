@@ -5,6 +5,7 @@ import type { ThinkingFramework, FrameworkStep } from "../../ai/frameworks/types
 import { extractTextFromBlocks } from "../../storage/search-index.ts";
 import { useAIConversation } from "../../hooks/useAIConversation.ts";
 import { useAIFeatureGate } from "../../hooks/useAIFeatureGate.ts";
+import { useIsMobile } from "../../hooks/useIsMobile.ts";
 import { FrameworkSelector } from "./FrameworkSelector.tsx";
 import { AIConversation } from "./AIConversation.tsx";
 import { AISetupGuide } from "./AISetupGuide.tsx";
@@ -28,6 +29,7 @@ export function AISidebar({
   onUpdateSettings,
   targetEntry,
 }: AISidebarProps) {
+  const isMobile = useIsMobile();
   const { available } = useAIFeatureGate(settings);
   const {
     conversation,
@@ -116,6 +118,9 @@ export function AISidebar({
       setUserMode(available ? "frameworks" : "setup");
     }
   }, [mode, available, clearConversation]);
+
+  // Hide AI sidebar entirely on mobile
+  if (isMobile) return null;
 
   return (
     <>

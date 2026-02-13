@@ -67,9 +67,10 @@ excalidrawBlockStyles.textContent = `
 document.head.appendChild(excalidrawBlockStyles);
 
 const CANVAS_HEIGHT = 500;
+const CANVAS_HEIGHT_MOBILE = 350;
 const MIN_HEIGHT = 200;
 const MAX_HEIGHT = 1200;
-const MIN_WIDTH = 300;
+const MIN_WIDTH = 200;
 
 /** Find the BlockNote wrapper element: [data-content-type="excalidraw"] */
 function getBlockNoteWrapper(el: HTMLElement | null): HTMLElement | null {
@@ -147,52 +148,84 @@ function ExcalidrawRenderer({
     ? JSON.parse(block.props.drawingData)
     : undefined;
 
+  const defaultHeight = window.matchMedia("(max-width: 767px)").matches ? CANVAS_HEIGHT_MOBILE : CANVAS_HEIGHT;
+
   const createResizeHandler = useCallback(
-    (axis: "height" | "width" | "corner") => (e: React.MouseEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const startX = e.clientX;
-      const startY = e.clientY;
-      const startHeight = resizeHeight ?? (block.props.height || CANVAS_HEIGHT);
-      const startWidth = resizeWidth ?? (block.props.width || maxWidth);
+    (axis: "height" | "width" | "corner") => {
+      const startResize = (startX: number, startY: number) => {
+        const startHeight = resizeHeight ?? (block.props.height || defaultHeight);
+        const startWidth = resizeWidth ?? (block.props.width || maxWidth);
 
-      const handleMouseMove = (moveEvent: MouseEvent) => {
-        const dx = moveEvent.clientX - startX;
-        const dy = moveEvent.clientY - startY;
-        if (axis === "width" || axis === "corner") {
-          setResizeWidth(Math.min(maxWidth, Math.max(MIN_WIDTH, startWidth + dx)));
-        }
-        if (axis === "height" || axis === "corner") {
-          setResizeHeight(Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, startHeight + dy)));
-        }
+        const onMove = (cx: number, cy: number) => {
+          const dx = cx - startX;
+          const dy = cy - startY;
+          if (axis === "width" || axis === "corner") {
+            setResizeWidth(Math.min(maxWidth, Math.max(MIN_WIDTH, startWidth + dx)));
+          }
+          if (axis === "height" || axis === "corner") {
+            setResizeHeight(Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, startHeight + dy)));
+          }
+        };
+
+        const onEnd = (cx: number, cy: number) => {
+          const dx = cx - startX;
+          const dy = cy - startY;
+          const props: { width?: number; height?: number } = {};
+          if (axis === "width" || axis === "corner") {
+            props.width = Math.min(maxWidth, Math.max(MIN_WIDTH, startWidth + dx));
+            setResizeWidth(null);
+          }
+          if (axis === "height" || axis === "corner") {
+            props.height = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, startHeight + dy));
+            setResizeHeight(null);
+          }
+          editor.updateBlock(block, { props });
+        };
+
+        return { onMove, onEnd };
       };
 
-      const handleMouseUp = (upEvent: MouseEvent) => {
-        document.removeEventListener("mousemove", handleMouseMove);
-        document.removeEventListener("mouseup", handleMouseUp);
-        const dx = upEvent.clientX - startX;
-        const dy = upEvent.clientY - startY;
-        const props: { width?: number; height?: number } = {};
-        if (axis === "width" || axis === "corner") {
-          props.width = Math.min(maxWidth, Math.max(MIN_WIDTH, startWidth + dx));
-          setResizeWidth(null);
-        }
-        if (axis === "height" || axis === "corner") {
-          props.height = Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, startHeight + dy));
-          setResizeHeight(null);
-        }
-        editor.updateBlock(block, { props });
+      const handleMouse = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const { onMove, onEnd } = startResize(e.clientX, e.clientY);
+        const handleMouseMove = (ev: MouseEvent) => onMove(ev.clientX, ev.clientY);
+        const handleMouseUp = (ev: MouseEvent) => {
+          document.removeEventListener("mousemove", handleMouseMove);
+          document.removeEventListener("mouseup", handleMouseUp);
+          onEnd(ev.clientX, ev.clientY);
+        };
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseup", handleMouseUp);
       };
 
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
+      const handleTouch = (e: React.TouchEvent) => {
+        e.stopPropagation();
+        const touch = e.touches[0];
+        const { onMove, onEnd } = startResize(touch.clientX, touch.clientY);
+        const handleTouchMove = (ev: TouchEvent) => {
+          ev.preventDefault();
+          const t = ev.touches[0];
+          onMove(t.clientX, t.clientY);
+        };
+        const handleTouchEnd = (ev: TouchEvent) => {
+          document.removeEventListener("touchmove", handleTouchMove);
+          document.removeEventListener("touchend", handleTouchEnd);
+          const t = ev.changedTouches[0];
+          onEnd(t.clientX, t.clientY);
+        };
+        document.addEventListener("touchmove", handleTouchMove, { passive: false });
+        document.addEventListener("touchend", handleTouchEnd);
+      };
+
+      return { onMouseDown: handleMouse, onTouchStart: handleTouch };
     },
-    [block, editor, resizeHeight, resizeWidth, maxWidth],
+    [block, editor, resizeHeight, resizeWidth, maxWidth, defaultHeight],
   );
 
-  const handleHeightResizeStart = createResizeHandler("height");
-  const handleWidthResizeStart = createResizeHandler("width");
-  const handleCornerResizeStart = createResizeHandler("corner");
+  const heightResize = createResizeHandler("height");
+  const widthResize = createResizeHandler("width");
+  const cornerResize = createResizeHandler("corner");
 
   const handleChange = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -288,7 +321,7 @@ function ExcalidrawRenderer({
 
   // Preview mode (collapsed)
   if (!isEditing && block.props.previewSvg) {
-    const previewHeight = resizeHeight ?? (block.props.height || CANVAS_HEIGHT);
+    const previewHeight = resizeHeight ?? (block.props.height || defaultHeight);
     return (
       <div ref={containerRef} className="excalidraw-block my-2 relative" style={{ width: "100%" }}>
         <div
@@ -299,34 +332,37 @@ function ExcalidrawRenderer({
         />
         {/* Bottom handle — height */}
         <div
-          onMouseDown={handleHeightResizeStart}
-          className="group flex items-center justify-center h-3 cursor-row-resize select-none -mt-px"
+          onMouseDown={heightResize.onMouseDown}
+          onTouchStart={heightResize.onTouchStart}
+          className="group flex items-center justify-center h-5 sm:h-3 cursor-row-resize select-none -mt-px"
           title="Drag to resize height"
         >
-          <div className="w-10 h-1 rounded-full bg-gray-200 dark:bg-gray-700 group-hover:bg-gray-400 dark:group-hover:bg-gray-500 transition-colors" />
+          <div className="w-12 sm:w-10 h-1.5 sm:h-1 rounded-full bg-gray-200 dark:bg-gray-700 group-hover:bg-gray-400 dark:group-hover:bg-gray-500 transition-colors" />
         </div>
         {/* Right handle — width */}
         <div
-          onMouseDown={handleWidthResizeStart}
-          className="group absolute -right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-4 h-16 cursor-col-resize select-none z-10"
+          onMouseDown={widthResize.onMouseDown}
+          onTouchStart={widthResize.onTouchStart}
+          className="group absolute -right-2 top-1/2 -translate-y-1/2 flex items-center justify-center w-6 sm:w-4 h-20 sm:h-16 cursor-col-resize select-none z-10"
           title="Drag to resize width"
         >
-          <div className="h-10 w-1 rounded-full bg-gray-200 dark:bg-gray-700 group-hover:bg-gray-400 dark:group-hover:bg-gray-500 transition-colors" />
+          <div className="h-12 sm:h-10 w-1.5 sm:w-1 rounded-full bg-gray-200 dark:bg-gray-700 group-hover:bg-gray-400 dark:group-hover:bg-gray-500 transition-colors" />
         </div>
         {/* Corner handle — both */}
         <div
-          onMouseDown={handleCornerResizeStart}
-          className="group absolute -bottom-1 -right-2 w-4 h-4 cursor-nwse-resize select-none z-10 flex items-center justify-center"
+          onMouseDown={cornerResize.onMouseDown}
+          onTouchStart={cornerResize.onTouchStart}
+          className="group absolute -bottom-1 -right-2 w-6 sm:w-4 h-6 sm:h-4 cursor-nwse-resize select-none z-10 flex items-center justify-center"
           title="Drag to resize"
         >
-          <div className="w-2.5 h-2.5 rounded-sm bg-gray-200 dark:bg-gray-700 group-hover:bg-gray-400 dark:group-hover:bg-gray-500 transition-colors" />
+          <div className="w-3.5 sm:w-2.5 h-3.5 sm:h-2.5 rounded-sm bg-gray-200 dark:bg-gray-700 group-hover:bg-gray-400 dark:group-hover:bg-gray-500 transition-colors" />
         </div>
       </div>
     );
   }
 
   // Edit mode (full-width Excalidraw canvas)
-  const canvasHeight = resizeHeight ?? (block.props.height || CANVAS_HEIGHT);
+  const canvasHeight = resizeHeight ?? (block.props.height || defaultHeight);
   const ready = maxWidth >= 100;
 
   return (
@@ -378,11 +414,12 @@ function ExcalidrawRenderer({
       </div>
       {/* Bottom resize handle — height only in edit mode */}
       <div
-        onMouseDown={handleHeightResizeStart}
-        className="group flex items-center justify-center h-3 cursor-row-resize select-none -mt-px"
+        onMouseDown={heightResize.onMouseDown}
+        onTouchStart={heightResize.onTouchStart}
+        className="group flex items-center justify-center h-5 sm:h-3 cursor-row-resize select-none -mt-px"
         title="Drag to resize height"
       >
-        <div className="w-10 h-1 rounded-full bg-gray-200 group-hover:bg-gray-400 transition-colors" />
+        <div className="w-12 sm:w-10 h-1.5 sm:h-1 rounded-full bg-gray-200 group-hover:bg-gray-400 transition-colors" />
       </div>
     </div>
   );
