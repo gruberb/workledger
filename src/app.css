@@ -13,7 +13,7 @@
   --color-notebook-surface-alt: #fcfcfc;
   --color-notebook-muted: #666666;
   --color-notebook-border: #e5e5e5;
-  --color-notebook-code-bg: #f5f5f5;
+  --color-notebook-code-bg: #e8e8e8;
   --color-notebook-scrollbar: #d1d5db;
   --color-notebook-scrollbar-hover: #9ca3af;
 }
@@ -219,6 +219,17 @@ body {
 .entry-link-highlight {
   animation: entry-link-pulse 1s ease-in-out 2;
   border-radius: 8px;
+}
+
+/* Override BlockNote hardcoded dark code block background */
+[data-workledger-editor] .bn-block-content[data-content-type="codeBlock"] {
+  background-color: var(--color-notebook-code-bg);
+  color: var(--color-notebook-text);
+}
+
+/* Language selector: use muted text instead of white */
+[data-workledger-editor] .bn-block-content[data-content-type="codeBlock"] > div > select {
+  color: var(--color-notebook-muted);
 }
 
 /* Make BlockNote suggestion menus scrollable */
