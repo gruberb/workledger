@@ -7,6 +7,21 @@
 <p align="center">An open-source engineering notebook for documenting your daily work.<br>Built with React, BlockNote, and Excalidraw.</p>
 
 <p align="center">
+  <a href="https://github.com/gruberb/workledger/blob/main/LICENSE">
+    <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg" />
+  </a>
+  <a href="https://github.com/gruberb/workledger/actions">
+    <img alt="Build status" src="https://img.shields.io/github/actions/workflow/status/gruberb/workledger/ci.yml?branch=main" />
+  </a>
+  <a href="https://github.com/gruberb/workledger/blob/main/CONTRIBUTING.md">
+    <img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" />
+  </a>
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white" />
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white" />
+  <img alt="Local-first" src="https://img.shields.io/badge/local--first-IndexedDB-orange" />
+</p>
+
+<p align="center">
   <img src="landing/images/product.png" alt="WorkLedger" width="720">
 </p>
 
@@ -32,6 +47,7 @@
 ### Stay in control
 
 - **Local-first** -- All data stored in IndexedDB, no server required
+- **Optional server sync** -- End-to-end encrypted sync across devices. Use the default server or [self-host your own](https://github.com/gruberb/workledger-sync) — generate a sync ID, and your entries are encrypted before leaving the browser
 - **Import & export** -- Export all entries as JSON for backup, import them back anytime
 - **Archive & restore** -- Archive old entries to keep your workspace clean, browse and restore them anytime
 - **Mobile-friendly** -- Responsive layout with touch-friendly controls

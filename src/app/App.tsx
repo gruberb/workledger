@@ -7,6 +7,7 @@ import { useFocusModeContext } from "../features/focus-mode/index.ts";
 import { useAIContext } from "../features/ai/index.ts";
 import { useThemeContext } from "../features/theme/index.ts";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts.ts";
+import { useIsMobile } from "../hooks/useIsMobile.ts";
 
 const AISidebar = lazy(() => import("../features/ai/index.ts").then((m) => ({ default: m.AISidebar })));
 import { AppProviders } from "./AppProviders.tsx";
@@ -20,6 +21,7 @@ export default function App() {
 }
 
 function AppContent() {
+  const isMobile = useIsMobile();
   const { loading } = useEntriesData();
   const { updateEntry, updateEntryTags, archiveEntry, unarchiveEntry, deleteEntry, refresh } = useEntriesActions();
   const {
@@ -105,7 +107,7 @@ function AppContent() {
           hasActiveFilters={hasActiveFilters}
           onRemoveTag={removeTag}
           onClearAllFilters={clearAllFilters}
-          onOpenAI={aiSettings.enabled && aiAvailable ? handleOpenAI : undefined}
+          onOpenAI={aiSettings.enabled && aiAvailable && !isMobile ? handleOpenAI : undefined}
           focusedEntryId={focusedEntryId}
           onFocusEntry={handleFocusEntry}
           onExitFocus={handleExitFocus}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { exportAllEntries } from "../../entries/index.ts";
 import { THEME_PRESETS, FONT_OPTIONS, type ThemeId, type FontFamily } from "../../theme/index.ts";
+import { StorageSubmenu, useSyncContext } from "../../sync/index.ts";
 
 interface SidebarSettingsProps {
   settingsOpen: boolean;
@@ -19,7 +20,7 @@ interface SidebarSettingsProps {
   onSetFont: (f: FontFamily) => void;
 }
 
-type Submenu = "theme" | "font" | null;
+type Submenu = "theme" | "font" | "storage" | null;
 
 const menuItemClass = "w-full text-left px-3 py-2 text-sm text-[var(--color-notebook-text)] hover:bg-[var(--color-notebook-surface-alt)] transition-colors flex items-center gap-2";
 const mutedClass = "text-[var(--color-notebook-muted)]";
@@ -43,6 +44,7 @@ export function SidebarSettings({
 }: SidebarSettingsProps) {
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
   const [submenu, setSubmenu] = useState<Submenu>(null);
+  const { config: syncConfig } = useSyncContext();
 
   const handleClose = () => {
     setSettingsOpen(false);
@@ -73,7 +75,7 @@ export function SidebarSettings({
       </button>
 
       {settingsOpen && (
-        <div className="absolute right-0 top-full mt-1 w-52 bg-[var(--color-notebook-surface)] rounded-lg shadow-lg border border-[var(--color-notebook-border)] py-1 z-50">
+        <div className="absolute right-0 top-full mt-1 w-64 bg-[var(--color-notebook-surface)] rounded-lg shadow-lg border border-[var(--color-notebook-border)] py-1 z-50">
           {submenu === null && (
             <>
               {/* Archive toggle */}
@@ -141,6 +143,21 @@ export function SidebarSettings({
                 </svg>
                 <span className="flex-1">Note font</span>
                 <span className={`text-xs ${mutedClass} truncate max-w-[70px]`}>{activeFont?.label}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={mutedClass}>
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+
+              {/* Storage trigger */}
+              <button
+                onClick={() => setSubmenu("storage")}
+                className={menuItemClass}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z" />
+                </svg>
+                <span className="flex-1">Storage</span>
+                <span className={`text-xs ${mutedClass} truncate max-w-[70px]`}>{syncConfig.mode === "remote" ? "Remote" : "Local"}</span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={mutedClass}>
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
@@ -255,6 +272,16 @@ export function SidebarSettings({
                 </button>
               ))}
             </>
+          )}
+
+          {/* Storage submenu */}
+          {submenu === "storage" && (
+            <StorageSubmenu
+              menuItemClass={menuItemClass}
+              mutedClass={mutedClass}
+              dividerClass={dividerClass}
+              onBack={() => setSubmenu(null)}
+            />
           )}
         </div>
       )}

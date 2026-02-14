@@ -4,6 +4,7 @@ import { EntriesProvider } from "../features/entries/index.ts";
 import { SidebarProvider, useSidebarContext } from "../features/sidebar/index.ts";
 import { FocusModeProvider } from "../features/focus-mode/index.ts";
 import { AIProvider } from "../features/ai/index.ts";
+import { SyncProvider } from "../features/sync/index.ts";
 
 function AIProviderWithSidebar({ children }: { children: ReactNode }) {
   const { setSidebarOpen } = useSidebarContext();
@@ -27,6 +28,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <ThemeContext.Provider value={contextValue}>
       <EntriesProvider>
+        <SyncProvider>
         <SidebarProvider>
           <FocusModeProvider>
             <AIProviderWithSidebar>
@@ -34,6 +36,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
             </AIProviderWithSidebar>
           </FocusModeProvider>
         </SidebarProvider>
+        </SyncProvider>
       </EntriesProvider>
     </ThemeContext.Provider>
   );

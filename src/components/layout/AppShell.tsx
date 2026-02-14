@@ -19,7 +19,7 @@ export function AppShell({ sidebarOpen, aiSidebarOpen, children }: AppShellProps
         ${!isMobile && aiSidebarOpen ? "pr-96" : "pr-0"}
       `}
     >
-      <main className={`max-w-7xl mx-auto pt-6 pb-8 relative z-[45] ${isMobile ? "px-4" : "px-12"}`}>
+      <main className={`max-w-7xl mx-auto pt-6 pb-8 relative ${isMobile ? "px-4" : "px-12"}`}>
         {children}
       </main>
     </div>

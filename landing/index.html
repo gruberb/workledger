@@ -650,32 +650,6 @@
                 letter-spacing: 0.02em;
             }
 
-            /* ── Coming Soon card ── */
-            .coming-soon-card {
-                display: flex;
-                gap: 20px;
-                padding: 28px;
-                background: var(--paper-warm);
-                border: 1.5px dashed #fed7aa;
-                border-radius: 12px;
-                position: relative;
-                align-items: flex-start;
-            }
-            .coming-soon-badge {
-                position: absolute;
-                top: -10px;
-                left: 24px;
-                padding: 3px 12px;
-                background: var(--orange);
-                color: var(--white);
-                font-family: var(--font-mono);
-                font-size: 0.7rem;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.08em;
-                border-radius: 100px;
-            }
-
             /* ── Core features compact strip ── */
             .core-features-label {
                 font-family: var(--font-mono);
@@ -731,6 +705,10 @@
                 .features-highlights {
                     grid-template-columns: 1fr;
                 }
+                .features::before,
+                .features::after {
+                    display: none;
+                }
             }
             @media (max-width: 560px) {
                 .features-highlights {
@@ -738,10 +716,6 @@
                 }
                 .core-features-grid {
                     grid-template-columns: 1fr;
-                }
-                .features::before,
-                .features::after {
-                    display: none;
                 }
             }
 
@@ -1625,9 +1599,8 @@
                         </div>
                     </div>
 
-                    <!-- ── Coming Soon: Sync ── -->
-                    <div class="coming-soon-card reveal">
-                        <div class="coming-soon-badge">Coming Soon</div>
+                    <!-- ── Sync ── -->
+                    <div class="highlight-card reveal">
                         <div class="highlight-icon">
                             <svg
                                 viewBox="0 0 24 24"
@@ -1645,11 +1618,13 @@
                             </svg>
                         </div>
                         <div class="highlight-content">
-                            <h3 class="highlight-title">Sync Service</h3>
+                            <h3 class="highlight-title">End-to-End Encrypted Sync</h3>
                             <p class="highlight-desc">
-                                Local storage by default. Optionally self-host your
-                                own sync server, or get a free sync ID to store your
-                                notes encrypted in the cloud. Your data, your rules.
+                                Local storage by default. Optionally sync across
+                                devices with end-to-end encryption — entries are
+                                encrypted before leaving your browser. Use the
+                                default server or
+                                <a href="https://github.com/gruberb/workledger-sync" target="_blank" rel="noopener">self-host your own</a>.
                             </p>
                         </div>
                     </div>

@@ -33,7 +33,7 @@ export const EntryCard = memo(function EntryCard({ entry, isLatest, onSave, onTa
   }, [entry.id]);
 
   return (
-    <div className="entry-card group animate-fade-in scroll-mt-[120px]" id={`entry-${entry.id}`}>
+    <div className="entry-card group scroll-mt-[120px]" id={`entry-${entry.id}`}>
       <div className="flex items-center gap-3 mb-2 px-1">
         <span className="text-sm text-gray-400 dark:text-gray-500 font-mono">
           {formatTime(entry.createdAt)}

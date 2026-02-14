@@ -14,8 +14,8 @@ export { NewEntryButton } from "./components/NewEntryButton.tsx";
 export type { WorkLedgerEntry, SearchIndexEntry } from "./types/entry.ts";
 
 // Storage operations (for cross-feature use)
-export { getEntry } from "./storage/entries.ts";
-export { searchEntries, getRecentSearchEntries, extractTextFromBlocks } from "./storage/search-index.ts";
+export { getEntry, getAllEntries } from "./storage/entries.ts";
+export { searchEntries, getRecentSearchEntries, extractTextFromBlocks, deleteSearchIndex } from "./storage/search-index.ts";
 export { exportAllEntries, importEntries } from "./storage/import-export.ts";
 
 // Utils (entries-specific)

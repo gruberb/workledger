@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo, t
 import { useEntriesData, useEntriesActions, searchEntries, extractTextFromBlocks } from "../../entries/index.ts";
 import type { WorkLedgerEntry } from "../../entries/index.ts";
 import { clearAllData } from "../../../storage/db.ts";
+import { useSyncContext } from "../../sync/index.ts";
 import type { Block } from "@blocknote/core";
 
 interface SidebarContextValue {
@@ -33,8 +34,11 @@ const SidebarCtx = createContext<SidebarContextValue | null>(null);
 export function SidebarProvider({ children }: { children: ReactNode }) {
   const { entriesByDay, dayKeys, archivedEntries } = useEntriesData();
   const { refresh, refreshArchive } = useEntriesActions();
+  const { deleteAccount, config: syncConfig } = useSyncContext();
 
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(
+    () => !window.matchMedia("(max-width: 767px)").matches,
+  );
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [textQuery, setTextQuery] = useState("");
   const [filteredEntryIds, setFilteredEntryIds] = useState<Set<string> | null>(null);
@@ -176,11 +180,14 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   }, [refreshArchive]);
 
   const handleDeleteAll = useCallback(async () => {
+    if (syncConfig.mode === "remote") {
+      await deleteAccount();
+    }
     await clearAllData();
     await refresh();
     await refreshArchive();
     setActiveDayKey(null);
-  }, [refresh, refreshArchive]);
+  }, [refresh, refreshArchive, syncConfig.mode, deleteAccount]);
 
   const value: SidebarContextValue = {
     isOpen,

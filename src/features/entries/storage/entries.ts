@@ -118,6 +118,11 @@ export async function getArchivedEntries(): Promise<Map<string, WorkLedgerEntry[
   return grouped;
 }
 
+export async function getAllEntries(): Promise<WorkLedgerEntry[]> {
+  const db = await getDB();
+  return (await db.getAll("entries") as unknown as Record<string, unknown>[]).map(normalizeEntry);
+}
+
 export async function getAllTags(): Promise<string[]> {
   const db = await getDB();
   const allEntries = await db.getAll("entries");

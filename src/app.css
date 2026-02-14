@@ -238,7 +238,7 @@
 [data-workledger-editor] .bn-editor {
   background: transparent;
   font-family: var(--editor-body-font);
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.75;
   color: var(--color-notebook-text);
   /* Remove left padding so text aligns with header/tags above.
@@ -250,9 +250,16 @@
   padding: 0;
 }
 
-/* Keep side menu within content area so it doesn't hide behind the sidebar */
+/* Keep side menu within content area so it doesn't hide behind the sidebar.
+   On mobile, add left padding so the +/drag buttons don't clip off-screen. */
 [data-workledger-editor] .bn-side-menu {
   margin-left: 0;
+}
+
+@media (max-width: 767px) {
+  [data-workledger-editor] .bn-editor {
+    padding-left: 48px;
+  }
 }
 
 /* Force opaque backgrounds on all BlockNote popups/menus.
@@ -389,6 +396,7 @@ body {
 [data-workledger-editor] .bn-block-content[data-content-type="codeBlock"] {
   background-color: var(--color-notebook-code-bg);
   color: var(--color-notebook-text);
+  font-size: 14px;
 }
 
 /* Language selector: use muted text instead of white */

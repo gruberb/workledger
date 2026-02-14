@@ -80,7 +80,7 @@ export function Sidebar({
       {!isOpen && (
         <button
           onClick={onToggle}
-          className="fixed top-4 left-4 z-50 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-[var(--color-notebook-surface)]/80 hover:bg-[var(--color-notebook-surface)] border border-[var(--color-notebook-border)] shadow-sm transition-all duration-300 text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)]"
           title="Expand sidebar (⌘\)"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -158,7 +158,7 @@ export function Sidebar({
                 Archive
               </p>
             ) : (
-              <button onClick={onSearchOpen} className="text-sm text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] transition-colors">
+              <button onClick={() => { onSearchOpen(); if (isMobile) onToggle(); }} className="text-sm text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] transition-colors">
                 Full search <kbd className="px-1.5 py-0.5 bg-[var(--color-notebook-surface-alt)] rounded text-[10px]">⌘K</kbd>
               </button>
             )}
@@ -187,7 +187,10 @@ export function Sidebar({
           entriesByDay={entriesByDay}
           isArchiveView={isArchiveView}
           activeDayKey={activeDayKey}
-          onDayClick={onDayClick}
+          onDayClick={(dayKey: string) => {
+            onDayClick(dayKey);
+            if (isMobile) onToggle();
+          }}
         />
 
         {/* Tags */}
