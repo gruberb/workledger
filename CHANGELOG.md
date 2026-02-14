@@ -7,8 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-02-14
+
 ### Added
 
+- **End-to-end encrypted sync** — sync entries across devices with client-side encryption
+  - Generate a sync ID or connect to an existing one
+  - All entries encrypted before leaving the browser
+  - Configurable server endpoint — use the default server or [self-host your own](https://github.com/gruberb/workledger-sync)
+  - Sync status indicator with last sync timestamp
+  - Manual "Sync now" button and automatic background sync
+  - Disconnect preserves local data
 - Multi-theme system with 5 presets: Default Light, Default Dark, Dracula, Catppuccin Mocha, Solarized Light
 - Independent editor font selection: Figtree, Plus Jakarta Sans, DM Sans, Urbanist, Inter, JetBrains Mono, Source Serif 4
 - Theme and font settings accessible via submenus in the settings dropdown
@@ -28,13 +37,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - SVG icons (192x192 and 512x512) derived from the existing logo
 - Mobile-friendly responsive layout for screens under 768px
   - Sidebar becomes a full-screen overlay with backdrop on mobile
+  - Sidebar auto-closes on mobile after day click or search open
   - Entry action buttons (archive, delete, AI) always visible on small screens (no hover required)
   - Touch-based resize handles for Excalidraw drawings with larger touch targets
   - `useIsMobile` hook for responsive behavior across components
+- README badges for license, build status, TypeScript, React, and local-first
 
 ### Changed
 
-- Editor body font size increased to 18px for better readability
+- Editor body font size reduced to 16px for tighter content
+- Code block font size set to 14px for better density
 - Sidebar day list font size reduced to 14px for tighter fit
 - Entry spacing between day sections reduced
 - Day headers, filter banners, and focus headers use theme-aware colors
@@ -44,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Excalidraw default canvas height reduced to 350px on mobile (from 500px)
 - Excalidraw minimum width lowered to 200px (from 300px)
 - Excalidraw preview SVG max-height reduced to 280px on mobile
+- Sidebar toggle button now has visible background and border in all themes
+- Landing page sync feature promoted from "Coming Soon" to full feature
 
 ### Fixed
 
@@ -51,10 +65,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - BlockNote menus (formatting toolbar, color picker) now appear above sidebar and sticky headers
 - Cmd+K search shortcut now works reliably (fixed dual useSearch instance bug)
 - Fixed pre-existing feature boundary violation in EntryCard import
+- Exiting focus mode is now instant (removed unnecessary fade-in animation on entry stream restore)
 
 ### Removed
 
-- AI sidebar is hidden on mobile viewports to keep the mobile UI focused
+- AI lightbulb buttons hidden on mobile viewports (AI sidebar returns null on mobile)
+- Removed entry card fade-in animation (caused sluggish exit from focus mode)
 
 ## [1.1.4] - 2026-02-13
 
@@ -153,6 +169,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Local-first storage with IndexedDB -- no server required
 - Landing page
 
+[2.0.0]: https://github.com/gruberb/workledger/releases/tag/v2.0.0
+[1.1.4]: https://github.com/gruberb/workledger/releases/tag/v1.1.4
 [1.1.3]: https://github.com/gruberb/workledger/releases/tag/v1.1.3
 [1.1.2]: https://github.com/gruberb/workledger/releases/tag/v1.1.2
 [1.1.1]: https://github.com/gruberb/workledger/releases/tag/v1.1.1
