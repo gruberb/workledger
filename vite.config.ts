@@ -13,6 +13,17 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html,svg,woff2}"],
         skipWaiting: true,
         clientsClaim: true,
+        navigateFallback: undefined,
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === "navigate",
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "html-cache",
+              expiration: { maxEntries: 1 },
+            },
+          },
+        ],
       },
       manifest: {
         name: "WorkLedger",
