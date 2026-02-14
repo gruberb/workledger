@@ -8,9 +8,11 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: "prompt",
+      registerType: "autoUpdate",
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,woff2}"],
+        skipWaiting: true,
+        clientsClaim: true,
       },
       manifest: {
         name: "WorkLedger",
