@@ -7,7 +7,7 @@ export function NewEntryButton({ onClick }: NewEntryButtonProps) {
     <button
       onClick={onClick}
       className="
-        fixed bottom-8 right-8 z-40
+        fixed bottom-8 right-8 z-[999]
         flex items-center gap-2
         bg-orange-500 hover:bg-orange-400 active:bg-orange-600
         text-white font-medium

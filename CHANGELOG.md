@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Multi-theme system with 5 presets: Default Light, Default Dark, Dracula, Catppuccin Mocha, Solarized Light
+- Independent editor font selection: Figtree, Plus Jakarta Sans, DM Sans, Urbanist, Inter, JetBrains Mono, Source Serif 4
+- Theme and font settings accessible via submenus in the settings dropdown
+- Sidebar accent colors now follow the active theme
+- BlockNote editor menus fully themed to match active palette
 - URL hash anchors — navigating to an entry updates the URL to `#entry-<id>`, enabling bookmarks and link sharing
   - Hash is read on page load to scroll to the referenced entry
   - Browser back/forward navigation works via `hashchange` listener
@@ -29,11 +34,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Editor body font size increased to 18px for better readability
+- Sidebar day list font size reduced to 14px for tighter fit
+- Entry spacing between day sections reduced
+- Day headers, filter banners, and focus headers use theme-aware colors
+- Settings dropdown items reordered: Archive, AI, Theme, Font, Export, Import, Delete
 - AppShell removes sidebar padding on mobile since sidebars overlay instead of push content
 - Reduced horizontal padding from 48px to 16px on mobile for better space usage
 - Excalidraw default canvas height reduced to 350px on mobile (from 500px)
 - Excalidraw minimum width lowered to 200px (from 300px)
 - Excalidraw preview SVG max-height reduced to 280px on mobile
+
+### Fixed
+
+- Theme switching now updates code blocks, Excalidraw, and font colors without page refresh
+- BlockNote menus (formatting toolbar, color picker) now appear above sidebar and sticky headers
+- Cmd+K search shortcut now works reliably (fixed dual useSearch instance bug)
+- Fixed pre-existing feature boundary violation in EntryCard import
 
 ### Removed
 

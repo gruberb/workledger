@@ -12,15 +12,29 @@
 
 ## Features
 
+### Customize your workspace
+
+- **5 theme presets** -- Light, Dark, Dracula, Catppuccin Mocha, and Solarized Light — each adapts the entire UI including syntax highlighting
+- **7 font families** -- Figtree, Plus Jakarta Sans, DM Sans, Urbanist, Inter, JetBrains Mono, or Source Serif
+- **Focus mode** -- Full-screen, distraction-free writing on a single entry
+- **Progressive Web App** -- Install as a standalone app on any device, works offline
+
+### Write and organize
+
 - **Daily entries** -- Organized by day with timestamps, create entries with `Cmd+J`
 - **Rich text editing** -- Powered by [BlockNote](https://blocknotejs.org/) with slash commands for headings, lists, code blocks, and more
 - **Inline drawings** -- Embed [Excalidraw](https://excalidraw.com/) diagrams directly in your notes via `/drawing`
-- **Tagging** -- Tag entries for easy categorization and filtering
+- **Syntax highlighting** -- 24 languages with Shiki, theme-aware code blocks
+- **Wiki-style linking** -- Type `[[` to link between entries and build a knowledge graph
+- **Tagging** -- Color-coded tags for categorization and filtering
 - **Search** -- Full-text search across all entries and tags (`Cmd+K`)
-- **Sidebar filtering** -- Click a tag or type to filter entries in real-time
-- **Archive & restore** -- Archive old entries to keep your workspace clean, browse and restore them anytime
-- **Import & export** -- Export all entries as JSON for backup, import them back anytime
+
+### Stay in control
+
 - **Local-first** -- All data stored in IndexedDB, no server required
+- **Import & export** -- Export all entries as JSON for backup, import them back anytime
+- **Archive & restore** -- Archive old entries to keep your workspace clean, browse and restore them anytime
+- **Mobile-friendly** -- Responsive layout with touch-friendly controls
 - **Keyboard-driven** -- `Cmd+J` new entry, `Cmd+K` search, `Cmd+\` toggle sidebar, `Escape` clear filter
 
 ### Optional: Think with AI

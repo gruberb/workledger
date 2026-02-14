@@ -21,7 +21,7 @@ export default function App() {
 
 function AppContent() {
   const { loading } = useEntriesData();
-  const { updateEntry, updateEntryTags, archiveEntry, unarchiveEntry, deleteEntry } = useEntriesActions();
+  const { updateEntry, updateEntryTags, archiveEntry, unarchiveEntry, deleteEntry, refresh } = useEntriesActions();
   const {
     isOpen: sidebarOpen,
     archiveView,
@@ -77,7 +77,7 @@ function AppContent() {
         allTags={allTags}
         selectedTags={selectedTags}
         onToggleTag={toggleTag}
-        onRefresh={() => {}}
+        onRefresh={refresh}
         isArchiveView={archiveView}
         onToggleArchiveView={toggleArchiveView}
         archivedCount={archivedCount}

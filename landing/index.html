@@ -578,13 +578,165 @@
                 margin-left: 2px;
             }
 
+            /* ── Highlight feature cards (new features) ── */
+            .features-highlights {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+                margin-bottom: 0;
+            }
+            .highlight-card {
+                display: flex;
+                gap: 20px;
+                padding: 28px 28px;
+                background: var(--white);
+                border: 1px solid var(--ruling);
+                border-radius: 12px;
+                transition: all 0.3s ease;
+            }
+            .highlight-card:hover {
+                border-color: var(--orange-light);
+                box-shadow: 0 4px 20px rgba(249, 115, 22, 0.08);
+                transform: translateY(-2px);
+            }
+            .highlight-icon {
+                width: 44px;
+                height: 44px;
+                min-width: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: var(--orange-pale);
+                border-radius: 10px;
+                color: var(--orange);
+                transition: transform 0.3s var(--ease-spring);
+            }
+            .highlight-card:hover .highlight-icon {
+                transform: scale(1.08) rotate(-2deg);
+            }
+            .highlight-icon svg {
+                width: 22px;
+                height: 22px;
+            }
+            .highlight-content {
+                flex: 1;
+                min-width: 0;
+            }
+            .highlight-title {
+                font-family: var(--font-display);
+                font-weight: 600;
+                font-size: 1.1rem;
+                margin-bottom: 6px;
+                letter-spacing: -0.01em;
+            }
+            .highlight-desc {
+                font-size: 0.88rem;
+                color: var(--ink-muted);
+                line-height: 1.55;
+            }
+            .highlight-tags {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin-top: 12px;
+            }
+            .highlight-tag {
+                display: inline-block;
+                padding: 3px 10px;
+                border-radius: 6px;
+                font-family: var(--font-mono);
+                font-size: 0.7rem;
+                font-weight: 500;
+                letter-spacing: 0.02em;
+            }
+
+            /* ── Coming Soon card ── */
+            .coming-soon-card {
+                display: flex;
+                gap: 20px;
+                padding: 28px;
+                background: var(--paper-warm);
+                border: 1.5px dashed #fed7aa;
+                border-radius: 12px;
+                position: relative;
+                align-items: flex-start;
+            }
+            .coming-soon-badge {
+                position: absolute;
+                top: -10px;
+                left: 24px;
+                padding: 3px 12px;
+                background: var(--orange);
+                color: var(--white);
+                font-family: var(--font-mono);
+                font-size: 0.7rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                border-radius: 100px;
+            }
+
+            /* ── Core features compact strip ── */
+            .core-features-label {
+                font-family: var(--font-mono);
+                font-size: 0.75rem;
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.12em;
+                color: var(--ink-muted);
+                margin-bottom: 20px;
+            }
+            .core-features-grid {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 2px;
+                background: var(--ruling);
+                border: 1px solid var(--ruling);
+                border-radius: 10px;
+                overflow: hidden;
+            }
+            .core-feature {
+                display: flex;
+                align-items: flex-start;
+                gap: 12px;
+                padding: 16px 18px;
+                background: var(--white);
+                transition: background 0.2s ease;
+            }
+            .core-feature:hover {
+                background: var(--paper);
+            }
+            .core-feature svg {
+                width: 18px;
+                height: 18px;
+                min-width: 18px;
+                color: var(--orange);
+                margin-top: 2px;
+            }
+            .core-feature strong {
+                display: block;
+                font-family: var(--font-display);
+                font-weight: 600;
+                font-size: 0.88rem;
+                letter-spacing: -0.01em;
+                margin-bottom: 2px;
+            }
+            .core-feature span {
+                font-size: 0.78rem;
+                color: var(--ink-muted);
+                line-height: 1.4;
+            }
+
             @media (max-width: 840px) {
-                .features-grid {
-                    grid-template-columns: repeat(2, 1fr);
+                .features-highlights {
+                    grid-template-columns: 1fr;
                 }
             }
             @media (max-width: 560px) {
-                .features-grid {
+                .features-highlights {
+                    grid-template-columns: 1fr;
+                }
+                .core-features-grid {
                     grid-template-columns: 1fr;
                 }
                 .features::before,
@@ -1262,250 +1414,188 @@
                         Everything you need,<br />nothing you don't
                     </h2>
                     <p class="section-desc reveal reveal-delay-2">
-                        Built for engineers who document as they build. No
-                        accounts, no cloud sync, no distractions.
+                        Built for engineers who document as they build. Local-first,
+                        customizable, and keyboard-driven.
                     </p>
                 </div>
 
-                <div class="features-grid">
-                    <!-- 1: Daily Entries -->
-                    <div class="feature-card reveal">
-                        <div class="feature-icon">
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <rect
-                                    x="3"
-                                    y="4"
-                                    width="18"
-                                    height="18"
-                                    rx="2"
-                                />
-                                <line x1="16" y1="2" x2="16" y2="6" />
-                                <line x1="8" y1="2" x2="8" y2="6" />
-                                <line x1="3" y1="10" x2="21" y2="10" />
+                <!-- ── NEW: Highlight features (large cards) ── -->
+                <div class="features-highlights">
+                    <!-- Themes -->
+                    <div class="highlight-card reveal">
+                        <div class="highlight-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="5" />
+                                <line x1="12" y1="1" x2="12" y2="3" />
+                                <line x1="12" y1="21" x2="12" y2="23" />
+                                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                                <line x1="1" y1="12" x2="3" y2="12" />
+                                <line x1="21" y1="12" x2="23" y2="12" />
+                                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
                             </svg>
                         </div>
-                        <h3 class="feature-title">Daily Entries</h3>
-                        <p class="feature-desc">
-                            Entries organized by day with timestamps. Hit
-                            <span class="feature-kbd"
-                                >&thinsp;&#8984;J&thinsp;</span
-                            >
-                            to start a new entry instantly.
-                        </p>
+                        <div class="highlight-content">
+                            <h3 class="highlight-title">5 Theme Presets</h3>
+                            <p class="highlight-desc">Light, Dark, Dracula, Catppuccin Mocha, and Solarized Light. Each theme adapts the entire UI — editor, sidebar, code blocks, and syntax highlighting.</p>
+                            <div class="highlight-tags">
+                                <span class="highlight-tag" style="background: #fafaf9; color: #1a1a1a; border: 1px solid #e5e5e4;">Light</span>
+                                <span class="highlight-tag" style="background: #1e1e2e; color: #cdd6f4;">Dark</span>
+                                <span class="highlight-tag" style="background: #282a36; color: #bd93f9;">Dracula</span>
+                                <span class="highlight-tag" style="background: #1e1e2e; color: #f5a97f;">Catppuccin</span>
+                                <span class="highlight-tag" style="background: #fdf6e3; color: #859900;">Solarized</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- 2: Rich Text -->
-                    <div class="feature-card reveal reveal-delay-1">
-                        <div class="feature-icon">
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path d="M12 20h9" />
-                                <path
-                                    d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"
-                                />
+                    <!-- Focus Mode -->
+                    <div class="highlight-card reveal reveal-delay-1">
+                        <div class="highlight-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3" />
                             </svg>
                         </div>
-                        <h3 class="feature-title">Rich Text Editing</h3>
-                        <p class="feature-desc">
-                            Powered by BlockNote. Type
-                            <span class="feature-kbd">&thinsp;/&thinsp;</span>
-                            for slash commands — headings, lists, code blocks,
-                            and more.
-                        </p>
+                        <div class="highlight-content">
+                            <h3 class="highlight-title">Focus Mode</h3>
+                            <p class="highlight-desc">Full-screen, distraction-free writing. Open any entry in focus mode to hide the sidebar and concentrate on a single note. Press <span class="feature-kbd">&thinsp;Esc&thinsp;</span> to return.</p>
+                        </div>
                     </div>
 
-                    <!-- 3: Drawings -->
-                    <div class="feature-card reveal reveal-delay-2">
-                        <div class="feature-icon">
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                <path d="M9 12l2 2 4-4" />
+                    <!-- Fonts -->
+                    <div class="highlight-card reveal reveal-delay-2">
+                        <div class="highlight-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="4 7 4 4 20 4 20 7" />
+                                <line x1="9" y1="20" x2="15" y2="20" />
+                                <line x1="12" y1="4" x2="12" y2="20" />
                             </svg>
                         </div>
-                        <h3 class="feature-title">Inline Drawings</h3>
-                        <p class="feature-desc">
-                            Embed Excalidraw diagrams right in your notes with
-                            the
-                            <span class="feature-kbd"
-                                >&thinsp;/drawing&thinsp;</span
-                            >
-                            command. Resizable canvases.
-                        </p>
+                        <div class="highlight-content">
+                            <h3 class="highlight-title">7 Font Families</h3>
+                            <p class="highlight-desc">Choose your writing font — Figtree, Plus Jakarta Sans, DM Sans, Urbanist, Inter, JetBrains Mono, or Source Serif. Switch anytime from settings.</p>
+                        </div>
                     </div>
 
-                    <!-- 4: Tagging -->
-                    <div class="feature-card reveal reveal-delay-3">
-                        <div class="feature-icon">
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path
-                                    d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"
-                                />
-                                <line x1="7" y1="7" x2="7.01" y2="7" />
+                    <!-- PWA -->
+                    <div class="highlight-card reveal reveal-delay-3">
+                        <div class="highlight-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                                <line x1="12" y1="18" x2="12.01" y2="18" />
                             </svg>
                         </div>
-                        <h3 class="feature-title">Tagging System</h3>
-                        <p class="feature-desc">
-                            Categorize entries with color-coded tags. Click any
-                            tag in the sidebar to filter your notes instantly.
-                        </p>
+                        <div class="highlight-content">
+                            <h3 class="highlight-title">Progressive Web App</h3>
+                            <p class="highlight-desc">Install WorkLedger as a standalone app on any device. Works offline with a service worker — your notes are always accessible, even without internet.</p>
+                        </div>
                     </div>
 
-                    <!-- 5: Search -->
-                    <div class="feature-card reveal reveal-delay-4">
-                        <div class="feature-icon">
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <circle cx="11" cy="11" r="8" />
-                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    <!-- Wiki Linking -->
+                    <div class="highlight-card reveal reveal-delay-4">
+                        <div class="highlight-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                             </svg>
                         </div>
-                        <h3 class="feature-title">Full-Text Search</h3>
-                        <p class="feature-desc">
-                            Search across all entries, content, and tags. Press
-                            <span class="feature-kbd"
-                                >&thinsp;&#8984;K&thinsp;</span
-                            >
-                            for instant results.
-                        </p>
+                        <div class="highlight-content">
+                            <h3 class="highlight-title">Wiki-Style Linking</h3>
+                            <p class="highlight-desc">Type <code style="background: #fef3c7; padding: 1px 5px; border-radius: 4px; font-size: 0.85em;">[[</code> to link between entries. Build a personal knowledge graph across your notes.</p>
+                        </div>
                     </div>
+                </div>
 
-                    <!-- 6: Local-first -->
-                    <div class="feature-card reveal reveal-delay-5">
-                        <div class="feature-icon">
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <rect
-                                    x="3"
-                                    y="11"
-                                    width="18"
-                                    height="11"
-                                    rx="2"
-                                />
-                                <path d="M7 11V7a5 5 0 0110 0v4" />
-                            </svg>
-                        </div>
-                        <h3 class="feature-title">Local-First & Private</h3>
-                        <p class="feature-desc">
-                            All data stored in your browser's IndexedDB. No
-                            server, no accounts, no tracking. Your notes stay
-                            yours.
-                        </p>
+                <!-- ── Coming Soon: Sync ── -->
+                <div class="coming-soon-card reveal" style="margin-top: 24px;">
+                    <div class="coming-soon-badge">Coming Soon</div>
+                    <div class="highlight-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="23 4 23 10 17 10" />
+                            <polyline points="1 20 1 14 7 14" />
+                            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15" />
+                        </svg>
                     </div>
-
-                    <!-- 7: Import / Export -->
-                    <div class="feature-card reveal reveal-delay-3">
-                        <div class="feature-icon">
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path
-                                    d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"
-                                />
-                                <polyline points="7 10 12 15 17 10" />
-                                <line x1="12" y1="15" x2="12" y2="3" />
-                            </svg>
-                        </div>
-                        <h3 class="feature-title">Import & Export</h3>
-                        <p class="feature-desc">
-                            Export all your entries as JSON for backup or
-                            migration. Import them back anytime — your data is
-                            always portable.
-                        </p>
+                    <div class="highlight-content">
+                        <h3 class="highlight-title">Sync Service</h3>
+                        <p class="highlight-desc">Local storage by default. Optionally self-host your own sync server, or get a free sync ID to store your notes encrypted in the cloud. Your data, your rules.</p>
                     </div>
+                </div>
 
-                    <!-- 8: Archive -->
-                    <div class="feature-card reveal reveal-delay-4">
-                        <div class="feature-icon">
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <polyline points="21 8 21 21 3 21 3 8" />
-                                <rect x="1" y="3" width="22" height="5" />
-                                <line x1="10" y1="12" x2="14" y2="12" />
-                            </svg>
+                <!-- ── Core features (compact strip) ── -->
+                <div class="core-features reveal" style="margin-top: 56px;">
+                    <p class="core-features-label">Core Features</p>
+                    <div class="core-features-grid">
+                        <div class="core-feature">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                            <div>
+                                <strong>Daily Entries</strong>
+                                <span>Organized by day &middot; <span class="feature-kbd">&thinsp;&#8984;J&thinsp;</span> to create</span>
+                            </div>
                         </div>
-                        <h3 class="feature-title">Archive & Restore</h3>
-                        <p class="feature-desc">
-                            Archive old entries to keep your workspace clean.
-                            Browse, search, and restore them anytime from the
-                            archive view.
-                        </p>
-                    </div>
-
-                    <!-- 9: Wiki Links -->
-                    <div class="feature-card reveal reveal-delay-6">
-                        <div class="feature-icon">
-                            <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                            >
-                                <path
-                                    d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
-                                />
-                                <path
-                                    d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
-                                />
-                            </svg>
+                        <div class="core-feature">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /></svg>
+                            <div>
+                                <strong>Rich Text Editing</strong>
+                                <span>BlockNote &middot; slash commands &middot; code blocks</span>
+                            </div>
                         </div>
-                        <h3 class="feature-title">Wiki-Style Linking</h3>
-                        <p class="feature-desc">
-                            Type
-                            <code
-                                style="
-                                    background: #fef3c7;
-                                    padding: 1px 5px;
-                                    border-radius: 4px;
-                                    font-size: 0.85em;
-                                "
-                                >[[</code
-                            >
-                            to link between entries. Click any link to jump
-                            straight to the referenced note.
-                        </p>
+                        <div class="core-feature">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /><path d="M9 12l2 2 4-4" /></svg>
+                            <div>
+                                <strong>Inline Drawings</strong>
+                                <span>Excalidraw diagrams &middot; resizable canvases</span>
+                            </div>
+                        </div>
+                        <div class="core-feature">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" /><line x1="7" y1="7" x2="7.01" y2="7" /></svg>
+                            <div>
+                                <strong>Tagging</strong>
+                                <span>Color-coded tags &middot; click to filter</span>
+                            </div>
+                        </div>
+                        <div class="core-feature">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                            <div>
+                                <strong>Full-Text Search</strong>
+                                <span>Entries, content &amp; tags &middot; <span class="feature-kbd">&thinsp;&#8984;K&thinsp;</span></span>
+                            </div>
+                        </div>
+                        <div class="core-feature">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>
+                            <div>
+                                <strong>Local-First &amp; Private</strong>
+                                <span>IndexedDB &middot; no server &middot; no tracking</span>
+                            </div>
+                        </div>
+                        <div class="core-feature">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg>
+                            <div>
+                                <strong>Import &amp; Export</strong>
+                                <span>JSON backup &middot; portable data</span>
+                            </div>
+                        </div>
+                        <div class="core-feature">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" /><line x1="10" y1="12" x2="14" y2="12" /></svg>
+                            <div>
+                                <strong>Archive &amp; Restore</strong>
+                                <span>Clean workspace &middot; browse &amp; restore anytime</span>
+                            </div>
+                        </div>
+                        <div class="core-feature">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" /><line x1="15" y1="5" x2="19" y2="9" /></svg>
+                            <div>
+                                <strong>Syntax Highlighting</strong>
+                                <span>24 languages &middot; Shiki &middot; theme-aware</span>
+                            </div>
+                        </div>
+                        <div class="core-feature">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
+                            <div>
+                                <strong>Mobile-Friendly</strong>
+                                <span>Responsive layout &middot; touch-friendly</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
