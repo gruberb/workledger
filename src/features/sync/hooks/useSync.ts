@@ -207,7 +207,7 @@ export function useSync() {
     pushTimeoutRef.current = setTimeout(() => push(), PUSH_DEBOUNCE_MS);
   }
 
-  async function push() {
+  async function push(forceAll = false) {
     const key = cryptoKeyRef.current;
     const token = authTokenRef.current;
     const cfg = configRef.current;
@@ -224,9 +224,11 @@ export function useSync() {
 
       const allEntries = await getAllEntries();
       const dirtyIds = dirtyEntriesRef.current;
-      const toPush = dirtyIds.size > 0
-        ? allEntries.filter((e) => dirtyIds.has(e.id))
-        : allEntries.filter((e) => cfg.lastSyncAt === null || e.updatedAt > cfg.lastSyncAt);
+      const toPush = forceAll
+        ? allEntries
+        : dirtyIds.size > 0
+          ? allEntries.filter((e) => dirtyIds.has(e.id))
+          : allEntries.filter((e) => cfg.lastSyncAt === null || e.updatedAt > cfg.lastSyncAt);
 
       // Build deletion markers for entries removed from IDB
       const now = Date.now();
@@ -470,8 +472,8 @@ export function useSync() {
   }, []);
 
   const syncNow = useCallback(async () => {
+    await push(true);
     await pull();
-    await push();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
