@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-02-14
+
+### Fixed
+
+- "Delete all entries" now syncs deletions to other devices by sending tombstones for each entry
+
 ## [2.1.0] - 2026-02-14
 
 ### Added
