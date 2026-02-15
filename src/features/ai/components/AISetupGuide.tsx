@@ -2,6 +2,17 @@ import { useState } from "react";
 import type { AISettings, AIProviderType } from "../types/ai.ts";
 import { createProvider } from "../providers/provider-factory.ts";
 
+function isNonLocalHttp(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "http:") return false;
+    const host = parsed.hostname;
+    return host !== "localhost" && host !== "127.0.0.1" && host !== "[::1]";
+  } catch {
+    return false;
+  }
+}
+
 interface AISetupGuideProps {
   settings: AISettings;
   onUpdateSettings: (updates: Partial<AISettings>) => Promise<void>;
@@ -116,6 +127,9 @@ export function AISetupGuide({ settings, onUpdateSettings }: AISetupGuideProps) 
               placeholder="http://localhost:11434"
               className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-orange-300 focus:ring-1 focus:ring-orange-100 dark:focus:ring-orange-900 bg-white dark:bg-[#1a1a1a] dark:text-gray-300"
             />
+            {isNonLocalHttp(ollamaUrl) && (
+              <p className="text-[10px] text-amber-500 mt-1">Warning: Using unencrypted HTTP to a non-local server.</p>
+            )}
           </div>
           <div>
             <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">Model name</label>
@@ -167,6 +181,7 @@ export function AISetupGuide({ settings, onUpdateSettings }: AISetupGuideProps) 
               placeholder="hf_..."
               className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-orange-300 focus:ring-1 focus:ring-orange-100 dark:focus:ring-orange-900 bg-white dark:bg-[#1a1a1a] dark:text-gray-300"
             />
+            <p className="text-[10px] text-gray-400 mt-1">Stored unencrypted in this browser.</p>
           </div>
           <div>
             <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">Model</label>
@@ -223,6 +238,9 @@ export function AISetupGuide({ settings, onUpdateSettings }: AISetupGuideProps) 
               placeholder="https://your-server.com"
               className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-orange-300 focus:ring-1 focus:ring-orange-100 dark:focus:ring-orange-900 bg-white dark:bg-[#1a1a1a] dark:text-gray-300"
             />
+            {isNonLocalHttp(customUrl) && (
+              <p className="text-[10px] text-amber-500 mt-1">Warning: Using unencrypted HTTP to a non-local server.</p>
+            )}
           </div>
           <div>
             <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">API Key (optional)</label>
@@ -233,6 +251,7 @@ export function AISetupGuide({ settings, onUpdateSettings }: AISetupGuideProps) 
               placeholder="sk-..."
               className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-orange-300 focus:ring-1 focus:ring-orange-100 dark:focus:ring-orange-900 bg-white dark:bg-[#1a1a1a] dark:text-gray-300"
             />
+            <p className="text-[10px] text-gray-400 mt-1">Stored unencrypted in this browser.</p>
           </div>
           <div>
             <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">Model name</label>
