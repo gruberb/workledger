@@ -346,6 +346,14 @@ export function useSync() {
   }, []);
 
   const syncNow = useCallback(async () => {
+    // Reset cursor to force a full re-pull, recovering any entries
+    // that were skipped by previous cursor-advancement bugs
+    const cfg = configRef.current;
+    if (cfg.lastSyncSeq > 0) {
+      const reset: SyncConfig = { ...cfg, lastSyncSeq: 0 };
+      await saveSyncConfig(reset);
+      setConfig(reset);
+    }
     await pull();
     await push(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
