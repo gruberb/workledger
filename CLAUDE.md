@@ -88,6 +88,16 @@ Sidebar filtering uses two independent dimensions combined with AND logic:
 - The `landing/` directory is a separate static site, not part of the React app
 - **AI feature is fully optional** — gated by `useAIFeatureGate` hook. All AI code in `src/features/ai/`. Can be removed without affecting core functionality
 - Custom BlockNote schema extended with `excalidraw` block type and `entryLink` inline content — defined in `src/features/editor/components/EditorProvider.tsx`
+- **Sync: Mutex asymmetry** — push reschedules via `schedulePush()` when mutex is held; pull drops silently. Changing this breaks the guarantee that dirty entries are eventually pushed
+- **Sync: Cursor separation** — push only updates `lastSyncAt`, only pull updates `lastSyncSeq`. Mixing these up causes entry loss (pull would skip server entries)
+- **Sync: Dirty tracking is in-memory** — `dirtyEntriesRef` and `deletedEntriesRef` are `useRef` sets, lost on page refresh. The fallback filter `e.updatedAt > config.lastSyncAt` in push and `syncNow()` handle recovery
+- **Sync: Pull pagination cursor** — uses the last entry's `serverSeq` per page, NOT the global `serverSeq` from the response. Using global skips intermediate pages (was a real bug, fixed in v2.2.1)
+- **Sync: Push debounce resets** — the 2s push timeout resets on every `entry-changed`/`entry-deleted` event. Rapid edits batch into one push
+- **Sync: `connect()` does a full bidirectional sync** — encrypts all local entries, sends them, receives all server entries, merges. It's the initial reconciliation, not just a "connect"
+- **Sync: `syncNow()` resets `lastSyncSeq` to 0** — forces a full re-pull from the beginning, then `push(true)` sends everything. It's a recovery tool, not a regular sync
+- **Sync: `unarchiveEntry` does NOT emit `entry-changed`** — unlike `archiveEntry`, it won't trigger a sync push. The unarchived state only syncs on next edit or manual `syncNow()`
+- **Sync: Event listeners are mode-gated** — only registered when `config.mode === "remote"`. Mode switch tears down and re-creates them via `useEffect` cleanup
+- **Sync: Merge uses strict `>`** — `remote.updatedAt > local.updatedAt` means equal timestamps keep the local version. Deletion markers always win regardless of timestamps
 
 ## CI & PR conventions
 

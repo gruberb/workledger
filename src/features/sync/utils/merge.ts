@@ -1,5 +1,6 @@
 import type { WorkLedgerEntry } from "../../entries/index.ts";
-import { getEntry, deleteSearchIndex, validateEntry } from "../../entries/index.ts";
+import { getEntry, deleteSearchIndex, updateSearchIndex, validateEntry } from "../../entries/index.ts";
+import type { Block } from "@blocknote/core";
 import { getDB } from "../../../storage/db.ts";
 
 interface DecryptedRemoteEntry {
@@ -44,6 +45,14 @@ export async function mergeRemoteEntries(
 
     if (shouldOverwrite) {
       await db.put("entries", validatedEntry);
+      if (validatedEntry.blocks?.length) {
+        await updateSearchIndex(
+          validatedEntry.id,
+          validatedEntry.dayKey,
+          validatedEntry.blocks as Block[],
+          validatedEntry.tags ?? [],
+        );
+      }
       mergeCount++;
     }
   }

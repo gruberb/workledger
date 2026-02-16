@@ -11,8 +11,17 @@ import { onEntryChanged, onEntryDeleted } from "../utils/sync-events.ts";
 import { getAllEntries } from "../../entries/index.ts";
 import { useEntriesActions } from "../../entries/index.ts";
 
-const PULL_INTERVAL_MS = 30_000;
-const PUSH_DEBOUNCE_MS = 2_000;
+const PULL_INTERVAL_MS = 30_000 as const;
+const PUSH_DEBOUNCE_MS = 2_000 as const;
+const PUSH_RETRY_DELAYS = [5_000, 15_000, 30_000, 60_000] as const;
+
+function isRetryableError(err: unknown): boolean {
+  if (!(err instanceof Error)) return true;
+  const msg = err.message;
+  // Retry on network errors and 5xx server errors; don't retry 4xx client errors
+  if (msg.includes("Sync server error 4")) return false;
+  return true;
+}
 
 export function useSync() {
   const [config, setConfig] = useState<SyncConfig>(DEFAULT_SYNC_CONFIG);
@@ -31,6 +40,8 @@ export function useSync() {
   const pushTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dirtyEntriesRef = useRef<Set<string>>(new Set());
   const deletedEntriesRef = useRef<Set<string>>(new Set());
+  const pushRetryCountRef = useRef(0);
+  const pushRetryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const configRef = useRef(config);
   configRef.current = config;
 
@@ -56,6 +67,8 @@ export function useSync() {
 
   function schedulePush() {
     if (pushTimeoutRef.current) clearTimeout(pushTimeoutRef.current);
+    if (pushRetryTimeoutRef.current) clearTimeout(pushRetryTimeoutRef.current);
+    pushRetryCountRef.current = 0;
     pushTimeoutRef.current = setTimeout(() => push(), PUSH_DEBOUNCE_MS);
   }
 
@@ -135,6 +148,7 @@ export function useSync() {
     return () => {
       stopIntervals();
       if (pushTimeoutRef.current) clearTimeout(pushTimeoutRef.current);
+      if (pushRetryTimeoutRef.current) clearTimeout(pushRetryTimeoutRef.current);
     };
   }, []);
 
@@ -173,10 +187,18 @@ export function useSync() {
       setConfig(updated);
       dirtyEntriesRef.current.clear();
       deletedEntriesRef.current.clear();
+      pushRetryCountRef.current = 0;
       setStatus({ phase: "idle", error: null, lastSyncAt: result.syncedAt, pendingChanges: 0 });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Push failed";
       setStatus((s) => ({ ...s, phase: "error", error: msg }));
+
+      if (isRetryableError(err) && pushRetryCountRef.current < PUSH_RETRY_DELAYS.length) {
+        const delay = PUSH_RETRY_DELAYS[pushRetryCountRef.current];
+        pushRetryCountRef.current++;
+        if (pushRetryTimeoutRef.current) clearTimeout(pushRetryTimeoutRef.current);
+        pushRetryTimeoutRef.current = setTimeout(() => push(forceAll), delay);
+      }
     } finally {
       mutexRef.current = false;
     }
@@ -308,9 +330,12 @@ export function useSync() {
   const disconnect = useCallback(async () => {
     stopIntervals();
     if (pushTimeoutRef.current) clearTimeout(pushTimeoutRef.current);
+    if (pushRetryTimeoutRef.current) clearTimeout(pushRetryTimeoutRef.current);
+    pushRetryCountRef.current = 0;
     cryptoKeyRef.current = null;
     authTokenRef.current = null;
     dirtyEntriesRef.current.clear();
+    deletedEntriesRef.current.clear();
 
     const newConfig: SyncConfig = { ...DEFAULT_SYNC_CONFIG };
     await clearSyncConfig();
@@ -334,7 +359,10 @@ export function useSync() {
     if (mode === "local") {
       stopIntervals();
       if (pushTimeoutRef.current) clearTimeout(pushTimeoutRef.current);
+      if (pushRetryTimeoutRef.current) clearTimeout(pushRetryTimeoutRef.current);
+      pushRetryCountRef.current = 0;
       dirtyEntriesRef.current.clear();
+      deletedEntriesRef.current.clear();
     }
     const updated: SyncConfig = { ...configRef.current, mode };
     await saveSyncConfig(updated);

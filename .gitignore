@@ -26,3 +26,4 @@ dist-ssr
 .claude/*
 !.claude/rules/
 deploy.sh
+RECOMMENDATION.md

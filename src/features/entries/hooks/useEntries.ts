@@ -126,6 +126,7 @@ export function useEntries() {
     async (id: string) => {
       const entry = await dbGetEntry(id);
       await dbUnarchiveEntry(id);
+      emit("entry-changed", { entryId: id });
       if (entry?.blocks?.length) {
         await updateSearchIndex(
           entry.id,
