@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.2.2] - 2026-02-15
+
+### Fixed
+
+- CSP now allows WebAssembly (`wasm-unsafe-eval`) for crypto/Excalidraw and Google Fonts for Excalidraw font loading
+- CSP now allows `unsafe-eval` for bundled library usage, deploy-injected analytics script and inline script hashes
+- "Sync now" resets the pull cursor to 0, forcing a full re-pull that recovers entries skipped by the old cursor-advancement bug
+- "Sync now" cursor reset is now visible to the pull immediately — fixes race where React state update hadn't flushed before pull() read the ref, causing entries to appear only after hard refresh
+
 ## [2.2.1] - 2026-02-15
 
 ### Fixed
@@ -263,6 +272,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Local-first storage with IndexedDB -- no server required
 - Landing page
 
+[2.2.2]: https://github.com/gruberb/workledger/releases/tag/v2.2.2
+[2.2.1]: https://github.com/gruberb/workledger/releases/tag/v2.2.1
 [2.2.0]: https://github.com/gruberb/workledger/releases/tag/v2.2.0
 [2.1.3]: https://github.com/gruberb/workledger/releases/tag/v2.1.3
 [2.1.2]: https://github.com/gruberb/workledger/releases/tag/v2.1.2
