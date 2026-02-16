@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [2.2.3] - 2026-02-15
+
+### Fixed
+
+- Editor now applies synced content updates in-place — previously, editing an entry on another device would write to IndexedDB but the BlockNote editor kept showing stale content until a hard refresh
+- Memoize EntriesContext and SyncContext provider values, preventing cascading re-renders that caused pull requests to accelerate from every 30s to ~1/s
+- Zod validation for synced entries now defaults `blocks`, `isArchived`, and `tags` instead of rejecting entries missing those fields
+- Refresh UI on all new entries received from the server, not just those that were merged as newer
+- Prevent infinite pagination loops when pull cursor fails to advance
+- Fix sync race condition where pull and push could overlap via mutex guard
+
 ## [2.2.2] - 2026-02-15
 
 ### Fixed
