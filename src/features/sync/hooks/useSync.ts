@@ -351,6 +351,7 @@ export function useSync() {
     const cfg = configRef.current;
     if (cfg.lastSyncSeq > 0) {
       const reset: SyncConfig = { ...cfg, lastSyncSeq: 0 };
+      configRef.current = reset;
       await saveSyncConfig(reset);
       setConfig(reset);
     }
