@@ -13,6 +13,7 @@ interface DecryptedRemoteEntry {
   isDeleted: boolean;
   tags: string[];
   isPinned?: boolean;
+  signifier?: string;
 }
 
 export async function mergeRemoteEntries(

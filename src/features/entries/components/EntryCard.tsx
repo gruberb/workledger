@@ -6,6 +6,7 @@ import { TagEditor } from "./TagEditor.tsx";
 import { ConfirmAction } from "../../../components/ui/ConfirmAction.tsx";
 import { ErrorBoundary } from "../../../components/ui/ErrorBoundary.tsx";
 import { CheckIcon, ArchiveIcon, TrashIcon, AIIcon } from "../../../components/ui/Icons.tsx";
+import { SignifierPicker } from "./SignifierPicker.tsx";
 
 interface EntryCardProps {
   entry: WorkLedgerEntry;
@@ -17,12 +18,13 @@ interface EntryCardProps {
   onUnarchive?: (id: string) => void;
   onPin?: (id: string) => void;
   onUnpin?: (id: string) => void;
+  onSignifierChange?: (id: string, signifier: string | undefined) => void;
   isArchiveView?: boolean;
   onOpenAI?: (entry: WorkLedgerEntry) => void;
   onFocus?: (entry: WorkLedgerEntry) => void;
 }
 
-export const EntryCard = memo(function EntryCard({ entry, isLatest, onSave, onTagsChange, onArchive, onDelete, onUnarchive, onPin, onUnpin, isArchiveView, onOpenAI, onFocus }: EntryCardProps) {
+export const EntryCard = memo(function EntryCard({ entry, isLatest, onSave, onTagsChange, onArchive, onDelete, onUnarchive, onPin, onUnpin, onSignifierChange, isArchiveView, onOpenAI, onFocus }: EntryCardProps) {
   const isOld = entry.dayKey < todayKey();
   const [confirmArchive, setConfirmArchive] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -50,6 +52,19 @@ export const EntryCard = memo(function EntryCard({ entry, isLatest, onSave, onTa
         {isArchiveView && (
           <span className="text-[11px] text-amber-400 dark:text-amber-500 uppercase tracking-wider">
             archived
+          </span>
+        )}
+        {onSignifierChange && !isArchiveView && (
+          <SignifierPicker
+            value={entry.signifier}
+            onChange={(s) => onSignifierChange(entry.id, s)}
+          />
+        )}
+        {isArchiveView && entry.signifier && (
+          <span className={`text-[11px] font-medium ${
+            { note: "text-blue-500", decision: "text-emerald-500", task: "text-violet-500", question: "text-amber-500", idea: "text-pink-500" }[entry.signifier]
+          }`}>
+            {entry.signifier}
           </span>
         )}
 

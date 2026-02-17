@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
 import { useEntriesData, useEntriesActions, searchEntries, extractTextFromBlocks } from "../../entries/index.ts";
-import type { WorkLedgerEntry } from "../../entries/index.ts";
+import type { WorkLedgerEntry, EntrySignifier } from "../../entries/index.ts";
 import { clearAllData, getDB } from "../../../storage/db.ts";
 import { emit } from "../../../utils/events.ts";
 import type { Block } from "@blocknote/core";
@@ -29,6 +29,8 @@ interface SidebarFilterValue {
   setTextQuery: (query: string) => void;
   clearAllFilters: () => void;
   hasActiveFilters: boolean;
+  selectedSignifiers: EntrySignifier[];
+  toggleSignifier: (signifier: EntrySignifier) => void;
   savedFilters: SavedFilter[];
   saveCurrentFilter: (name: string) => Promise<void>;
   applySavedFilter: (filter: SavedFilter) => void;
@@ -41,6 +43,7 @@ interface SidebarDataValue {
   sidebarDayKeys: string[];
   archivedDayKeys: string[];
   allTags: string[];
+  allSignifiers: string[];
   archivedCount: number;
   handleDeleteAll: () => Promise<void>;
 }
@@ -84,6 +87,8 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
   // --- Filter actions ---
 
+  const [selectedSignifiers, setSelectedSignifiers] = useState<EntrySignifier[]>([]);
+
   const toggleTag = useCallback((tag: string) => {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
@@ -94,12 +99,19 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     setSelectedTags((prev) => prev.filter((t) => t !== tag));
   }, []);
 
+  const toggleSignifier = useCallback((signifier: EntrySignifier) => {
+    setSelectedSignifiers((prev) =>
+      prev.includes(signifier) ? prev.filter((s) => s !== signifier) : [...prev, signifier]
+    );
+  }, []);
+
   const clearAllFilters = useCallback(() => {
     setSelectedTags([]);
     setTextQuery("");
+    setSelectedSignifiers([]);
   }, []);
 
-  const hasActiveFilters = selectedTags.length > 0 || textQuery.trim() !== "";
+  const hasActiveFilters = selectedTags.length > 0 || textQuery.trim() !== "" || selectedSignifiers.length > 0;
 
   // --- Saved filters ---
 
@@ -122,9 +134,19 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   }, [selectedTags, textQuery, savedFilters]);
 
   const applySavedFilter = useCallback((filter: SavedFilter) => {
+    // Toggle off if already active
+    const sameTags = filter.tags.length === selectedTags.length && filter.tags.every((t) => selectedTags.includes(t));
+    const sameQuery = filter.textQuery === textQuery;
+    if (sameTags && sameQuery) {
+      setSelectedTags([]);
+      setTextQuery("");
+      setSelectedSignifiers([]);
+      return;
+    }
     setSelectedTags(filter.tags);
     setTextQuery(filter.textQuery);
-  }, []);
+    setSelectedSignifiers([]);
+  }, [selectedTags, textQuery]);
 
   const deleteSavedFilter = useCallback(async (id: string) => {
     const updated = savedFilters.filter((f) => f.id !== id);
@@ -149,8 +171,8 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
   const displayEntriesByDay = useMemo(() => {
     if (!hasActiveFilters) return entriesByDay;
-    return filterEntries(entriesByDay, selectedTags, textQuery, (e) => !!filteredEntryIds?.has(e.id));
-  }, [entriesByDay, filteredEntryIds, selectedTags, textQuery, hasActiveFilters]);
+    return filterEntries(entriesByDay, selectedTags, textQuery, (e) => !!filteredEntryIds?.has(e.id), selectedSignifiers);
+  }, [entriesByDay, filteredEntryIds, selectedTags, textQuery, selectedSignifiers, hasActiveFilters]);
 
   const sidebarDayKeys = useMemo(
     () => (hasActiveFilters ? [...displayEntriesByDay.keys()].sort((a, b) => b.localeCompare(a)) : dayKeys),
@@ -164,8 +186,8 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
       if (!e.blocks?.length) return false;
       const text = extractTextFromBlocks(e.blocks as Block[]).toLowerCase();
       return text.includes(textLower);
-    });
-  }, [archivedEntries, selectedTags, textQuery, hasActiveFilters]);
+    }, selectedSignifiers);
+  }, [archivedEntries, selectedTags, textQuery, selectedSignifiers, hasActiveFilters]);
 
   const archivedDayKeys = useMemo(
     () => [...displayArchivedEntriesByDay.keys()].sort((a, b) => b.localeCompare(a)),
@@ -182,6 +204,16 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
       }
     }
     return [...tagSet].sort((a, b) => a.localeCompare(b));
+  }, [entriesByDay]);
+
+  const allSignifiers = useMemo(() => {
+    const set = new Set<string>();
+    for (const entries of entriesByDay.values()) {
+      for (const entry of entries) {
+        if (entry.signifier) set.add(entry.signifier);
+      }
+    }
+    return [...set];
   }, [entriesByDay]);
 
   const archivedCount = useMemo(() => {
@@ -225,11 +257,13 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     setTextQuery,
     clearAllFilters,
     hasActiveFilters,
+    selectedSignifiers,
+    toggleSignifier,
     savedFilters,
     saveCurrentFilter,
     applySavedFilter,
     deleteSavedFilter,
-  }), [selectedTags, toggleTag, removeTag, textQuery, clearAllFilters, hasActiveFilters, savedFilters, saveCurrentFilter, applySavedFilter, deleteSavedFilter]);
+  }), [selectedTags, toggleTag, removeTag, textQuery, clearAllFilters, hasActiveFilters, selectedSignifiers, toggleSignifier, savedFilters, saveCurrentFilter, applySavedFilter, deleteSavedFilter]);
 
   const dataValue: SidebarDataValue = useMemo(() => ({
     displayEntriesByDay,
@@ -237,9 +271,10 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     sidebarDayKeys,
     archivedDayKeys,
     allTags,
+    allSignifiers,
     archivedCount,
     handleDeleteAll,
-  }), [displayEntriesByDay, displayArchivedEntriesByDay, sidebarDayKeys, archivedDayKeys, allTags, archivedCount, handleDeleteAll]);
+  }), [displayEntriesByDay, displayArchivedEntriesByDay, sidebarDayKeys, archivedDayKeys, allTags, allSignifiers, archivedCount, handleDeleteAll]);
 
   return (
     <SidebarUICtx.Provider value={uiValue}>

@@ -8,6 +8,7 @@ import { SidebarSettings } from "./SidebarSettings.tsx";
 import { SidebarDayList } from "./SidebarDayList.tsx";
 import { SidebarTagCloud } from "./SidebarTagCloud.tsx";
 import { SavedFilterSection, SaveFilterButton } from "./SavedFilters.tsx";
+import { SignifierFilter } from "./SignifierFilter.tsx";
 import { ImportExport } from "./ImportExport.tsx";
 
 interface SidebarProps {
@@ -18,13 +19,14 @@ interface SidebarProps {
 export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
   const isMobile = useIsMobile();
   const { isOpen, toggleSidebar, archiveView, toggleArchiveView, activeDayKey } = useSidebarUI();
-  const { textQuery, setTextQuery, selectedTags, toggleTag, hasActiveFilters, savedFilters, saveCurrentFilter, applySavedFilter, deleteSavedFilter, clearAllFilters } = useSidebarFilter();
+  const { textQuery, setTextQuery, selectedTags, toggleTag, hasActiveFilters, selectedSignifiers, toggleSignifier, savedFilters, saveCurrentFilter, applySavedFilter, deleteSavedFilter, clearAllFilters } = useSidebarFilter();
   const {
     displayEntriesByDay,
     displayArchivedEntriesByDay,
     sidebarDayKeys,
     archivedDayKeys,
     allTags,
+    allSignifiers,
     archivedCount,
     handleDeleteAll,
   } = useSidebarData();
@@ -42,20 +44,16 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
   // Bottom panel resize
   const [bottomHeight, setBottomHeight] = useState(160);
   const [filtersCollapsed, setFiltersCollapsed] = useState(false);
+  const [signifiersCollapsed, setSignifiersCollapsed] = useState(false);
   const [tagsCollapsed, setTagsCollapsed] = useState(true);
   const dragRef = useRef<{ startY: number; startHeight: number } | null>(null);
-  const bottomContentRef = useRef<HTMLDivElement>(null);
-
   const handleDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     dragRef.current = { startY: e.clientY, startHeight: bottomHeight };
     const onMove = (ev: MouseEvent) => {
       if (!dragRef.current) return;
       const delta = dragRef.current.startY - ev.clientY;
-      // Min height = full scrollHeight so headers are never clipped, capped at 80px floor
-      const scrollH = bottomContentRef.current?.scrollHeight ?? 100;
-      const minH = Math.min(scrollH, 100);
-      setBottomHeight(Math.max(minH, Math.min(400, dragRef.current.startHeight + delta)));
+      setBottomHeight(Math.max(110, Math.min(500, dragRef.current.startHeight + delta)));
     };
     const onUp = () => {
       dragRef.current = null;
@@ -211,7 +209,7 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
         />
 
         {/* Bottom panel: Saved Filters + Tags */}
-        {!archiveView && (allTags.length > 0 || savedFilters.length > 0) && (
+        {!archiveView && (allTags.length > 0 || savedFilters.length > 0 || allSignifiers.length > 0) && (
           <div className="shrink-0 mt-1">
             {/* Drag handle */}
             <div
@@ -221,7 +219,6 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
               <div className="w-8 h-0.5 rounded-full bg-gray-200 dark:bg-gray-700 group-hover:bg-gray-400 dark:group-hover:bg-gray-500 transition-colors" />
             </div>
             <div
-              ref={bottomContentRef}
               className="border-t border-gray-100 dark:border-gray-800 pt-2 overflow-y-auto"
               style={{ maxHeight: bottomHeight }}
             >
@@ -233,6 +230,13 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
                 onToggleCollapse={() => setFiltersCollapsed((p) => !p)}
                 selectedTags={selectedTags}
                 textQuery={textQuery}
+              />
+              <SignifierFilter
+                allSignifiers={allSignifiers}
+                selectedSignifiers={selectedSignifiers}
+                onToggle={toggleSignifier}
+                collapsed={signifiersCollapsed}
+                onToggleCollapse={() => setSignifiersCollapsed((p) => !p)}
               />
               <SidebarTagCloud
                 allTags={allTags}

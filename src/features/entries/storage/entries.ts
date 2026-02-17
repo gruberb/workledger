@@ -111,6 +111,17 @@ export async function pinEntry(id: string): Promise<void> {
   }
 }
 
+export async function updateEntrySignifier(id: string, signifier: string | undefined): Promise<void> {
+  const db = await getDB();
+  const raw = await db.get("entries", id);
+  if (raw) {
+    const entry = normalizeEntry(raw as Record<string, unknown>);
+    entry.signifier = signifier as WorkLedgerEntry["signifier"];
+    entry.updatedAt = Date.now();
+    await db.put("entries", entry);
+  }
+}
+
 export async function unpinEntry(id: string): Promise<void> {
   const db = await getDB();
   const raw = await db.get("entries", id);

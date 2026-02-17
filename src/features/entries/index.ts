@@ -11,7 +11,8 @@ export { EntryCard } from "./components/EntryCard.tsx";
 export { NewEntryButton } from "./components/NewEntryButton.tsx";
 
 // Types
-export type { WorkLedgerEntry, SearchIndexEntry } from "./types/entry.ts";
+export type { WorkLedgerEntry, SearchIndexEntry, EntrySignifier } from "./types/entry.ts";
+export { SIGNIFIER_CONFIG } from "./types/entry.ts";
 
 // Storage operations (for cross-feature use)
 export { getEntry, getAllEntries, pinEntry, unpinEntry } from "./storage/entries.ts";

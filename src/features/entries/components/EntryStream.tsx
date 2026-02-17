@@ -23,13 +23,14 @@ interface EntryStreamProps {
   savedFilters?: SavedFilter[];
   onPin?: (id: string) => void;
   onUnpin?: (id: string) => void;
+  onSignifierChange?: (id: string, signifier: string | undefined) => void;
   onOpenAI?: (entry: WorkLedgerEntry) => void;
   focusedEntryId?: string | null;
   onFocusEntry?: (entry: WorkLedgerEntry) => void;
   onExitFocus?: () => void;
 }
 
-export function EntryStream({ entriesByDay, onSave, onTagsChange, onArchive, onDelete, onUnarchive, isArchiveView, textQuery, selectedTags, hasActiveFilters, onRemoveTag, onClearAllFilters, onSaveFilter, savedFilters, onPin, onUnpin, onOpenAI, focusedEntryId, onFocusEntry, onExitFocus }: EntryStreamProps) {
+export function EntryStream({ entriesByDay, onSave, onTagsChange, onArchive, onDelete, onUnarchive, isArchiveView, textQuery, selectedTags, hasActiveFilters, onRemoveTag, onClearAllFilters, onSaveFilter, savedFilters, onPin, onUnpin, onSignifierChange, onOpenAI, focusedEntryId, onFocusEntry, onExitFocus }: EntryStreamProps) {
   // Focus mode: render only the focused entry
   if (focusedEntryId) {
     let focusedEntry: WorkLedgerEntry | undefined;
@@ -79,6 +80,7 @@ export function EntryStream({ entriesByDay, onSave, onTagsChange, onArchive, onD
             onUnarchive={isArchiveView ? onUnarchive : undefined}
             onPin={isArchiveView ? undefined : onPin}
             onUnpin={isArchiveView ? undefined : onUnpin}
+            onSignifierChange={isArchiveView ? undefined : onSignifierChange}
             isArchiveView={isArchiveView}
             onOpenAI={isArchiveView ? undefined : onOpenAI}
           />
@@ -159,6 +161,7 @@ export function EntryStream({ entriesByDay, onSave, onTagsChange, onArchive, onD
                 onDelete={onDelete}
                 onPin={onPin}
                 onUnpin={onUnpin}
+                onSignifierChange={onSignifierChange}
                 onOpenAI={onOpenAI}
                 onFocus={onFocusEntry}
               />
@@ -188,6 +191,7 @@ export function EntryStream({ entriesByDay, onSave, onTagsChange, onArchive, onD
                   onUnarchive={isArchiveView ? onUnarchive : undefined}
                   onPin={isArchiveView ? undefined : onPin}
                   onUnpin={isArchiveView ? undefined : onUnpin}
+                  onSignifierChange={isArchiveView ? undefined : onSignifierChange}
                   isArchiveView={isArchiveView}
                   onOpenAI={isArchiveView ? undefined : onOpenAI}
                   onFocus={isArchiveView ? undefined : onFocusEntry}

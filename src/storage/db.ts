@@ -15,6 +15,7 @@ export interface WorkLedgerDB {
       isArchived: boolean;
       tags: string[];
       isPinned?: boolean;
+      signifier?: string;
     };
     indexes: {
       "by-dayKey": string;

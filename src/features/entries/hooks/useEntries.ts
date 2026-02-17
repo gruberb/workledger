@@ -10,6 +10,7 @@ import {
   deleteEntry as dbDeleteEntry,
   pinEntry as dbPinEntry,
   unpinEntry as dbUnpinEntry,
+  updateEntrySignifier as dbUpdateEntrySignifier,
   getArchivedEntries,
   getAllDayKeys,
 } from "../storage/entries.ts";
@@ -175,6 +176,15 @@ export function useEntries() {
     [refresh],
   );
 
+  const updateEntrySignifier = useCallback(
+    async (id: string, signifier: string | undefined) => {
+      await dbUpdateEntrySignifier(id, signifier);
+      emit("entry-changed", { entryId: id });
+      await refresh();
+    },
+    [refresh],
+  );
+
   const loadEntryById = useCallback(
     async (entryId: string): Promise<WorkLedgerEntry | null> => {
       const entry = await dbGetEntry(entryId);
@@ -205,6 +215,7 @@ export function useEntries() {
     deleteEntry,
     pinEntry,
     unpinEntry,
+    updateEntrySignifier,
     archivedEntries,
     refreshArchive,
     refresh,
