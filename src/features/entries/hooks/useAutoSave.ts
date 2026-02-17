@@ -2,6 +2,7 @@ import { useRef, useCallback, useEffect } from "react";
 import type { Block, BlockNoteEditor } from "@blocknote/core";
 import type { WorkLedgerEntry } from "../types/entry.ts";
 import { updateSearchIndex } from "../storage/search-index.ts";
+import { updateBacklinks } from "../storage/backlinks.ts";
 
 export function useAutoSave(
   entry: WorkLedgerEntry | null,
@@ -39,6 +40,7 @@ export function useAutoSave(
           blocks as Block[],
           updated.tags ?? [],
         );
+        await updateBacklinks(updated.id, blocks);
       }, 500);
     },
     [onSave],

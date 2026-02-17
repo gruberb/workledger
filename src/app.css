@@ -280,6 +280,12 @@
   opacity: 1 !important;
 }
 
+/* Force BlockNote drag handle menu to open to the right (default opens left, behind sidebar) */
+.bn-drag-handle-menu {
+  left: 100% !important;
+  right: auto !important;
+}
+
 /* Excalidraw preview sizing */
 .excalidraw-preview svg {
   width: 100%;

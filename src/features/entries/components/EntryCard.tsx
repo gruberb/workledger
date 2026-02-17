@@ -7,6 +7,7 @@ import { ConfirmAction } from "../../../components/ui/ConfirmAction.tsx";
 import { ErrorBoundary } from "../../../components/ui/ErrorBoundary.tsx";
 import { CheckIcon, ArchiveIcon, TrashIcon, AIIcon } from "../../../components/ui/Icons.tsx";
 import { SignifierPicker } from "./SignifierPicker.tsx";
+import { BacklinksPanel } from "./BacklinksPanel.tsx";
 
 interface EntryCardProps {
   entry: WorkLedgerEntry;
@@ -44,11 +45,6 @@ export const EntryCard = memo(function EntryCard({ entry, isLatest, onSave, onTa
         <span className="text-sm text-gray-400 dark:text-gray-500 font-mono">
           {formatTime(entry.createdAt)}
         </span>
-        {isOld && !isArchiveView && (
-          <span className="text-[11px] text-gray-300 dark:text-gray-600 uppercase tracking-wider">
-            past
-          </span>
-        )}
         {isArchiveView && (
           <span className="text-[11px] text-amber-400 dark:text-amber-500 uppercase tracking-wider">
             archived
@@ -229,7 +225,7 @@ export const EntryCard = memo(function EntryCard({ entry, isLatest, onSave, onTa
       <div
         className={`
           rounded-xl transition-all duration-200
-          ${isOld || isArchiveView ? "opacity-80" : ""}
+          ${isArchiveView ? "opacity-80" : ""}
         `}
       >
         <ErrorBoundary fallback={
@@ -246,6 +242,7 @@ export const EntryCard = memo(function EntryCard({ entry, isLatest, onSave, onTa
           />
         </ErrorBoundary>
       </div>
+      <BacklinksPanel entryId={entry.id} />
       <div className="entry-ruling mt-4 mb-4" />
     </div>
   );

@@ -16,7 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - Learning Log (What I Learned / Source / How to Apply) with auto-tag `#learning`
 - Saved filters — save the current tag + text filter combination as a named quick-access filter in the sidebar
 - Pin entries — pin icon on entry cards to keep important entries at the top in a dedicated "Pinned" section above day groups
-- Entry signifiers — optional colored label (Note, Decision, Task, Question, Idea) on each entry; click the dot in the header to pick
+- Entry signifiers — optional colored label (Note, Decision, Task, Question, Idea) on each entry; click the dot in the header to pick; filter by signifier in the sidebar
+- Backlinks panel — "Referenced by" section below each entry showing all entries that link to it via `[[` wiki-links; auto-maintained on save
 
 ## [2.2.3] - 2026-02-15
 

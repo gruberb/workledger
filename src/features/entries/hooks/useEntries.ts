@@ -15,6 +15,7 @@ import {
   getAllDayKeys,
 } from "../storage/entries.ts";
 import { deleteSearchIndex, updateSearchIndex } from "../storage/search-index.ts";
+import { removeFromBacklinks } from "../storage/backlinks.ts";
 import type { Block } from "@blocknote/core";
 import { generateId } from "../../../utils/id.ts";
 import { todayKey } from "../../../utils/dates.ts";
@@ -149,6 +150,7 @@ export function useEntries() {
       await dbDeleteEntry(id);
       emit("entry-deleted", { entryId: id });
       await deleteSearchIndex(id);
+      await removeFromBacklinks(id);
       await refresh();
       await refreshArchive();
     },

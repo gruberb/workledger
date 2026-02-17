@@ -16,6 +16,7 @@ export { SIGNIFIER_CONFIG } from "./types/entry.ts";
 
 // Storage operations (for cross-feature use)
 export { getEntry, getAllEntries, pinEntry, unpinEntry } from "./storage/entries.ts";
+export { getBacklinks, updateBacklinks, removeFromBacklinks } from "./storage/backlinks.ts";
 export { searchEntries, getRecentSearchEntries, extractTextFromBlocks, deleteSearchIndex, updateSearchIndex } from "./storage/search-index.ts";
 export { exportAllEntries, importEntries } from "./storage/import-export.ts";
 
