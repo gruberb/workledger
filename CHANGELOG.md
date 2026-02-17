@@ -18,6 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Pin entries — pin icon on entry cards to keep important entries at the top in a dedicated "Pinned" section above day groups
 - Entry signifiers — optional colored label (Note, Decision, Task, Question, Idea) on each entry; click the dot in the header to pick; filter by signifier in the sidebar
 - Backlinks panel — "Referenced by" section below each entry showing all entries that link to it via `[[` wiki-links; auto-maintained on save
+- AI Notebook Companion — replaced 10 thinking frameworks with 12 concrete engineer actions organized by category:
+  - **Summarize:** My Day, My Week, A Topic
+  - **Generate:** Standup Update, PR Description, ADR from Notes, Draft Message
+  - **Think:** Rubber Duck, Challenge My Thinking, Explore Tradeoffs
+  - **Remember:** What Did I Decide About...?, When Did I Last Work On...?
+  - Actions support multi-entry context (day/week/topic scope) and topic search
+
+### Removed
+
+- 10 academic thinking frameworks (Thinker's Toolkit, First Principles, Six Thinking Hats, TRIZ, Design Thinking, Socratic Method, Systems Thinking, Lateral Thinking, OODA Loop, Theory of Constraints) — replaced by concrete AI actions above
 
 ## [2.2.3] - 2026-02-15
 

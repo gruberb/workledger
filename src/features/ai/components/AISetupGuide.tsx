@@ -85,7 +85,7 @@ export function AISetupGuide({ settings, onUpdateSettings }: AISetupGuideProps) 
     <div className="px-4 py-4 overflow-y-auto h-full">
       <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Set up AI Provider</h3>
       <p className="text-xs text-gray-400 mb-4">
-        Connect to a local or remote LLM to power thinking frameworks.
+        Connect to a local or remote LLM to power AI actions.
       </p>
 
       {/* Tabs */}

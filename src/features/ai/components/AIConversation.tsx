@@ -1,13 +1,17 @@
 import { useRef, useEffect, useState } from "react";
 import type { AIConversation as AIConversationType } from "../types/ai.ts";
-import type { FrameworkStep } from "../frameworks/types.ts";
+interface StepLike {
+  id: string;
+  name: string;
+  [key: string]: unknown;
+}
 import { AIMessage, StreamingMessage } from "./AIMessage.tsx";
 
 interface AIConversationProps {
   conversation: AIConversationType;
   streaming: boolean;
   streamContent: string;
-  currentStep: FrameworkStep;
+  currentStep: StepLike;
   followUpSuggestions: string[];
   onSendMessage: (message: string) => void;
   onAbort: () => void;

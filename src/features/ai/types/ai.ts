@@ -38,6 +38,7 @@ export interface AIMessage {
   content: string;
   timestamp: number;
   frameworkStepId?: string;
+  actionId?: string;
 }
 
 export interface AIConversation {

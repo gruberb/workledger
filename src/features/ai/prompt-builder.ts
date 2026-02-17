@@ -1,22 +1,26 @@
 import type { LLMMessage } from "./providers/types.ts";
-import type { FrameworkStep } from "./frameworks/types.ts";
 import type { AIMessage } from "./types/ai.ts";
 
+interface PromptSource {
+  systemPrompt: string;
+  userPromptTemplate: string;
+}
+
 export function buildMessages(
-  step: FrameworkStep,
+  source: PromptSource,
   noteContent: string,
   conversationHistory: AIMessage[],
 ): LLMMessage[] {
   const messages: LLMMessage[] = [];
 
-  // System prompt from the framework step
+  // System prompt
   messages.push({
     role: "system",
-    content: step.systemPrompt,
+    content: source.systemPrompt,
   });
 
   // First user message with note content
-  const firstUserMessage = step.userPromptTemplate.replace(
+  const firstUserMessage = source.userPromptTemplate.replace(
     "{{noteContent}}",
     noteContent,
   );

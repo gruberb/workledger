@@ -1,18 +1,18 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import type { AISettings } from "../types/ai.ts";
 import type { WorkLedgerEntry } from "../../entries/index.ts";
-import type { ThinkingFramework, FrameworkStep } from "../frameworks/types.ts";
-import { extractTextFromBlocks } from "../../entries/index.ts";
+import type { AIAction } from "../actions/types.ts";
+
 import { useAIConversation } from "../hooks/useAIConversation.ts";
+import { useMultiEntryContext } from "../hooks/useMultiEntryContext.ts";
 import { useAIFeatureGate } from "../hooks/useAIFeatureGate.ts";
 import { useIsMobile } from "../../../hooks/useIsMobile.ts";
-import { FrameworkSelector } from "./FrameworkSelector.tsx";
+import { ActionSelector } from "./ActionSelector.tsx";
 import { AIConversation } from "./AIConversation.tsx";
 import { AISetupGuide } from "./AISetupGuide.tsx";
 import { AISettingsPanel } from "./AISettingsPanel.tsx";
-import type { Block } from "@blocknote/core";
 
-type SidebarMode = "setup" | "frameworks" | "conversation" | "settings";
+type SidebarMode = "setup" | "actions" | "topic-prompt" | "conversation" | "settings";
 
 interface AISidebarProps {
   isOpen: boolean;
@@ -42,80 +42,90 @@ export function AISidebar({
     abort,
     clearConversation,
   } = useAIConversation(settings);
+  const { gatherContext } = useMultiEntryContext();
 
-  const [userMode, setUserMode] = useState<SidebarMode>("frameworks");
-  const [activeFramework, setActiveFramework] = useState<ThinkingFramework | null>(null);
-  const [activeStep, setActiveStep] = useState<FrameworkStep | null>(null);
+  const [userMode, setUserMode] = useState<SidebarMode>("actions");
+  const [activeAction, setActiveAction] = useState<AIAction | null>(null);
+  const [topicQuery, setTopicQuery] = useState("");
 
   // Derive effective mode from connection status + user selection
   const mode = useMemo(() => {
     if (!settings.enabled) return userMode;
     if (!available && userMode !== "settings" && userMode !== "conversation") return "setup";
-    if (available && userMode === "setup") return "frameworks";
+    if (available && userMode === "setup") return "actions";
     return userMode;
   }, [settings.enabled, available, userMode]);
 
   // Reset when target entry changes
   const targetEntryId = targetEntry?.id;
-  const activeFrameworkId = activeFramework?.id;
+  const activeActionId = activeAction?.id;
   useEffect(() => {
-    if (targetEntryId && activeFrameworkId) {
-      loadConversation(targetEntryId, activeFrameworkId);
+    if (targetEntryId && activeActionId) {
+      loadConversation(targetEntryId, activeActionId);
     }
-  }, [targetEntryId, activeFrameworkId, loadConversation]);
+  }, [targetEntryId, activeActionId, loadConversation]);
 
-  const handleSelectFramework = useCallback(
-    (framework: ThinkingFramework) => {
-      setActiveFramework(framework);
-      const firstStep = framework.steps[0];
-      setActiveStep(firstStep);
-
-      if (!targetEntry) return;
+  const executeAction = useCallback(
+    async (action: AIAction, query?: string) => {
+      const contextEntryId = action.scope === "entry"
+        ? targetEntry?.id ?? "global"
+        : `${action.scope}-${query ?? ""}`;
 
       // Try loading existing conversation
-      loadConversation(targetEntry.id, framework.id).then((existing) => {
-        if (!existing) {
-          // Start new conversation and immediately send the first message
-          const conv = startConversation(targetEntry.id, framework.id, firstStep.id);
-          const noteText = extractTextFromBlocks(targetEntry.blocks as Block[]);
-          sendMessage(conv, firstStep, noteText);
-        }
+      const existing = await loadConversation(contextEntryId, action.id);
+      if (existing) {
         setUserMode("conversation");
-      });
+        return;
+      }
+
+      // Gather context based on scope
+      const noteContent = await gatherContext(action.scope, targetEntry, query);
+      const conv = startConversation(contextEntryId, action.id);
+      sendMessage(conv, action, noteContent);
+      setUserMode("conversation");
     },
-    [targetEntry, loadConversation, startConversation, sendMessage],
+    [targetEntry, loadConversation, startConversation, sendMessage, gatherContext],
   );
+
+  const handleSelectAction = useCallback(
+    (action: AIAction) => {
+      setActiveAction(action);
+
+      if (action.scope === "topic") {
+        setTopicQuery("");
+        setUserMode("topic-prompt");
+        return;
+      }
+
+      executeAction(action);
+    },
+    [executeAction],
+  );
+
+  const handleTopicSubmit = useCallback(() => {
+    if (!activeAction || !topicQuery.trim()) return;
+    executeAction(activeAction, topicQuery.trim());
+  }, [activeAction, topicQuery, executeAction]);
 
   const handleSendFollowUp = useCallback(
     (message: string) => {
-      if (!conversation || !activeStep || !targetEntry) return;
-      const noteText = extractTextFromBlocks(targetEntry.blocks as Block[]);
-      sendMessage(conversation, activeStep, noteText, message);
-    },
-    [conversation, activeStep, targetEntry, sendMessage],
-  );
+      if (!conversation || !activeAction) return;
 
-  const handleSwitchStep = useCallback(
-    (step: FrameworkStep) => {
-      setActiveStep(step);
-      if (!conversation || !targetEntry) return;
-      // Start fresh with the new step
-      const conv = startConversation(targetEntry.id, conversation.frameworkId, step.id);
-      const noteText = extractTextFromBlocks(targetEntry.blocks as Block[]);
-      sendMessage(conv, step, noteText);
-      setUserMode("conversation");
+      // For follow-ups, we need the original context — use empty string since
+      // the conversation history already has the full context from the first message
+      sendMessage(conversation, activeAction, "", message);
     },
-    [conversation, targetEntry, startConversation, sendMessage],
+    [conversation, activeAction, sendMessage],
   );
 
   const handleBack = useCallback(() => {
-    if (mode === "conversation") {
+    if (mode === "conversation" || mode === "topic-prompt") {
       clearConversation();
-      setActiveFramework(null);
-      setActiveStep(null);
-      setUserMode("frameworks");
+      setActiveAction(null);
+      setTopicQuery("");
+      setUserMode("actions");
     } else if (mode === "settings") {
-      setUserMode(available ? "frameworks" : "setup");
+      setUserMode(available ? "actions" : "setup");
     }
   }, [mode, available, clearConversation]);
 
@@ -152,11 +162,11 @@ export function AISidebar({
         {/* Header */}
         <div className="shrink-0 flex items-center gap-2 px-4 py-3 border-b border-gray-100 dark:border-gray-800">
           <button
-            onClick={mode === "frameworks" || mode === "setup" ? onClose : handleBack}
+            onClick={mode === "actions" || mode === "setup" ? onClose : handleBack}
             className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-            title={mode === "frameworks" || mode === "setup" ? "Close sidebar" : "Back"}
+            title={mode === "actions" || mode === "setup" ? "Close sidebar" : "Back"}
           >
-            {mode === "frameworks" || mode === "setup" ? (
+            {mode === "actions" || mode === "setup" ? (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
@@ -171,18 +181,18 @@ export function AISidebar({
           <div className="flex-1 min-w-0">
             <h2 className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">
               {mode === "setup" && "AI Setup"}
-              {mode === "frameworks" && "Think with AI"}
-              {mode === "conversation" && activeFramework?.name}
+              {mode === "actions" && "AI Notebook Companion"}
+              {mode === "topic-prompt" && activeAction?.name}
+              {mode === "conversation" && activeAction?.name}
               {mode === "settings" && "AI Settings"}
             </h2>
-            {mode === "conversation" && targetEntry && (
+            {mode === "conversation" && activeAction && (
               <p className="text-[10px] text-gray-400 truncate">
-                {extractTextFromBlocks(targetEntry.blocks as Block[]).slice(0, 60)}
+                {activeAction.description}
               </p>
             )}
           </div>
 
-          {/* Step tabs for conversation mode */}
           {mode !== "settings" && mode !== "setup" && (
             <button
               onClick={() => setUserMode("settings")}
@@ -197,27 +207,6 @@ export function AISidebar({
           )}
         </div>
 
-        {/* Step navigation tabs (conversation mode) */}
-        {mode === "conversation" && activeFramework && (
-          <div className="shrink-0 flex overflow-x-auto border-b border-gray-100 dark:border-gray-800 px-2 gap-1 py-2">
-            {activeFramework.steps.map((step) => (
-              <button
-                key={step.id}
-                onClick={() => handleSwitchStep(step)}
-                className={`
-                  text-[11px] px-2.5 py-1 rounded-full whitespace-nowrap transition-colors shrink-0
-                  ${activeStep?.id === step.id
-                    ? "bg-orange-100 dark:bg-orange-950/40 text-orange-700 dark:text-orange-400 font-medium"
-                    : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-                  }
-                `}
-              >
-                {step.name}
-              </button>
-            ))}
-          </div>
-        )}
-
         {/* Content area */}
         <div className="flex-1 min-h-0">
           {mode === "setup" && (
@@ -227,37 +216,47 @@ export function AISidebar({
             />
           )}
 
-          {mode === "frameworks" && !targetEntry && (
-            <div className="flex flex-col items-center justify-center h-full text-center px-8">
-              <div className="text-4xl mb-4 text-gray-200">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-gray-300">
-                  <path d="M12 2a8 8 0 0 0-8 8c0 3.36 2.07 6.24 5 7.42V19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1.58c2.93-1.18 5-4.06 5-7.42a8 8 0 0 0-8-8z" />
-                  <line x1="9" y1="22" x2="15" y2="22" />
-                </svg>
-              </div>
-              <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Select a note first</h3>
-              <p className="text-xs text-gray-400 leading-relaxed">
-                Hover over a note and click the
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mx-1 -mt-0.5 text-orange-400">
-                  <path d="M12 2a8 8 0 0 0-8 8c0 3.36 2.07 6.24 5 7.42V19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1.58c2.93-1.18 5-4.06 5-7.42a8 8 0 0 0-8-8z" />
-                  <line x1="9" y1="22" x2="15" y2="22" />
-                </svg>
-                icon to start thinking with AI about that note's content.
+          {mode === "actions" && (
+            <ActionSelector
+              onSelectAction={handleSelectAction}
+              hasTargetEntry={!!targetEntry}
+            />
+          )}
+
+          {mode === "topic-prompt" && activeAction && (
+            <div className="flex flex-col items-center px-6 pt-16">
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">
+                {activeAction.name}
+              </h3>
+              <p className="text-xs text-gray-400 text-center mb-4">
+                {activeAction.description}
               </p>
+              <input
+                type="text"
+                value={topicQuery}
+                onChange={(e) => setTopicQuery(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleTopicSubmit(); }}
+                placeholder="Enter a topic to search..."
+                className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 outline-none focus:border-orange-300 focus:ring-1 focus:ring-orange-100 dark:focus:ring-orange-900 bg-white dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-300 placeholder:text-gray-400"
+                autoFocus
+              />
+              <button
+                onClick={handleTopicSubmit}
+                disabled={!topicQuery.trim()}
+                className="mt-3 w-full py-2 text-sm bg-orange-500 text-white rounded-xl hover:bg-orange-400 disabled:opacity-40 transition-colors"
+              >
+                Search & Analyze
+              </button>
             </div>
           )}
 
-          {mode === "frameworks" && targetEntry && (
-            <FrameworkSelector onSelectFramework={handleSelectFramework} />
-          )}
-
-          {mode === "conversation" && conversation && activeStep && (
+          {mode === "conversation" && conversation && activeAction && (
             <AIConversation
               conversation={conversation}
               streaming={streaming}
               streamContent={streamContent}
-              currentStep={activeStep}
-              followUpSuggestions={activeStep.followUpSuggestions}
+              currentStep={{ id: activeAction.id, name: activeAction.name, description: activeAction.description, systemPrompt: activeAction.systemPrompt, userPromptTemplate: activeAction.userPromptTemplate, followUpSuggestions: activeAction.followUpSuggestions }}
+              followUpSuggestions={activeAction.followUpSuggestions}
               onSendMessage={handleSendFollowUp}
               onAbort={abort}
               error={error}

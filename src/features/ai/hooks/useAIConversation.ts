@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import type { AISettings, AIMessage, AIConversation } from "../types/ai.ts";
-import type { FrameworkStep } from "../frameworks/types.ts";
+import type { AIAction } from "../actions/types.ts";
 import { createProvider } from "../providers/provider-factory.ts";
 import { buildMessages } from "../prompt-builder.ts";
 import { generateId } from "../../../utils/id.ts";
@@ -16,9 +16,9 @@ export function useAIConversation(settings: AISettings) {
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  const loadConversation = useCallback(async (entryId: string, frameworkId: string) => {
+  const loadConversation = useCallback(async (entryId: string, actionId: string) => {
     const existing = await getConversationsByEntry(entryId);
-    const match = existing.find((c) => c.frameworkId === frameworkId);
+    const match = existing.find((c) => c.frameworkId === actionId);
     if (match) {
       setConversation(match);
       return match;
@@ -27,12 +27,12 @@ export function useAIConversation(settings: AISettings) {
   }, []);
 
   const startConversation = useCallback(
-    (entryId: string, frameworkId: string, stepId: string) => {
+    (entryId: string, actionId: string) => {
       const conv: AIConversation = {
         id: generateId(),
         entryId,
-        frameworkId,
-        currentStepId: stepId,
+        frameworkId: actionId,
+        currentStepId: actionId,
         messages: [],
         createdAt: Date.now(),
         updatedAt: Date.now(),
@@ -47,7 +47,7 @@ export function useAIConversation(settings: AISettings) {
   const sendMessage = useCallback(
     async (
       conv: AIConversation,
-      step: FrameworkStep,
+      action: AIAction,
       noteContent: string,
       userMessage?: string,
     ) => {
@@ -70,12 +70,12 @@ export function useAIConversation(settings: AISettings) {
           role: "user",
           content: userMessage,
           timestamp: Date.now(),
-          frameworkStepId: step.id,
+          actionId: action.id,
         };
         updatedMessages.push(msg);
       } else if (updatedMessages.length === 0) {
         // First message: add the template-based user prompt
-        const content = step.userPromptTemplate.replace(
+        const content = action.userPromptTemplate.replace(
           "{{noteContent}}",
           noteContent,
         );
@@ -84,12 +84,12 @@ export function useAIConversation(settings: AISettings) {
           role: "user",
           content,
           timestamp: Date.now(),
-          frameworkStepId: step.id,
+          actionId: action.id,
         };
         updatedMessages.push(msg);
       }
 
-      const llmMessages = buildMessages(step, noteContent, updatedMessages);
+      const llmMessages = buildMessages(action, noteContent, updatedMessages);
 
       const abort = new AbortController();
       abortRef.current = abort;
@@ -113,14 +113,14 @@ export function useAIConversation(settings: AISettings) {
           role: "assistant",
           content: fullResponse,
           timestamp: Date.now(),
-          frameworkStepId: step.id,
+          actionId: action.id,
         };
         updatedMessages.push(assistantMsg);
 
         const updated: AIConversation = {
           ...conv,
           messages: updatedMessages,
-          currentStepId: step.id,
+          currentStepId: action.id,
           updatedAt: Date.now(),
         };
         setConversation(updated);
