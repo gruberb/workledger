@@ -17,6 +17,8 @@ interface SidebarUIValue {
   setSidebarOpen: (open: boolean) => void;
   archiveView: boolean;
   toggleArchiveView: () => void;
+  reviewView: boolean;
+  toggleReviewView: () => void;
   activeDayKey: string | null;
   setActiveDayKey: (key: string | null) => void;
 }
@@ -67,6 +69,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const [textQuery, setTextQuery] = useState("");
   const [filteredEntryIds, setFilteredEntryIds] = useState<Set<string> | null>(null);
   const [archiveView, setArchiveView] = useState(false);
+  const [reviewView, setReviewView] = useState(false);
   const [activeDayKey, setActiveDayKey] = useState<string | null>(null);
 
   // --- UI actions ---
@@ -83,7 +86,15 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     });
     setSelectedTags([]);
     setTextQuery("");
+    setReviewView(false);
   }, [refreshArchive]);
+
+  const toggleReviewView = useCallback(() => {
+    setReviewView((prev) => !prev);
+    if (archiveView) {
+      setArchiveView(false);
+    }
+  }, [archiveView]);
 
   // --- Filter actions ---
 
@@ -245,9 +256,11 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     setSidebarOpen,
     archiveView,
     toggleArchiveView,
+    reviewView,
+    toggleReviewView,
     activeDayKey,
     setActiveDayKey,
-  }), [isOpen, toggleSidebar, setSidebarOpen, archiveView, toggleArchiveView, activeDayKey]);
+  }), [isOpen, toggleSidebar, setSidebarOpen, archiveView, toggleArchiveView, reviewView, toggleReviewView, activeDayKey]);
 
   const filterValue: SidebarFilterValue = useMemo(() => ({
     selectedTags,

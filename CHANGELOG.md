@@ -24,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - **Think:** Rubber Duck, Challenge My Thinking, Explore Tradeoffs
   - **Remember:** What Did I Decide About...?, When Did I Last Work On...?
   - Actions support multi-entry context (day/week/topic scope) and topic search
+- Weekly review — toggle in sidebar settings groups entries by ISO week with entry count, top tags, signifier breakdown, and clickable entry titles
+  - Human-readable week labels ("This Week", "Last Week", "Week of Feb 10")
+  - Collapsible week cards — most recent auto-expanded, older weeks collapsed
+  - Entry previews and pinned entry highlighting in review list
+  - Click entries to navigate and scroll to them in the main stream
+  - Optional "Summarize with AI" link per week card (when AI is enabled)
 
 ### Removed
 

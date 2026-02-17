@@ -9,6 +9,7 @@ import { SidebarDayList } from "./SidebarDayList.tsx";
 import { SidebarTagCloud } from "./SidebarTagCloud.tsx";
 import { SavedFilterSection, SaveFilterButton } from "./SavedFilters.tsx";
 import { SignifierFilter } from "./SignifierFilter.tsx";
+import { SidebarWeekList } from "./SidebarWeekList.tsx";
 import { ImportExport } from "./ImportExport.tsx";
 
 interface SidebarProps {
@@ -18,7 +19,7 @@ interface SidebarProps {
 
 export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
   const isMobile = useIsMobile();
-  const { isOpen, toggleSidebar, archiveView, toggleArchiveView, activeDayKey } = useSidebarUI();
+  const { isOpen, toggleSidebar, archiveView, toggleArchiveView, reviewView, toggleReviewView, activeDayKey } = useSidebarUI();
   const { textQuery, setTextQuery, selectedTags, toggleTag, hasActiveFilters, selectedSignifiers, toggleSignifier, savedFilters, saveCurrentFilter, applySavedFilter, deleteSavedFilter, clearAllFilters } = useSidebarFilter();
   const {
     displayEntriesByDay,
@@ -130,6 +131,21 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
           </button>
         </div>
 
+        {/* Review mode label */}
+        {reviewView && (
+          <div className="mb-3 shrink-0 flex items-center gap-2 px-2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--color-notebook-muted)]">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+              <line x1="16" y1="2" x2="16" y2="6" />
+              <line x1="8" y1="2" x2="8" y2="6" />
+              <line x1="3" y1="10" x2="21" y2="10" />
+            </svg>
+            <p className="text-[11px] uppercase tracking-wider text-[var(--color-notebook-muted)] font-medium">
+              Weekly Review
+            </p>
+          </div>
+        )}
+
         {/* Filter */}
         <div className="mb-5 shrink-0">
           <div className="relative">
@@ -140,7 +156,7 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
               type="text"
               value={textQuery}
               onChange={(e) => setTextQuery(e.target.value)}
-              placeholder={archiveView ? "Filter archive..." : "Filter entries..."}
+              placeholder={archiveView ? "Filter archive..." : reviewView ? "Filter review..." : "Filter entries..."}
               className={`w-full text-sm bg-[var(--color-notebook-surface-alt)] border border-[var(--color-notebook-border)] rounded-lg pl-8 ${hasActiveFilters ? "pr-16" : "pr-3"} py-2 outline-none focus:bg-[var(--color-notebook-surface)] transition-all text-[var(--color-notebook-text)] placeholder:text-[var(--color-notebook-muted)] sidebar-filter-input`}
               autoComplete="off"
               data-1p-ignore
@@ -183,6 +199,8 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
               settingsRef={settingsRef}
               isArchiveView={archiveView}
               onToggleArchiveView={toggleArchiveView}
+              isReviewView={reviewView}
+              onToggleReviewView={toggleReviewView}
               archivedCount={archivedCount}
               onToggleAI={handleToggleAI}
               aiEnabled={aiSettings.enabled}
@@ -196,17 +214,24 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
           </div>
         </div>
 
-        {/* Day list */}
-        <SidebarDayList
-          dayKeys={dayKeys}
-          entriesByDay={entriesByDay}
-          isArchiveView={archiveView}
-          activeDayKey={activeDayKey}
-          onDayClick={(dayKey: string) => {
-            onDayClick(dayKey);
-            if (isMobile) toggleSidebar();
-          }}
-        />
+        {/* Day list or Week list */}
+        {reviewView ? (
+          <SidebarWeekList
+            dayKeys={dayKeys}
+            entriesByDay={entriesByDay}
+          />
+        ) : (
+          <SidebarDayList
+            dayKeys={dayKeys}
+            entriesByDay={entriesByDay}
+            isArchiveView={archiveView}
+            activeDayKey={activeDayKey}
+            onDayClick={(dayKey: string) => {
+              onDayClick(dayKey);
+              if (isMobile) toggleSidebar();
+            }}
+          />
+        )}
 
         {/* Bottom panel: Saved Filters + Tags */}
         {!archiveView && (allTags.length > 0 || savedFilters.length > 0 || allSignifiers.length > 0) && (

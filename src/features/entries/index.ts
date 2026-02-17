@@ -7,6 +7,7 @@ export { useAutoSave } from "./hooks/useAutoSave.ts";
 
 // Components
 export { EntryStream } from "./components/EntryStream.tsx";
+export { ReviewStream } from "./components/ReviewStream.tsx";
 export { EntryCard } from "./components/EntryCard.tsx";
 export { NewEntryButton } from "./components/NewEntryButton.tsx";
 
@@ -21,7 +22,7 @@ export { searchEntries, getRecentSearchEntries, extractTextFromBlocks, deleteSea
 export { exportAllEntries, importEntries } from "./storage/import-export.ts";
 
 // Utils (entries-specific)
-export { extractTitle } from "./utils/extract-title.ts";
+export { extractTitle, extractPreview } from "./utils/extract-title.ts";
 export { ENTRY_TEMPLATES } from "./utils/templates.ts";
 export type { EntryTemplate } from "./utils/templates.ts";
 

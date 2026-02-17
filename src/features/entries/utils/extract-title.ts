@@ -35,3 +35,27 @@ export function extractTitle(entry: WorkLedgerEntry): string {
   }
   return "Untitled entry";
 }
+
+/**
+ * Extract a short preview from an entry's blocks:
+ * First non-heading paragraph text, truncated to 80 chars.
+ */
+export function extractPreview(entry: WorkLedgerEntry): string | null {
+  for (const block of entry.blocks) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const b = block as any;
+    if (b.type === "heading") continue;
+    if (Array.isArray(b.content)) {
+      const text = b.content
+        .filter((c: { type: string }) => c.type === "text")
+        .map((c: { text: string }) => c.text)
+        .join("");
+      if (text.trim()) {
+        const trimmed = text.trim();
+        if (trimmed.length <= 80) return trimmed;
+        return trimmed.slice(0, 77) + "...";
+      }
+    }
+  }
+  return null;
+}
