@@ -82,7 +82,7 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
       {!isOpen && (
         <button
           onClick={toggleSidebar}
-          className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-[var(--color-notebook-surface)]/80 hover:bg-[var(--color-notebook-surface)] border border-[var(--color-notebook-border)] shadow-sm transition-all duration-300 text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)]"
+          className={`fixed top-4 left-4 ${isMobile ? "z-50" : "z-10"} p-2 rounded-lg bg-[var(--color-notebook-surface)]/80 hover:bg-[var(--color-notebook-surface)] border border-[var(--color-notebook-border)] shadow-sm transition-all duration-300 text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)]`}
           title="Expand sidebar (⌘\)"
           aria-label="Expand sidebar"
         >
@@ -100,7 +100,7 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
       {/* Sidebar panel */}
       <aside
         className={`
-          fixed top-0 left-0 h-full z-40
+          fixed top-0 left-0 h-full ${isMobile ? "z-40" : "z-0"}
           bg-[var(--color-notebook-surface)] border-r border-[var(--color-notebook-border)]
           shadow-[1px_0_12px_rgba(0,0,0,0.03)] dark:shadow-[1px_0_12px_rgba(0,0,0,0.3)]
           transition-transform duration-300 ease-in-out
@@ -224,7 +224,7 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
             >
               <SavedFilterSection
                 savedFilters={savedFilters}
-                onApply={applySavedFilter}
+                onApply={(f) => { applySavedFilter(f); if (isMobile) toggleSidebar(); }}
                 onDelete={deleteSavedFilter}
                 collapsed={filtersCollapsed}
                 onToggleCollapse={() => setFiltersCollapsed((p) => !p)}
@@ -234,14 +234,14 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
               <SignifierFilter
                 allSignifiers={allSignifiers}
                 selectedSignifiers={selectedSignifiers}
-                onToggle={toggleSignifier}
+                onToggle={(s) => { toggleSignifier(s); if (isMobile) toggleSidebar(); }}
                 collapsed={signifiersCollapsed}
                 onToggleCollapse={() => setSignifiersCollapsed((p) => !p)}
               />
               <SidebarTagCloud
                 allTags={allTags}
                 selectedTags={selectedTags}
-                onToggleTag={toggleTag}
+                onToggleTag={(t) => { toggleTag(t); if (isMobile) toggleSidebar(); }}
                 collapsed={tagsCollapsed}
                 onToggleCollapse={() => setTagsCollapsed((p) => !p)}
               />

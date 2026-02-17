@@ -258,7 +258,7 @@
 
 @media (max-width: 767px) {
   [data-workledger-editor] .bn-editor {
-    padding-left: 48px;
+    padding-left: 0;
   }
 }
 
@@ -280,10 +280,11 @@
   opacity: 1 !important;
 }
 
-/* Force BlockNote drag handle menu to open to the right (default opens left, behind sidebar) */
-.bn-drag-handle-menu {
-  left: 100% !important;
-  right: auto !important;
+/* Hide BlockNote side menu (+ and ⁞⁞) on mobile — no drag & drop on touch */
+@media (max-width: 767px) {
+  .bn-side-menu {
+    display: none !important;
+  }
 }
 
 /* Excalidraw preview sizing */
