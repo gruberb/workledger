@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-02-17
+
 ### Added
 
 - Entry templates — create entries pre-filled with structured sections via dropdown on the New Entry button
@@ -28,8 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   - Human-readable week labels ("This Week", "Last Week", "Week of Feb 10")
   - Collapsible week cards — most recent auto-expanded, older weeks collapsed
   - Entry previews and pinned entry highlighting in review list
+  - Filtering (text, tags, signifiers, saved filters) works in review mode
   - Click entries to navigate and scroll to them in the main stream
   - Optional "Summarize with AI" link per week card (when AI is enabled)
+- Landing page updated with all new features and 12 AI actions
 
 ### Removed
 
@@ -311,6 +315,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Local-first storage with IndexedDB -- no server required
 - Landing page
 
+[3.0.0]: https://github.com/gruberb/workledger/releases/tag/v3.0.0
 [2.2.2]: https://github.com/gruberb/workledger/releases/tag/v2.2.2
 [2.2.1]: https://github.com/gruberb/workledger/releases/tag/v2.2.1
 [2.2.0]: https://github.com/gruberb/workledger/releases/tag/v2.2.0
