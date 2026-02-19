@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.2.4] - 2026-02-19
+
+### Fixed
+
+- Persistent jitter at bottom of entry list — editor mounting is now one-way (once scrolled into range, stays mounted) to eliminate the unmount/remount feedback loop caused by layout shifts
+
 ## [3.2.3] - 2026-02-19
 
 ### Fixed
