@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.2.2] - 2026-02-19
+
+### Fixed
+
+- Mobile scroll jitter caused by viewport chrome resizing — switched `useNearViewport` rootMargin from percentage-based (`200%`) to fixed pixels (`2000px`) so browser toolbar show/hide no longer toggles entries between editor and placeholder
+
 ## [3.2.1] - 2026-02-19
 
 ### Changed
