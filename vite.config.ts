@@ -67,7 +67,6 @@ export default defineConfig({
             "@blocknote/react",
             "@blocknote/mantine",
           ],
-          mantine: ["@mantine/core"],
           shiki: ["shiki"],
         },
       },
