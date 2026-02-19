@@ -86,7 +86,7 @@ Sidebar filtering uses two independent dimensions combined with AND logic:
 - Excalidraw is wrapped in an error boundary (`ExcalidrawBlock.tsx`) — drawing errors must not crash the app. Add error boundaries around other risky integrations too
 - Debounce timings: auto-save 500ms, search 200ms, sidebar filter 200ms — don't change without testing UX
 - Vite config has specific `optimizeDeps` for Excalidraw and PNG chunk libraries — don't remove without testing
-- The `landing/` directory is a separate static site, not part of the React app
+- The landing page lives in a separate repo (`workledger-landing`), not in this repo
 - **AI feature is fully optional** — gated by `useAIFeatureGate` hook. All AI code in `src/features/ai/`. Can be removed without affecting core functionality
 - Custom BlockNote schema extended with `excalidraw` block type and `entryLink` inline content — defined in `src/features/editor/components/EditorProvider.tsx`
 - **Backlinks index must be updated on import** — `importEntries()` must call `updateBacklinks()` alongside `updateSearchIndex()`. Missing this means wiki-links in imported entries won't generate "Referenced by" panels (was a real bug, fixed)
