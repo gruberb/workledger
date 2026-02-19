@@ -87,63 +87,17 @@ export function EntryStream({ entriesByDay, onSave, onTagsChange, onArchive, onD
     return limits;
   }, [renderedCount, sortedDays, entriesByDay, pinnedIds]);
 
-  // Focus mode: render only the focused entry
-  if (focusedEntryId) {
-    let focusedEntry: WorkLedgerEntry | undefined;
+  // Focus mode: find the focused entry for the overlay
+  const focusedEntry = useMemo(() => {
+    if (!focusedEntryId) return undefined;
     for (const entries of entriesByDay.values()) {
-      focusedEntry = entries.find((e) => e.id === focusedEntryId);
-      if (focusedEntry) break;
+      const found = entries.find((e) => e.id === focusedEntryId);
+      if (found) return found;
     }
+    return undefined;
+  }, [focusedEntryId, entriesByDay]);
 
-    if (!focusedEntry) {
-      return (
-        <div className="entry-stream">
-          <div className="flex flex-col items-center text-center py-16">
-            <p className="text-gray-400 text-sm">Entry not found</p>
-            <button onClick={onExitFocus} className="mt-4 text-sm text-blue-500 hover:text-blue-600">
-              Back to all entries
-            </button>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="entry-stream">
-        <div className="flex items-center gap-3 pt-6 pb-4 px-1 sticky top-0 sticky-header">
-          <button
-            onClick={onExitFocus}
-            className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-            title="Back to all entries (Esc)"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="19" y1="12" x2="5" y2="12" />
-              <polyline points="12 19 5 12 12 5" />
-            </svg>
-          </button>
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            {formatDayKey(focusedEntry.dayKey)} &middot; {formatTime(focusedEntry.createdAt)}
-          </span>
-        </div>
-        <div className="pt-6">
-          <EntryCard
-            entry={focusedEntry}
-            isLatest={false}
-            onSave={onSave}
-            onTagsChange={isArchiveView ? undefined : onTagsChange}
-            onArchive={isArchiveView ? undefined : onArchive}
-            onDelete={onDelete}
-            onUnarchive={isArchiveView ? onUnarchive : undefined}
-            onPin={isArchiveView ? undefined : onPin}
-            onUnpin={isArchiveView ? undefined : onUnpin}
-            onSignifierChange={isArchiveView ? undefined : onSignifierChange}
-            isArchiveView={isArchiveView}
-            onOpenAI={isArchiveView ? undefined : onOpenAI}
-          />
-        </div>
-      </div>
-    );
-  }
+  const isFocused = !!focusedEntryId;
 
   if (sortedDays.length === 0 && isArchiveView) {
     return <EmptyArchive />;
@@ -159,6 +113,54 @@ export function EntryStream({ entriesByDay, onSave, onTagsChange, onArchive, onD
 
   return (
     <div className="entry-stream">
+      {/* Focus mode overlay — rendered on top, hides the main list via CSS */}
+      {isFocused && (
+        focusedEntry ? (
+          <div>
+            <div className="flex items-center gap-3 pt-6 pb-4 px-1 sticky top-0 sticky-header">
+              <button
+                onClick={onExitFocus}
+                className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                title="Back to all entries (Esc)"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="19" y1="12" x2="5" y2="12" />
+                  <polyline points="12 19 5 12 12 5" />
+                </svg>
+              </button>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                {formatDayKey(focusedEntry.dayKey)} &middot; {formatTime(focusedEntry.createdAt)}
+              </span>
+            </div>
+            <div className="pt-6">
+              <EntryCard
+                entry={focusedEntry}
+                isLatest={false}
+                onSave={onSave}
+                onTagsChange={isArchiveView ? undefined : onTagsChange}
+                onArchive={isArchiveView ? undefined : onArchive}
+                onDelete={onDelete}
+                onUnarchive={isArchiveView ? onUnarchive : undefined}
+                onPin={isArchiveView ? undefined : onPin}
+                onUnpin={isArchiveView ? undefined : onUnpin}
+                onSignifierChange={isArchiveView ? undefined : onSignifierChange}
+                isArchiveView={isArchiveView}
+                onOpenAI={isArchiveView ? undefined : onOpenAI}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center text-center py-16">
+            <p className="text-gray-400 text-sm">Entry not found</p>
+            <button onClick={onExitFocus} className="mt-4 text-sm text-blue-500 hover:text-blue-600">
+              Back to all entries
+            </button>
+          </div>
+        )
+      )}
+
+      {/* Main entry list — hidden via CSS when focused to preserve fiber tree */}
+      <div style={{ display: isFocused ? "none" : undefined }}>
       {isFiltering && (
         <FilterBanner
           selectedTags={selectedTags ?? []}
@@ -235,6 +237,7 @@ export function EntryStream({ entriesByDay, onSave, onTagsChange, onArchive, onD
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

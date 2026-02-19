@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - BacklinksPanel no longer floods IndexedDB on every autosave — re-fetches only when a known source changes or a new backlink is detected (debounced)
 - EntryStream uses progressive rendering when large numbers of entries appear at once (e.g. clearing filters), eliminating UI jank
+- Exiting focus mode is now instant — entry list is hidden via CSS instead of unmounted, avoiding remount of all editors
 
 ## [3.1.0] - 2026-02-18
 
