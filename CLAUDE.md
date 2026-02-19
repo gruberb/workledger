@@ -30,6 +30,7 @@ src/
     sidebar/       # Navigation, filtering (tags + text), archive toggle
     search/        # Full-text search panel (⌘K)
     focus-mode/    # Single-entry focus view
+    sync/          # E2E encrypted sync (optional, SyncProvider)
     theme/         # Dark/light mode
     ai/            # OPTIONAL — AI sidebar, fully gated & removable
 ```
@@ -46,10 +47,10 @@ Each feature owns its `components/`, `context/`, `hooks/`, `storage/`, `types/`,
 ### Provider hierarchy (in AppProviders.tsx)
 
 ```
-ThemeContext → EntriesProvider → SidebarProvider → FocusModeProvider → AIProvider
+ThemeContext → EntriesProvider → SyncProvider → SidebarProvider → FocusModeProvider → AIProvider
 ```
 
-Order matters: SidebarProvider depends on EntriesProvider for data.
+Order matters: SyncProvider depends on EntriesProvider, SidebarProvider depends on EntriesProvider for data.
 
 ## Code style
 
@@ -70,7 +71,7 @@ State is categorized, not centralized:
 - **Component state** — `useState`/`useReducer` for local UI concerns. Start here, lift only when needed.
 - **Feature state** — React Context per feature (`EntriesContext`, `SidebarContext`, `AIContext`, etc.). Keep state close to consumers.
 - **Storage state** — IndexedDB via `src/storage/db.ts` and feature-specific wrappers in `features/*/storage/`. Never access IndexedDB directly from components.
-- **URL state** — custom DOM event `workledger:navigate-entry` for cross-entry navigation, handled in `App.tsx`.
+- **URL state** — typed event bus (`src/utils/events.ts`) with `emit("navigate-entry")` / `on("navigate-entry")` for cross-entry navigation.
 
 ### Filtering architecture
 
@@ -88,6 +89,9 @@ Sidebar filtering uses two independent dimensions combined with AND logic:
 - The `landing/` directory is a separate static site, not part of the React app
 - **AI feature is fully optional** — gated by `useAIFeatureGate` hook. All AI code in `src/features/ai/`. Can be removed without affecting core functionality
 - Custom BlockNote schema extended with `excalidraw` block type and `entryLink` inline content — defined in `src/features/editor/components/EditorProvider.tsx`
+- **Backlinks index must be updated on import** — `importEntries()` must call `updateBacklinks()` alongside `updateSearchIndex()`. Missing this means wiki-links in imported entries won't generate "Referenced by" panels (was a real bug, fixed)
+- **Lazy editor mounting (`useNearViewport`) must start `near = true`** — starting `false` renders short placeholders that break `scrollIntoView` positions. Starting `true` mounts all editors on first render, then IntersectionObserver unmounts far-away ones after the first frame
+- **`EntryStream` progressive rendering uses per-day budgeting** — `useProgressiveRender` returns a budget that gets allocated across day groups, not a simple flat batch. Don't simplify to a global slice
 - **Sync: Mutex asymmetry** — push reschedules via `schedulePush()` when mutex is held; pull drops silently. Changing this breaks the guarantee that dirty entries are eventually pushed
 - **Sync: Cursor separation** — push only updates `lastSyncAt`, only pull updates `lastSyncSeq`. Mixing these up causes entry loss (pull would skip server entries)
 - **Sync: Dirty tracking is in-memory** — `dirtyEntriesRef` and `deletedEntriesRef` are `useRef` sets, lost on page refresh. The fallback filter `e.updatedAt > config.lastSyncAt` in push and `syncNow()` handle recovery
@@ -105,5 +109,7 @@ Sidebar filtering uses two independent dimensions combined with AND logic:
 - Releases triggered by `v*` tags
 - Version tracked in `package.json` and `CHANGELOG.md` (Keep a Changelog format)
 - Keep PRs focused on a single concern
-- Update `CHANGELOG.md` under `[Unreleased]` for user-facing changes
+- Update `CHANGELOG.md` under `[Unreleased]` for every change we make
+- Never mention Claude or Anthropic or LLM in commit messages
 - See @CONTRIBUTING.md for development setup
+- Use fix: or feat: or chore: or perf: or docs: for your commit messages
