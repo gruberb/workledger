@@ -56,6 +56,23 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    chunkSizeWarningLimit: 2000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          excalidraw: ["@excalidraw/excalidraw"],
+          blocknote: [
+            "@blocknote/core",
+            "@blocknote/react",
+            "@blocknote/mantine",
+          ],
+          mantine: ["@mantine/core"],
+          shiki: ["shiki"],
+        },
+      },
+    },
+  },
   optimizeDeps: {
     include: [
       "@excalidraw/excalidraw",

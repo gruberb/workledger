@@ -10,6 +10,14 @@
     "preview": "vite preview",
     "test": "vitest run"
   },
+  "overrides": {
+    "@excalidraw/excalidraw": {
+      "@radix-ui/react-tabs": {
+        "react": "$react",
+        "react-dom": "$react-dom"
+      }
+    }
+  },
   "dependencies": {
     "@blocknote/core": "^0.46.2",
     "@blocknote/mantine": "^0.46.2",
