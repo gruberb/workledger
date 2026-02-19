@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useIsMobile } from "../../../hooks/useIsMobile.ts";
 import { useClickOutside } from "../../../hooks/useClickOutside.ts";
 import type { EntrySignifier } from "../../entries/index.ts";
@@ -90,6 +90,14 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
 
   const closeSettings = useCallback(() => setSettingsOpen(false), []);
   useClickOutside(settingsRef, closeSettings, settingsOpen);
+
+  // Lock body scroll when mobile sidebar is open
+  useEffect(() => {
+    if (isMobile && isOpen) {
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = ""; };
+    }
+  }, [isMobile, isOpen]);
 
   const handleToggleFiltersCollapse = useCallback(() => setFiltersCollapsed((p) => !p), []);
   const handleToggleSignifiersCollapse = useCallback(() => setSignifiersCollapsed((p) => !p), []);

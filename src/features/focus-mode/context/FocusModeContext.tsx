@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useRef, useEffect, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useRef, useEffect, useLayoutEffect, useMemo, type ReactNode } from "react";
 import type { WorkLedgerEntry } from "../../entries/index.ts";
 
 interface FocusModeContextValue {
@@ -18,6 +18,7 @@ export function FocusModeProvider({ children }: { children: ReactNode }) {
   const handleFocusEntry = useCallback((entry: WorkLedgerEntry) => {
     setFocusedEntryId(entry.id);
     history.replaceState(null, "", `#entry-${entry.id}`);
+    window.scrollTo({ top: 0, behavior: "instant" });
   }, []);
 
   const handleExitFocus = useCallback(() => {
@@ -26,17 +27,17 @@ export function FocusModeProvider({ children }: { children: ReactNode }) {
     history.replaceState(null, "", window.location.pathname);
   }, []);
 
-  // After exiting focus mode, scroll to the entry that was focused
-  useEffect(() => {
+  // After exiting focus mode, scroll to the entry that was focused.
+  // useLayoutEffect runs before the browser paints, preventing a visible
+  // flash to the top of the page before the scroll correction.
+  useLayoutEffect(() => {
     if (focusedEntryId === null && scrollRestoreId.current) {
       const entryId = scrollRestoreId.current;
       scrollRestoreId.current = null;
-      requestAnimationFrame(() => {
-        const el = document.getElementById(`entry-${entryId}`);
-        if (el) {
-          el.scrollIntoView({ behavior: "instant", block: "start" });
-        }
-      });
+      const el = document.getElementById(`entry-${entryId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "instant", block: "start" });
+      }
     }
   }, [focusedEntryId]);
 

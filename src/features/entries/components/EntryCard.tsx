@@ -27,11 +27,11 @@ interface EntryCardProps {
   onFocus?: (entry: WorkLedgerEntry) => void;
 }
 
-function EntryPlaceholder({ entry }: { entry: WorkLedgerEntry }) {
+function EntryPlaceholder({ entry, height }: { entry: WorkLedgerEntry; height?: number }) {
   const title = extractTitle(entry);
   const preview = extractPreview(entry);
   return (
-    <div className="px-12 py-4 min-h-[80px]">
+    <div className="px-12 py-4 min-h-[80px]" style={height ? { minHeight: height } : undefined}>
       <p className="text-base font-semibold text-[var(--color-notebook-text)]">{title}</p>
       {preview && (
         <p className="mt-1 text-sm text-[var(--color-notebook-muted)] line-clamp-2">{preview}</p>
@@ -46,7 +46,7 @@ export const EntryCard = memo(function EntryCard({ entry, isLatest, onSave, onTa
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-  const nearViewport = useNearViewport(cardRef);
+  const { near: nearViewport, lastHeight } = useNearViewport(cardRef);
 
   const handleCopyLink = useCallback(() => {
     const url = `${window.location.origin}${window.location.pathname}#entry-${entry.id}`;
@@ -260,7 +260,7 @@ export const EntryCard = memo(function EntryCard({ entry, isLatest, onSave, onTa
             />
           </ErrorBoundary>
         ) : (
-          <EntryPlaceholder entry={entry} />
+          <EntryPlaceholder entry={entry} height={lastHeight} />
         )}
       </div>
       <ErrorBoundary fallback={null}>

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.2.1] - 2026-02-19
+
 ### Changed
 
 - Lazy-mount BlockNote editors based on viewport proximity — only entries within ~2 viewport heights get a live editor; far-away entries render a lightweight title/preview placeholder, reducing live `useSyncExternalStore` subscribers from ~40 to ~5-8 and eliminating scroll jiggle during backlink navigation
@@ -14,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Fixed
 
 - Imported entries now build backlinks index — wiki-links in imported entries generate "Referenced by" panels immediately instead of requiring a manual edit to each entry
+- Focus mode now scrolls to the top when entering, so the focused entry is fully visible
+- Exiting focus mode no longer flashes to the top before scrolling back — scroll restore runs before paint via `useLayoutEffect`
+- Exiting focus mode no longer collapses all entries to placeholders — `useNearViewport` ignores `IntersectionObserver` callbacks fired while the list is hidden with `display: none`
+- Scrollbar no longer jitters during scrolling — placeholders now preserve the measured height of the editor they replace instead of using a fixed 80px minimum
+- Background content no longer scrolls when the mobile sidebar is open
 
 ## [3.2.0] - 2026-02-18
 
