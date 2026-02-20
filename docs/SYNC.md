@@ -200,7 +200,7 @@ Every entry is encrypted before leaving the device. The encryption pipeline has 
 
 **3. Encryption key derivation** (`crypto.ts:27-47`): `SHA-256("crypto:" + syncId)` produces a crypto seed, which is then run through PBKDF2 with 100,000 iterations and a server-provided salt to produce an AES-256-GCM key. The salt is generated server-side during account creation and returned to the client. The separation of `"auth:"` and `"crypto:"` prefixes ensures the auth token cannot be used to derive the encryption key.
 
-**4. Entry encryption** (`sync-crypto.ts:25-48`): The entry's content fields (`dayKey`, `createdAt`, `updatedAt`, `blocks`, `isArchived`, `tags`) are serialized to JSON, hashed with SHA-256 for integrity verification, then encrypted with AES-GCM using a random 12-byte IV. The result is a `SyncEntry`:
+**4. Entry encryption** (`sync-crypto.ts:29-54`): The entry's content fields (`dayKey`, `createdAt`, `updatedAt`, `blocks`, `isArchived`, `tags`, `isPinned`, `signifier`) are serialized to JSON, hashed with SHA-256 for integrity verification, then encrypted with AES-GCM using a random 12-byte IV. The result is a `SyncEntry`:
 
 ```typescript
 interface SyncEntry {
@@ -378,7 +378,7 @@ The cursor advancement logic is the most bug-prone part of the sync system (see 
 
 ### 4.3 merge.ts — Conflict Resolution
 
-**Location:** `src/features/sync/utils/merge.ts` (~61 lines)
+**Location:** `src/features/sync/utils/merge.ts` (~63 lines)
 
 **Responsibility:** Takes an array of decrypted remote entries and writes them to IndexedDB according to the merge policy. This is the only place where remote data enters the local database.
 
@@ -390,7 +390,7 @@ The Zod validation was the source of a bug in v2.2.3: the original schema used `
 
 ### 4.4 sync-crypto.ts and crypto.ts — The Encryption Pipeline
 
-**Location:** `src/features/sync/utils/crypto.ts` (~77 lines), `sync-crypto.ts` (~85 lines)
+**Location:** `src/features/sync/utils/crypto.ts` (~77 lines), `sync-crypto.ts` (~93 lines)
 
 **crypto.ts** provides four primitives:
 
@@ -445,7 +445,7 @@ The context value includes both data (`config`, `status`) and actions (`generate
 
 ### 4.7 StorageSubmenu.tsx — The Settings UI
 
-**Location:** `src/features/sync/components/StorageSubmenu.tsx` (~347 lines)
+**Location:** `src/features/sync/components/StorageSubmenu.tsx` (~345 lines)
 
 This component manages the user-facing sync configuration flow. It renders inside the sidebar settings panel and consumes `useSyncContext()`.
 
@@ -900,13 +900,13 @@ Additionally, `sortedStringify()` handled `undefined` values differently from `J
 | `sync/hooks/useSync.ts` | 405 | Orchestrator: intervals, events, push/pull, account lifecycle |
 | `sync/storage/sync-settings.ts` | 25 | SyncConfig persistence to IndexedDB settings store |
 | `sync/utils/sync-operations.ts` | 125 | pushEntries() and pullEntries() — core sync algorithms |
-| `sync/utils/merge.ts` | 61 | mergeRemoteEntries() — conflict resolution, IDB writes |
-| `sync/utils/sync-crypto.ts` | 85 | Entry-level encrypt/decrypt with integrity hash |
+| `sync/utils/merge.ts` | 63 | mergeRemoteEntries() — conflict resolution, IDB writes |
+| `sync/utils/sync-crypto.ts` | 93 | Entry-level encrypt/decrypt with integrity hash |
 | `sync/utils/crypto.ts` | 77 | Primitives: key derivation, AES-GCM, sync ID generation |
 | `sync/utils/integrity.ts` | 16 | SHA-256 plaintext hashing |
 | `sync/utils/sync-api.ts` | 100 | HTTP client for 6 server endpoints |
 | `sync/utils/sync-events.ts` | 9 | Thin wrappers around typed event bus |
-| `sync/components/StorageSubmenu.tsx` | 347 | Settings UI: mode toggle, connect/disconnect, sync now |
+| `sync/components/StorageSubmenu.tsx` | 345 | Settings UI: mode toggle, connect/disconnect, sync now |
 | `sync/components/SyncStatusIndicator.tsx` | 36 | Green/blue/red status dot |
 
 ### 9.3 Timing Constants

@@ -17,7 +17,7 @@ The cryptographic pipeline is built on three well-established primitives: **PBKD
 ```
 src/features/sync/utils/
 ├── crypto.ts          → Primitives: key generation, derivation, AES-GCM encrypt/decrypt (77 lines)
-├── sync-crypto.ts     → Entry-level: serialize → hash → encrypt / decrypt → parse (85 lines)
+├── sync-crypto.ts     → Entry-level: serialize → hash → encrypt / decrypt → parse (93 lines)
 ├── integrity.ts       → SHA-256 plaintext hashing for integrity verification (16 lines)
 └── __tests__/
     ├── crypto.test.ts           → Tests for primitives (121 lines)
@@ -279,6 +279,8 @@ export async function encryptEntry(key: CryptoKey, entry: {...}): Promise<SyncEn
     blocks: entry.blocks,
     isArchived: entry.isArchived,
     tags: entry.tags ?? [],
+    isPinned: entry.isPinned ?? false,
+    signifier: entry.signifier,
   };
   const plaintext = JSON.stringify(payload);
   const integrityHash = await computePlaintextHash(plaintext);
@@ -296,7 +298,7 @@ export async function encryptEntry(key: CryptoKey, entry: {...}): Promise<SyncEn
 
 The serialization process:
 
-1. **Extract payload fields:** Only content fields (`dayKey`, `createdAt`, `updatedAt`, `blocks`, `isArchived`, `tags`) are included in the encrypted payload. The `id` is excluded because it must be visible to the server for deduplication.
+1. **Extract payload fields:** Only content fields (`dayKey`, `createdAt`, `updatedAt`, `blocks`, `isArchived`, `tags`, `isPinned`, `signifier`) are included in the encrypted payload. The `id` is excluded because it must be visible to the server for deduplication.
 
 2. **Serialize to JSON:** `JSON.stringify(payload)` produces the plaintext string. The order of keys in the JSON output depends on insertion order (the `EntryPayload` interface definition order), which is deterministic.
 
@@ -344,6 +346,8 @@ export async function decryptEntry(key: CryptoKey, syncEntry: SyncEntry): Promis
     isArchived: payload.isArchived,
     isDeleted: false,
     tags: payload.tags ?? [],
+    isPinned: payload.isPinned ?? false,
+    signifier: payload.signifier,
   };
 }
 ```
@@ -570,6 +574,8 @@ A precise accounting of every field and its confidentiality status:
 | `blocks` | `PartialBlock[]` (BlockNote JSON) | The actual content — most sensitive field |
 | `isArchived` | `boolean` | Archive status (also in plaintext) |
 | `tags` | `string[]` | User-defined categories — reveals work topics |
+| `isPinned` | `boolean` | Pin status — reveals which entries the user considers important |
+| `signifier` | `string \| undefined` | User-defined entry marker/signifier |
 
 ### Plaintext (SyncEntry metadata)
 
@@ -785,7 +791,7 @@ The lifecycle tests are the most valuable for confidence, because they exercise 
 | File | Lines | Crypto operations |
 |------|-------|-------------------|
 | `crypto.ts` | 77 | `generateSyncIdLocal`, `computeAuthToken`, `computeCryptoSeed`, `deriveKey`, `encrypt`, `decrypt` |
-| `sync-crypto.ts` | 85 | `encryptEntry`, `decryptEntry` |
+| `sync-crypto.ts` | 93 | `encryptEntry`, `decryptEntry` |
 | `integrity.ts` | 16 | `computePlaintextHash`, `verifyPlaintextHash` |
 | `sync-api.ts` | 100 | Auth token passed in `X-Auth-Token` header (no crypto operations, just transport) |
 | `crypto.test.ts` | 121 | Tests for all primitives |

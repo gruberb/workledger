@@ -99,7 +99,7 @@ Sidebar filtering uses two independent dimensions combined with AND logic:
 - **Sync: Push debounce resets** — the 2s push timeout resets on every `entry-changed`/`entry-deleted` event. Rapid edits batch into one push
 - **Sync: `connect()` does a full bidirectional sync** — encrypts all local entries, sends them, receives all server entries, merges. It's the initial reconciliation, not just a "connect"
 - **Sync: `syncNow()` resets `lastSyncSeq` to 0** — forces a full re-pull from the beginning, then `push(true)` sends everything. It's a recovery tool, not a regular sync
-- **Sync: `unarchiveEntry` does NOT emit `entry-changed`** — unlike `archiveEntry`, it won't trigger a sync push. The unarchived state only syncs on next edit or manual `syncNow()`
+- **Sync: `unarchiveEntry` DOES emit `entry-changed`** — like `archiveEntry`, it triggers a sync push. Both archive and unarchive operations are synced automatically
 - **Sync: Event listeners are mode-gated** — only registered when `config.mode === "remote"`. Mode switch tears down and re-creates them via `useEffect` cleanup
 - **Sync: Merge uses strict `>`** — `remote.updatedAt > local.updatedAt` means equal timestamps keep the local version. Deletion markers always win regardless of timestamps
 
