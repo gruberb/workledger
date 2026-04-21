@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.2.5] - 2026-04-21
+
+### Fixed
+
+- Clicking a day in the sidebar now scrolls correctly when all of that day's entries are pinned — previously the day section was skipped from the DOM (entries rendered only in the Pinned section), so `handleDayClick` found no scroll target and silently did nothing; now falls back to scrolling to the pinned entry's card
+
 ## [3.2.4] - 2026-02-19
 
 ### Fixed

@@ -68,10 +68,19 @@ export function useEntryNavigation() {
     const el = document.getElementById(`day-${dayKey}`);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      // Day section may not render when all its entries are pinned (they live
+      // in the Pinned section at the top). Fall back to the first pinned
+      // entry's card for that day.
+      const pinnedForDay = entriesByDay.get(dayKey)?.find((e) => e.isPinned);
+      if (pinnedForDay) {
+        const entryEl = document.getElementById(`entry-${pinnedForDay.id}`);
+        if (entryEl) entryEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     }
     // Re-enable observer after scroll settles
     setTimeout(() => { isManualScroll.current = false; }, 800);
-  }, [setActiveDayKey]);
+  }, [setActiveDayKey, entriesByDay]);
 
   // Listen for wiki link navigation events
   useEffect(() => {
