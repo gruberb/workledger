@@ -241,6 +241,9 @@
   font-size: 16px;
   line-height: 1.75;
   color: var(--color-notebook-text);
+  /* Suppress the native iOS/Android text-selection callout so it doesn't
+     steal the selection from BlockNote's styling menu on touch devices. */
+  -webkit-touch-callout: none;
   /* Remove left padding so text aligns with header/tags above.
      The side menu (+/drag handle) will overflow into the left margin. */
   padding-inline: 0;
