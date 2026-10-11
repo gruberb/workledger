@@ -26,11 +26,11 @@ describe("loadSyncConfig", () => {
     });
   });
 
-  it("clears lastSyncAt from configs written before lastPullAt existed", async () => {
+  it("forces a full rescan and re-pull for configs written before lastPullAt existed", async () => {
     storeConfig({ mode: "remote", syncId: "wl-x", salt: "s", serverUrl: null, lastSyncSeq: 7, lastSyncAt: 123 });
     const config = await loadSyncConfig();
     expect(config.lastSyncAt).toBeNull();
-    expect(config.lastSyncSeq).toBe(7);
+    expect(config.lastSyncSeq).toBe(0);
   });
 
   it("returns defaults for unparsable JSON", async () => {

@@ -8,6 +8,7 @@ import "@blocknote/mantine/style.css";
 import { workledgerSchema } from "./EditorProvider.tsx";
 import { getWorkLedgerSlashMenuItems } from "./SlashMenuItems.tsx";
 import { getWikiLinkMenuItems } from "./WikiLinkMenuItems.ts";
+import { runPreSave } from "../utils/pre-save.ts";
 import type { EntryEditorProps } from "../../entries/index.ts";
 import { useAutoSave } from "../../entries/index.ts";
 import { useThemeMode } from "../../theme/index.ts";
@@ -36,7 +37,9 @@ export function EntryEditor({
     [entry.id],
   );
 
-  const { handleChange, isPending, lastSavedBlocksRef } = useAutoSave(entry.id, onSave);
+  const { handleChange, isPending, isOwnOrOlder } = useAutoSave(entry.id, onSave, {
+    beforeFlush: () => (runPreSave(editor) ? editor : null),
+  });
 
   // The blocks array the editor currently reflects. Starts at the mounted
   // content so mounting never triggers a replace (and a spurious re-save).
@@ -44,11 +47,13 @@ export function EntryEditor({
   const applyingExternalRef = useRef(false);
 
   // Apply external content updates (sync pull, import) without re-mounting.
-  // Our own saves and metadata-only changes (tags, pin, signifier) keep the
-  // blocks reference, so only genuinely new content reaches replaceBlocks.
+  // Keyed on the blocks reference, not updatedAt: metadata-only changes (tags,
+  // pin, signifier) keep the reference and must not replace content, while a
+  // refresh that delivers newer stored blocks under an unchanged updatedAt
+  // must still be applied.
   useEffect(() => {
     const incoming = entry.blocks;
-    if (incoming === appliedBlocksRef.current || incoming === lastSavedBlocksRef.current) return;
+    if (incoming === appliedBlocksRef.current || isOwnOrOlder(incoming, entry.updatedAt)) return;
     // Unsaved local typing wins; its save is about to write a newer version.
     if (isPending()) return;
     appliedBlocksRef.current = incoming;
@@ -62,7 +67,7 @@ export function EntryEditor({
       applyingExternalRef.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [entry.updatedAt]);
+  }, [entry.blocks]);
 
   useEffect(() => {
     if (autoFocus && editor) {

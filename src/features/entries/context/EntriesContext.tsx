@@ -12,6 +12,8 @@ interface EntriesData {
   error: string | null;
   /** Empty until refreshArchive() is called (the archive view loads it). */
   archivedEntries: Map<string, WorkLedgerEntry[]>;
+  /** Always current, even before the archive is loaded. */
+  archivedCount: number;
 }
 
 interface EntriesActions {
@@ -42,6 +44,7 @@ export function EntriesProvider({ children }: { children: ReactNode }) {
     loading,
     error,
     archivedEntries,
+    archivedCount,
     createEntry,
     saveEntryContent,
     updateEntryTags,
@@ -60,8 +63,8 @@ export function EntriesProvider({ children }: { children: ReactNode }) {
   } = useEntries();
 
   const data = useMemo<EntriesData>(
-    () => ({ entriesByDay, dayKeys, loading, error, archivedEntries }),
-    [entriesByDay, dayKeys, loading, error, archivedEntries],
+    () => ({ entriesByDay, dayKeys, loading, error, archivedEntries, archivedCount }),
+    [entriesByDay, dayKeys, loading, error, archivedEntries, archivedCount],
   );
   const actions = useMemo<EntriesActions>(
     () => ({

@@ -1,7 +1,7 @@
 import type { WorkLedgerEntry } from "../types/entry.ts";
 import { isEntrySignifier } from "../types/entry.ts";
 import { getDB } from "../../../storage/db.ts";
-import { buildActiveSnapshot, type ActiveSnapshot, type EntriesByDay, type SnapshotOptions } from "../utils/entries-state.ts";
+import { buildActiveSnapshot, type ActiveSnapshot, type SnapshotOptions } from "../utils/entries-state.ts";
 
 /** Fields a caller may change; identity and timestamps are owned by storage. */
 export type EntryPatch = Partial<Pick<WorkLedgerEntry, "blocks" | "tags" | "isArchived" | "isPinned" | "signifier">>;
@@ -87,20 +87,6 @@ export async function getActiveEntriesForDay(dayKey: string): Promise<WorkLedger
  */
 export async function loadActiveSnapshot(options: SnapshotOptions): Promise<ActiveSnapshot> {
   return buildActiveSnapshot(await getAllEntries(), options);
-}
-
-export async function getArchivedEntries(): Promise<EntriesByDay> {
-  const archived = (await getAllEntries())
-    .filter((e) => e.isArchived)
-    .sort((a, b) => b.createdAt - a.createdAt);
-
-  const grouped: EntriesByDay = new Map();
-  for (const entry of archived) {
-    const existing = grouped.get(entry.dayKey) || [];
-    existing.push(entry);
-    grouped.set(entry.dayKey, existing);
-  }
-  return grouped;
 }
 
 export async function getAllEntries(): Promise<WorkLedgerEntry[]> {

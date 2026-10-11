@@ -15,7 +15,7 @@ function createEngine(): SyncEngine {
 }
 
 export function useSync() {
-  const { refresh, refreshArchive } = useEntriesActions();
+  const { refresh } = useEntriesActions();
   const [engine] = useState(createEngine);
   const { config, status, remoteRevision } = useSyncExternalStore(engine.subscribe, engine.getState);
 
@@ -37,9 +37,9 @@ export function useSync() {
 
   useEffect(() => {
     if (remoteRevision === 0) return;
-    // Remote entries can be archived, so both views need reloading.
-    void Promise.all([refresh(), refreshArchive()]);
-  }, [remoteRevision, refresh, refreshArchive]);
+    // refresh() also reloads the archive when it is loaded.
+    void refresh();
+  }, [remoteRevision, refresh]);
 
   return {
     config,

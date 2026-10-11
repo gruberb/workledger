@@ -23,6 +23,15 @@ describe("buildActiveSnapshot", () => {
     entry("archived", "2025-05-01", 5, { isArchived: true }),
   ];
 
+  it("counts archived entries without loading them unless asked", () => {
+    const lean = buildActiveSnapshot(entries, { recentDays: 2 });
+    expect(lean.archivedCount).toBe(1);
+    expect(lean.archivedEntriesByDay).toBeUndefined();
+
+    const full = buildActiveSnapshot(entries, { recentDays: 2, withArchive: true });
+    expect([...full.archivedEntriesByDay!.entries()]).toEqual([["2025-05-01", [entries[6]]]]);
+  });
+
   it("keeps the most recent days, newest entry first", () => {
     const { entriesByDay } = buildActiveSnapshot(entries, { recentDays: 2 });
     expect(entriesByDay.get("2026-01-03")?.map((e) => e.id)).toEqual(["b", "a"]);

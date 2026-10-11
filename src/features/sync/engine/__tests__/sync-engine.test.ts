@@ -260,6 +260,14 @@ describe("tombstones", () => {
     expect(storage.tombstones).toEqual([]);
   });
 
+  it("coalesces tombstone writes for bulk deletes", async () => {
+    const engine = await startConnected();
+    const save = vi.spyOn(storage, "saveTombstones");
+    for (let i = 0; i < 500; i++) engine.notifyDeleted(`bulk-${i}`);
+    await vi.waitFor(() => expect(storage.tombstones).toHaveLength(500));
+    expect(save.mock.calls.length).toBeLessThanOrEqual(2);
+  });
+
   it("does not resurrect a pending local delete from an older server copy", async () => {
     const engine = await startConnected();
     server.entries.set("doomed", { ...(await encryptWith(SYNC_ID, "doomed")), serverSeq: ++server.seq });

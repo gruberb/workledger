@@ -1,6 +1,7 @@
 import { useRef, useCallback, useEffect } from "react";
 import { loadExcalidraw } from "./excalidrawLoader.ts";
 import { serializeScene, sceneKey, type SceneSnapshot } from "./scene.ts";
+import { registerPreSave } from "../utils/pre-save.ts";
 
 // Batches rapid strokes into one block update (and one entry autosave).
 const SAVE_DEBOUNCE_MS = 300;
@@ -107,6 +108,10 @@ export function useExcalidrawPersist(
     },
     [containerRef, setIsEditing, saveDrawing, refreshPreview],
   );
+
+  // The entry's final save (unmount, page hide) runs before this block's own
+  // cleanup, so pending strokes must be written when it asks for them.
+  useEffect(() => registerPreSave(editor, () => saveDrawing() !== null), [editor, saveDrawing]);
 
   // Flush pending strokes when the block unmounts (entry archived, scrolled
   // out, editor torn down). The preview is regenerated on a best-effort

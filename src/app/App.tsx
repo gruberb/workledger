@@ -35,7 +35,7 @@ function AppContent() {
   const { createEntry, saveEntryContent, updateEntryTags, archiveEntry, unarchiveEntry, deleteEntry, pinEntry, unpinEntry, updateEntrySignifier, setLoadAll } = useEntriesActions();
   const { isOpen: sidebarOpen, archiveView, reviewView } = useSidebarUI();
   const { textQuery, selectedTags, selectedSignifiers, hasActiveFilters, removeTag, clearAllFilters, saveCurrentFilter, savedFilters } = useSidebarFilter();
-  const { displayEntriesByDay, displayArchivedEntriesByDay } = useSidebarData();
+  const { isFiltering, displayEntriesByDay, displayArchivedEntriesByDay } = useSidebarData();
   const { focusedEntryId, handleFocusEntry, handleExitFocus } = useFocusModeContext();
   const { settings: aiSettings, sidebarOpen: aiSidebarOpen, handleOpenAI, available: aiAvailable, setSidebarOpen: setAISidebarOpen } = useAIContext();
   const { query, results, isOpen: searchOpen, search, open: openSearch, close: closeSearch } = useSearch();
@@ -46,9 +46,11 @@ function AppContent() {
   const { revealEntry, handleDayClick } = useEntryNavigation(visibleDayKeys);
 
   // Filters only see in-memory entries; load all of them while filtering the main view.
+  // Follows the applied (debounced) filter, not the input: loading everything
+  // before the text filter applies would render the whole notebook unfiltered.
   useEffect(() => {
-    setLoadAll(hasActiveFilters && !archiveView);
-  }, [hasActiveFilters, archiveView, setLoadAll]);
+    setLoadAll(isFiltering && !archiveView);
+  }, [isFiltering, archiveView, setLoadAll]);
 
   const aiActionsAvailable = aiSettings.enabled && aiAvailable && !isMobile;
 

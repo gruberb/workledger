@@ -7,7 +7,6 @@ import {
   getEntry,
   deleteEntry as dbDeleteEntry,
   getActiveEntriesForDay,
-  getArchivedEntries,
   loadActiveSnapshot,
   getAllEntryIds,
   type EntryPatch,
@@ -48,37 +47,44 @@ export function useEntries() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [archivedEntries, setArchivedEntries] = useState<EntriesByDay>(new Map());
+  // Known from the startup scan, so the sidebar can show it before the archive loads.
+  const [archivedCount, setArchivedCount] = useState(0);
 
   // Days loaded on demand outside the recent window; kept across refreshes.
   const extraDaysRef = useRef(new Set<string>());
   const loadAllRef = useRef(false);
-  // The archive is only read once the archive view asks for it.
+  // Archived entries are only kept in memory once the archive view asks for them.
   const archiveLoadedRef = useRef(false);
 
-  const refreshArchive = useCallback(async () => {
-    archiveLoadedRef.current = true;
-    setArchivedEntries(await getArchivedEntries());
-  }, []);
-
-  /** Reloads everything currently in memory (callers: startup, import, sync pull, delete-all). */
+  /**
+   * Reloads everything currently in memory (callers: startup, import, sync pull,
+   * delete-all, filter toggles). One scan covers both views.
+   */
   const refresh = useCallback(async () => {
     try {
       const snapshot = await loadActiveSnapshot({
         recentDays: RECENT_DAYS,
         extraDays: extraDaysRef.current,
         all: loadAllRef.current,
+        withArchive: archiveLoadedRef.current,
       });
       setEntriesByDay(snapshot.entriesByDay);
       setDayKeys(snapshot.dayKeys);
+      setArchivedCount(snapshot.archivedCount);
+      if (snapshot.archivedEntriesByDay) setArchivedEntries(snapshot.archivedEntriesByDay);
       setError(null);
-      if (archiveLoadedRef.current) await refreshArchive();
     } catch (err) {
       console.error("[entries] load failed", err);
       setError(err instanceof Error ? err.message : "Could not load entries");
     } finally {
       setLoading(false);
     }
-  }, [refreshArchive]);
+  }, []);
+
+  const refreshArchive = useCallback(async () => {
+    archiveLoadedRef.current = true;
+    await refresh();
+  }, [refresh]);
 
   useEffect(() => {
     refresh();
@@ -173,6 +179,7 @@ export function useEntries() {
     await updateIndexes("search index", () => deleteSearchIndex(id));
     setEntriesByDay((prev) => removeFromMap(prev, id));
     if (archiveLoadedRef.current) setArchivedEntries((prev) => upsertInMap(prev, updated));
+    setArchivedCount((c) => c + 1);
     emit("entry-changed", { entryId: id });
     await pruneDayKey(updated.dayKey);
   }, [pruneDayKey]);
@@ -182,6 +189,7 @@ export function useEntries() {
     if (!updated) return;
     await updateIndexes("search index", () => reindexEntry(updated));
     setArchivedEntries((prev) => removeFromMap(prev, id));
+    setArchivedCount((c) => Math.max(0, c - 1));
     // Reload the whole day so the in-memory day stays complete.
     await loadDay(updated.dayKey);
     setDayKeys((prev) => addDayKey(prev, updated.dayKey));
@@ -195,6 +203,7 @@ export function useEntries() {
     await updateIndexes("backlinks", () => removeFromBacklinks(id));
     setEntriesByDay((prev) => removeFromMap(prev, id));
     setArchivedEntries((prev) => removeFromMap(prev, id));
+    if (entry?.isArchived) setArchivedCount((c) => Math.max(0, c - 1));
     emit("entry-deleted", { entryId: id });
     if (entry && !entry.isArchived) await pruneDayKey(entry.dayKey);
   }, [pruneDayKey]);
@@ -233,6 +242,7 @@ export function useEntries() {
     loading,
     error,
     archivedEntries,
+    archivedCount,
     createEntry,
     saveEntryContent,
     updateEntryTags,

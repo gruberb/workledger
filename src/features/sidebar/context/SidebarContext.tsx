@@ -51,6 +51,8 @@ interface SidebarFilterValue {
 }
 
 interface SidebarDataValue {
+  /** Filters currently applied to the display maps (the text part is debounced). */
+  isFiltering: boolean;
   displayEntriesByDay: Map<string, WorkLedgerEntry[]>;
   displayArchivedEntriesByDay: Map<string, WorkLedgerEntry[]>;
   sidebarDayKeys: string[];
@@ -70,7 +72,7 @@ const SidebarDataCtx = createContext<SidebarDataValue | null>(null);
 // --- Provider ---
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
-  const { entriesByDay, dayKeys, archivedEntries } = useEntriesData();
+  const { entriesByDay, dayKeys, archivedEntries, archivedCount } = useEntriesData();
   const { refreshArchive, deleteAllEntries } = useEntriesActions();
 
   const [isOpen, setIsOpen] = useState(
@@ -246,14 +248,6 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     return [...set];
   }, [entriesByDay]);
 
-  const archivedCount = useMemo(() => {
-    let count = 0;
-    for (const entries of archivedEntries.values()) {
-      count += entries.length;
-    }
-    return count;
-  }, [archivedEntries]);
-
   const handleDeleteAll = useCallback(async () => {
     await deleteAllEntries();
     setActiveDayKey(null);
@@ -290,6 +284,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   }), [selectedTags, toggleTag, removeTag, textQuery, clearAllFilters, hasActiveFilters, selectedSignifiers, toggleSignifier, savedFilters, saveCurrentFilter, applySavedFilter, deleteSavedFilter]);
 
   const dataValue: SidebarDataValue = useMemo(() => ({
+    isFiltering: hasDisplayFilters,
     displayEntriesByDay,
     displayArchivedEntriesByDay,
     sidebarDayKeys,
@@ -298,7 +293,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     allSignifiers,
     archivedCount,
     handleDeleteAll,
-  }), [displayEntriesByDay, displayArchivedEntriesByDay, sidebarDayKeys, archivedDayKeys, allTags, allSignifiers, archivedCount, handleDeleteAll]);
+  }), [hasDisplayFilters, displayEntriesByDay, displayArchivedEntriesByDay, sidebarDayKeys, archivedDayKeys, allTags, allSignifiers, archivedCount, handleDeleteAll]);
 
   return (
     <SidebarUICtx.Provider value={uiValue}>

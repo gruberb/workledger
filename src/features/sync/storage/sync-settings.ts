@@ -24,9 +24,15 @@ export async function loadSyncConfig(): Promise<SyncConfig> {
   try {
     const raw = JSON.parse(row.value);
     const config = syncConfigSchema.parse(raw);
-    // Configs written before lastPullAt existed had lastSyncAt advanced by pulls,
-    // which can hide unpushed edits. Clearing it makes the next push rescan everything once.
-    if (!("lastPullAt" in raw)) config.lastSyncAt = null;
+    // Configs written before lastPullAt existed come from a pre-v2 client:
+    // - lastSyncAt was advanced by pulls, which can hide unpushed edits, so the
+    //   next push rescans everything once.
+    // - That client skipped (but moved its cursor past) v2 payloads it couldn't
+    //   decrypt, so the next pull starts from the beginning to recover them.
+    if (!("lastPullAt" in raw)) {
+      config.lastSyncAt = null;
+      config.lastSyncSeq = 0;
+    }
     return config;
   } catch {
     return { ...DEFAULT_SYNC_CONFIG };

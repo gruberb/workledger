@@ -7,6 +7,9 @@ export interface ActiveSnapshot {
   entriesByDay: EntriesByDay;
   /** Every day with at least one non-archived entry, newest first. */
   dayKeys: string[];
+  archivedCount: number;
+  /** Only built when `withArchive` is set. */
+  archivedEntriesByDay?: EntriesByDay;
 }
 
 export interface SnapshotOptions {
@@ -16,6 +19,8 @@ export interface SnapshotOptions {
   extraDays?: ReadonlySet<string>;
   /** Load every non-archived entry, e.g. while filters are active. */
   all?: boolean;
+  /** Also group archived entries (the archive view is open or was opened). */
+  withArchive?: boolean;
 }
 
 /**
@@ -26,9 +31,9 @@ export interface SnapshotOptions {
  * complete even for entries older than the recent window.
  */
 export function buildActiveSnapshot(entries: WorkLedgerEntry[], options: SnapshotOptions): ActiveSnapshot {
-  const active = entries
-    .filter((e) => !e.isArchived)
-    .sort((a, b) => b.createdAt - a.createdAt);
+  const sorted = [...entries].sort((a, b) => b.createdAt - a.createdAt);
+  const active = sorted.filter((e) => !e.isArchived);
+  const archived = sorted.filter((e) => e.isArchived);
 
   const allDays = new Set<string>();
   const included = new Set<string>(options.extraDays);
@@ -46,7 +51,17 @@ export function buildActiveSnapshot(entries: WorkLedgerEntry[], options: Snapsho
   for (const entry of active) {
     entriesByDay.get(entry.dayKey)?.push(entry);
   }
-  return { entriesByDay, dayKeys };
+
+  let archivedEntriesByDay: EntriesByDay | undefined;
+  if (options.withArchive) {
+    archivedEntriesByDay = new Map();
+    for (const entry of archived) {
+      const day = archivedEntriesByDay.get(entry.dayKey);
+      if (day) day.push(entry);
+      else archivedEntriesByDay.set(entry.dayKey, [entry]);
+    }
+  }
+  return { entriesByDay, dayKeys, archivedCount: archived.length, archivedEntriesByDay };
 }
 
 export function findEntry(map: EntriesByDay, id: string): WorkLedgerEntry | undefined {

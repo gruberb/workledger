@@ -100,6 +100,7 @@ export class SyncEngine {
 
   private configWrites: Promise<void> = Promise.resolve();
   private tombstoneWrites: Promise<void> = Promise.resolve();
+  private tombstoneWriteQueued = false;
 
   private readonly deps: SyncEngineDeps;
   private readonly options: SyncOptions;
@@ -427,8 +428,16 @@ export class SyncEngine {
   }
 
   private persistTombstones(): Promise<void> {
+    // Delete-all calls this once per entry. A queued write snapshots the set
+    // when it starts, so calls made before then can share it instead of
+    // queueing N full-set writes.
+    if (this.tombstoneWriteQueued) return this.tombstoneWrites;
+    this.tombstoneWriteQueued = true;
     this.tombstoneWrites = this.tombstoneWrites
-      .then(() => this.deps.storage.saveTombstones([...this.tombstones]))
+      .then(() => {
+        this.tombstoneWriteQueued = false;
+        return this.deps.storage.saveTombstones([...this.tombstones]);
+      })
       .catch((err) => console.warn("[sync] Saving pending deletes failed:", err));
     return this.tombstoneWrites;
   }
