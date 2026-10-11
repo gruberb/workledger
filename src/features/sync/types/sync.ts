@@ -1,21 +1,28 @@
 export type SyncMode = "local" | "remote";
 
-export type SyncPhase = "idle" | "pushing" | "pulling" | "merging" | "error";
+export type SyncPhase = "idle" | "connecting" | "pushing" | "pulling" | "merging" | "error";
 
 export interface SyncConfig {
   mode: SyncMode;
   syncId: string | null;
   salt: string | null;
   serverUrl: string | null;
+  /** Pull cursor. Only pull advances it. */
   lastSyncSeq: number;
+  /**
+   * Local clock time before the last successful push read its entries.
+   * Every local change older than this is on the server. Only push advances it,
+   * because the `updatedAt > lastSyncAt` recovery scan depends on that.
+   */
   lastSyncAt: number | null;
+  /** Last successful pull, for display only. */
+  lastPullAt: number | null;
 }
 
 export interface SyncStatus {
   phase: SyncPhase;
   error: string | null;
   lastSyncAt: number | null;
-  pendingChanges: number;
 }
 
 export const DEFAULT_SERVER_URL = "https://sync.workledger.org";
@@ -27,6 +34,7 @@ export const DEFAULT_SYNC_CONFIG: SyncConfig = {
   serverUrl: null,
   lastSyncSeq: 0,
   lastSyncAt: null,
+  lastPullAt: null,
 };
 
 export interface SyncEntry {
@@ -45,14 +53,10 @@ export interface CreateAccountResponse {
 
 export interface ValidateResponse {
   valid: boolean;
-  entryCount: number;
-  createdAt: number;
   salt: string;
 }
 
 export interface PushResponse {
-  accepted: number;
-  conflicts: ConflictEntry[];
   serverSeq: number;
 }
 
@@ -60,16 +64,4 @@ export interface PullResponse {
   entries: SyncEntry[];
   serverSeq: number;
   hasMore: boolean;
-}
-
-export interface FullSyncResponse {
-  entries: SyncEntry[];
-  serverSeq: number;
-  merged: number;
-}
-
-export interface ConflictEntry {
-  id: string;
-  serverUpdatedAt: number;
-  serverSeq: number;
 }

@@ -1,125 +1,132 @@
-import type { SyncConfig, SyncEntry } from "../types/sync.ts";
-import { apiPushEntries, apiPullEntries } from "./sync-api.ts";
-import { encryptEntry, decryptEntry } from "./sync-crypto.ts";
-import { mergeRemoteEntries } from "./merge.ts";
-import { getAllEntries } from "../../entries/index.ts";
+import type { SyncEntry } from "../types/sync.ts";
+import type { RemoteEntry, WorkLedgerEntry } from "../../entries/index.ts";
+import { SyncHttpError, type ApiContext, type SyncApi } from "./sync-api.ts";
+import { encryptEntry, encryptTombstone, decryptAll } from "./sync-crypto.ts";
+
+export interface BatchLimits {
+  maxEntries: number;
+  /** Serialized request size. Must stay below the server's request body limit. */
+  maxBytes: number;
+}
 
 interface PushParams {
+  api: SyncApi;
+  ctx: ApiContext;
   key: CryptoKey;
   token: string;
-  config: SyncConfig;
-  dirtyIds: Set<string>;
-  deletedIds: Set<string>;
-  forceAll: boolean;
+  entries: WorkLedgerEntry[];
+  tombstoneIds: string[];
+  limits: BatchLimits;
+  /** Called after each accepted batch so progress survives a later failure. */
+  onBatchPushed: (ids: string[]) => void;
+  /** Throws to stop between batches, e.g. after a disconnect. */
+  assertCurrent: () => void;
 }
 
-interface PushResult {
-  serverSeq: number;
-  syncedAt: number;
+export interface PushResult {
+  pushed: number;
+  /** Entries the server refused as too large. They are skipped, not retried. */
+  rejected: string[];
 }
 
-export async function pushEntries(params: PushParams): Promise<PushResult | null> {
-  const { key, token, config, dirtyIds, deletedIds, forceAll } = params;
+/**
+ * Encrypt and push in batches. Encrypting per batch keeps memory flat for large
+ * notebooks, and batching keeps each request under the server body limit.
+ */
+export async function pushEntries(params: PushParams): Promise<PushResult> {
+  const { api, ctx, key, token, entries, tombstoneIds, limits, onBatchPushed, assertCurrent } = params;
+  const result: PushResult = { pushed: 0, rejected: [] };
+  let batch: SyncEntry[] = [];
+  let batchBytes = 0;
 
-  const allEntries = await getAllEntries();
-  const toPush = forceAll
-    ? allEntries
-    : dirtyIds.size > 0
-      ? allEntries.filter((e) => dirtyIds.has(e.id))
-      : allEntries.filter((e) => config.lastSyncAt === null || e.updatedAt > config.lastSyncAt);
+  const flush = async () => {
+    if (batch.length === 0) return;
+    const ids = batch.map((e) => e.id);
+    assertCurrent();
+    try {
+      await api.pushEntries(ctx, token, batch);
+    } catch (err) {
+      // A single entry the server will never accept must not block every later push.
+      if (err instanceof SyncHttpError && err.status === 413 && batch.length === 1) {
+        console.warn(`[sync] Entry ${ids[0]} is too large to sync`);
+        result.rejected.push(ids[0]);
+        onBatchPushed(ids);
+        batch = [];
+        batchBytes = 0;
+        return;
+      }
+      throw err;
+    }
+    result.pushed += ids.length;
+    onBatchPushed(ids);
+    batch = [];
+    batchBytes = 0;
+  };
 
-  // Build deletion markers for entries removed from IDB
+  const add = async (entry: SyncEntry) => {
+    const size = JSON.stringify(entry).length + 1;
+    if (batch.length > 0 && (batch.length >= limits.maxEntries || batchBytes + size > limits.maxBytes)) {
+      await flush();
+    }
+    batch.push(entry);
+    batchBytes += size;
+  };
+
+  // Deletion time is push time: an older timestamp could lose LWW on the server
+  // against the entry's own last edit and leave the entry alive there.
   const now = Date.now();
-  const deletionMarkers: SyncEntry[] = [];
-  for (const entryId of deletedIds) {
-    deletionMarkers.push({
-      id: entryId,
-      updatedAt: now,
-      isArchived: false,
-      isDeleted: true,
-      encryptedPayload: "",
-      integrityHash: "",
-    });
-  }
-
-  const encrypted: SyncEntry[] = await Promise.all(
-    toPush.map((e) => encryptEntry(key, e)),
-  );
-
-  const allToPush = [...encrypted, ...deletionMarkers];
-  if (allToPush.length === 0) return null;
-
-  const res = await apiPushEntries(token, allToPush, config.serverUrl);
-  const syncedAt = Date.now();
-  return { serverSeq: res.serverSeq, syncedAt };
+  for (const id of tombstoneIds) await add(await encryptTombstone(key, id, now));
+  for (const entry of entries) await add(await encryptEntry(key, entry));
+  await flush();
+  return result;
 }
 
 interface PullParams {
+  api: SyncApi;
+  ctx: ApiContext;
   key: CryptoKey;
   token: string;
-  config: SyncConfig;
-  onPhaseChange?: (phase: string) => void;
+  since: number;
+  pageSize: number;
+  /** Applies a decrypted page locally and returns how many entries changed. */
+  apply: (entries: RemoteEntry[]) => Promise<number>;
+  onMerging?: () => void;
 }
 
-interface PullResult {
-  serverSeq: number;
-  syncedAt: number;
-  totalMerged: number;
-  hadEntries: boolean;
+export interface PullResult {
+  /** Next pull cursor. */
+  cursor: number;
+  merged: number;
 }
 
 export async function pullEntries(params: PullParams): Promise<PullResult> {
-  const { key, token, config, onPhaseChange } = params;
+  const { api, ctx, key, token, pageSize, apply, onMerging } = params;
+  let since = params.since;
+  let merged = 0;
 
-  let since = config.lastSyncSeq;
-  let hasMore = true;
-  let totalMerged = 0;
-  let hadEntries = false;
-  let lastServerSeq = since;
-
-  while (hasMore) {
-    const res = await apiPullEntries(token, since, 100, config.serverUrl);
-    hasMore = res.hasMore;
-    lastServerSeq = res.serverSeq;
+  for (;;) {
+    const res = await api.pullEntries(ctx, token, since, pageSize);
 
     if (res.entries.length > 0) {
-      hadEntries = true;
-      onPhaseChange?.("merging");
-      const decrypted = [];
-      for (const entry of res.entries) {
-        try {
-          decrypted.push(await decryptEntry(key, entry));
-        } catch (err) {
-          console.warn(`[sync] Failed to decrypt entry ${entry.id}:`, err instanceof Error ? err.message : err);
-        }
-      }
+      onMerging?.();
+      merged += await apply(await decryptAll(key, res.entries));
 
-      const merged = await mergeRemoteEntries(decrypted);
-      totalMerged += merged;
-
-      // Advance cursor to the batch's last entry (entries are ordered by
-      // server_seq ASC).  Do NOT use res.serverSeq here — that is the global
-      // max and would skip intermediate pages during paginated pulls.
-      const previousSince = since;
-      const lastEntry = res.entries[res.entries.length - 1];
-      if (lastEntry.serverSeq !== undefined && lastEntry.serverSeq > since) {
-        since = lastEntry.serverSeq;
-      }
-
-      // Safety: if cursor didn't advance despite having entries, break to
-      // prevent an infinite loop (entries lack serverSeq or all have seq <= since).
-      if (since === previousSince && hasMore) {
+      // Advance to the page's last entry (pages are ordered by server_seq).
+      // res.serverSeq is the global max and would skip intermediate pages.
+      const lastSeq = res.entries[res.entries.length - 1].serverSeq;
+      if (res.hasMore && (lastSeq === undefined || lastSeq <= since)) {
+        // Return the per-page cursor: jumping to the global seq here would
+        // permanently skip the remaining pages.
         console.warn("[sync] Pull cursor stuck, stopping pagination");
-        break;
+        return { cursor: since, merged };
       }
+      if (lastSeq !== undefined && lastSeq > since) since = lastSeq;
+    }
+
+    if (!res.hasMore) {
+      // The server returns the last page and its seq atomically, so nothing
+      // between `since` and res.serverSeq is missing.
+      return { cursor: Math.max(since, res.serverSeq), merged };
     }
   }
-
-  // After all pages, use the server's global seq as the final cursor.
-  // This ensures we're fully caught up even if concurrent pushes happened.
-  if (lastServerSeq > since) {
-    since = lastServerSeq;
-  }
-
-  return { serverSeq: since, syncedAt: Date.now(), totalMerged, hadEntries };
 }

@@ -1,6 +1,6 @@
 const PBKDF2_ITERATIONS = 100_000;
 
-async function sha256Hex(input: string): Promise<string> {
+export async function sha256Hex(input: string): Promise<string> {
   const encoded = new TextEncoder().encode(input);
   const hash = await crypto.subtle.digest("SHA-256", encoded);
   return Array.from(new Uint8Array(hash))
@@ -20,7 +20,7 @@ export async function computeAuthToken(syncId: string): Promise<string> {
   return sha256Hex("auth:" + syncId);
 }
 
-export async function computeCryptoSeed(syncId: string): Promise<string> {
+async function computeCryptoSeed(syncId: string): Promise<string> {
   return sha256Hex("crypto:" + syncId);
 }
 
@@ -46,13 +46,19 @@ export async function deriveKey(syncId: string, saltBase64: string): Promise<Cry
   );
 }
 
-export async function encrypt(key: CryptoKey, plaintext: string): Promise<string> {
-  const encoder = new TextEncoder();
+function gcmParams(iv: Uint8Array<ArrayBuffer>, additionalData?: string): AesGcmParams {
+  return additionalData === undefined
+    ? { name: "AES-GCM", iv }
+    : { name: "AES-GCM", iv, additionalData: new TextEncoder().encode(additionalData) };
+}
+
+/** `additionalData` is authenticated but not encrypted; decrypt must pass the same value. */
+export async function encrypt(key: CryptoKey, plaintext: string, additionalData?: string): Promise<string> {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const ciphertext = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
+    gcmParams(iv, additionalData),
     key,
-    encoder.encode(plaintext),
+    new TextEncoder().encode(plaintext),
   );
 
   const combined = new Uint8Array(iv.byteLength + ciphertext.byteLength);
@@ -66,13 +72,13 @@ export async function encrypt(key: CryptoKey, plaintext: string): Promise<string
   return btoa(binary);
 }
 
-export async function decrypt(key: CryptoKey, ciphertextBase64: string): Promise<string> {
+export async function decrypt(key: CryptoKey, ciphertextBase64: string, additionalData?: string): Promise<string> {
   const combined = Uint8Array.from(atob(ciphertextBase64), (c) => c.charCodeAt(0));
   const iv = combined.slice(0, 12);
   const ciphertext = combined.slice(12);
 
   const plaintext = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
+    gcmParams(iv, additionalData),
     key,
     ciphertext,
   );

@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   generateSyncIdLocal,
   computeAuthToken,
-  computeCryptoSeed,
   deriveKey,
   encrypt,
   decrypt,
@@ -36,19 +35,6 @@ describe("computeAuthToken", () => {
     const a = await computeAuthToken("wl-abc");
     const b = await computeAuthToken("wl-xyz");
     expect(a).not.toBe(b);
-  });
-});
-
-describe("computeCryptoSeed", () => {
-  it("returns a 64-char hex string", async () => {
-    const seed = await computeCryptoSeed("wl-test123");
-    expect(seed).toMatch(/^[0-9a-f]{64}$/);
-  });
-
-  it("differs from auth token for same input", async () => {
-    const auth = await computeAuthToken("wl-test");
-    const seed = await computeCryptoSeed("wl-test");
-    expect(auth).not.toBe(seed);
   });
 });
 
@@ -117,5 +103,18 @@ describe("encrypt / decrypt", () => {
     const ciphertext = await encrypt(key, plaintext);
     const result = await decrypt(key, ciphertext);
     expect(result).toBe(plaintext);
+  });
+
+  it("round-trips with matching additional data", async () => {
+    const key = await makeKey();
+    const ciphertext = await encrypt(key, "secret", "entry-1");
+    expect(await decrypt(key, ciphertext, "entry-1")).toBe("secret");
+  });
+
+  it("fails when additional data differs or is missing", async () => {
+    const key = await makeKey();
+    const ciphertext = await encrypt(key, "secret", "entry-1");
+    await expect(decrypt(key, ciphertext, "entry-2")).rejects.toThrow();
+    await expect(decrypt(key, ciphertext)).rejects.toThrow();
   });
 });

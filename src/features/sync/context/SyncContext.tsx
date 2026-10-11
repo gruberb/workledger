@@ -8,9 +8,11 @@ interface SyncContextValue {
   generateSyncId: () => Promise<string | null>;
   connect: (syncId: string) => Promise<boolean>;
   disconnect: () => Promise<void>;
-  deleteAccount: () => Promise<void>;
+  /** False when the server delete failed; the account stays connected. */
+  deleteAccount: () => Promise<boolean>;
   setMode: (mode: SyncMode) => Promise<void>;
-  setServerUrl: (url: string | null) => Promise<void>;
+  /** Resolves to an error message when the URL is rejected. */
+  setServerUrl: (url: string | null) => Promise<string | null>;
   syncNow: () => Promise<void>;
 }
 
