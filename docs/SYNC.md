@@ -351,7 +351,7 @@ Encrypts and sends entries in batches. Encrypting per batch keeps memory flat fo
 - **Tombstone time:** every tombstone in the call gets `updatedAt = Date.now()` at push time. An older timestamp could lose LWW on the server against the entry's own last edit and leave it alive there.
 - **Batch limits:** a batch is flushed before adding an entry if it already holds `maxEntries` (100) or adding the entry would exceed `maxBytes` (900,000, measured as `JSON.stringify(entry).length + 1` per entry). The reference server rejects bodies over 1 MB.
 - **Progress:** `onBatchPushed(ids)` runs after each accepted batch, so a failure in a later batch keeps the earlier progress. `assertCurrent()` runs before each batch.
-- **Oversized entries:** a 413 for a single-entry batch marks that entry rejected and pushed (it would never be accepted, so it must not block later pushes). Any other error is rethrown.
+- **Oversized entries:** entries whose encrypted payload exceeds `maxPayloadChars` (default 700,000, the server's per-entry cap) are marked rejected and pushed without being sent. If the server still answers a batch with 413 (one oversized entry fails the whole batch, or its limits are lower), the batch is split in half recursively until the culprit is alone; a single-entry 413 marks that entry rejected and pushed. It would never be accepted, so it must not block later pushes. Any other error is rethrown.
 - The push response body (`{ serverSeq }`) is not used.
 
 #### pullEntries()
@@ -593,7 +593,7 @@ Why each guard exists:
 |---------|----------|
 | Push: network error, timeout, 408, 429, 5xx | Status error; retry after 5s, 15s, 30s, 60s. A new local change cancels the retry and schedules a normal debounced push. After 4 retries, the next change or activation pushes again |
 | Push: other 4xx | Status error, no retry |
-| Push: 413 for a single entry | Entry skipped and marked pushed; status idle with "N entries are too large to sync" |
+| Push: entry over `maxPayloadChars`, or 413 for a batch | Over-limit entries are skipped before sending; a 413 batch is split until the oversized entry is alone, which is then skipped and marked pushed; status idle with "N entries are too large to sync" |
 | Push: failure after some batches | Earlier batches stay marked pushed; `forceAll` is kept pending for the retry |
 | Pull: any error | Status error; the next interval or visibility pull retries. A failed full pull stays pending |
 | Decryption failure (per entry) | Logged and skipped (`decryptAll`) |

@@ -7,6 +7,8 @@ export interface BatchLimits {
   maxEntries: number;
   /** Serialized request size. Must stay below the server's request body limit. */
   maxBytes: number;
+  /** Largest `encryptedPayload` the server accepts; bigger entries are skipped without sending. */
+  maxPayloadChars: number;
 }
 
 interface PushParams {
@@ -39,31 +41,47 @@ export async function pushEntries(params: PushParams): Promise<PushResult> {
   let batch: SyncEntry[] = [];
   let batchBytes = 0;
 
-  const flush = async () => {
-    if (batch.length === 0) return;
-    const ids = batch.map((e) => e.id);
+  // An entry the server will never accept must not block every later push.
+  const reject = (id: string) => {
+    console.warn(`[sync] Entry ${id} is too large to sync`);
+    result.rejected.push(id);
+    onBatchPushed([id]);
+  };
+
+  const send = async (entries: SyncEntry[]): Promise<void> => {
     assertCurrent();
     try {
-      await api.pushEntries(ctx, token, batch);
+      await api.pushEntries(ctx, token, entries);
     } catch (err) {
-      // A single entry the server will never accept must not block every later push.
-      if (err instanceof SyncHttpError && err.status === 413 && batch.length === 1) {
-        console.warn(`[sync] Entry ${ids[0]} is too large to sync`);
-        result.rejected.push(ids[0]);
-        onBatchPushed(ids);
-        batch = [];
-        batchBytes = 0;
+      if (!(err instanceof SyncHttpError && err.status === 413)) throw err;
+      // The server rejects the whole batch for one oversized entry (or when
+      // its limits are lower than ours). Split until the culprit is alone.
+      if (entries.length === 1) {
+        reject(entries[0].id);
         return;
       }
-      throw err;
+      const mid = Math.ceil(entries.length / 2);
+      await send(entries.slice(0, mid));
+      await send(entries.slice(mid));
+      return;
     }
-    result.pushed += ids.length;
-    onBatchPushed(ids);
+    result.pushed += entries.length;
+    onBatchPushed(entries.map((e) => e.id));
+  };
+
+  const flush = async () => {
+    if (batch.length === 0) return;
+    const toSend = batch;
     batch = [];
     batchBytes = 0;
+    await send(toSend);
   };
 
   const add = async (entry: SyncEntry) => {
+    if (entry.encryptedPayload.length > limits.maxPayloadChars) {
+      reject(entry.id);
+      return;
+    }
     const size = JSON.stringify(entry).length + 1;
     if (batch.length > 0 && (batch.length >= limits.maxEntries || batchBytes + size > limits.maxBytes)) {
       await flush();

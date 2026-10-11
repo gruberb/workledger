@@ -33,10 +33,10 @@ function fakeApi(overrides: Partial<SyncApi> = {}): SyncApi {
   };
 }
 
-function pushParams(api: SyncApi, entries: WorkLedgerEntry[], tombstoneIds: string[] = [], maxEntries = 100, maxBytes = 1_000_000) {
+function pushParams(api: SyncApi, entries: WorkLedgerEntry[], tombstoneIds: string[] = [], maxEntries = 100, maxBytes = 1_000_000, maxPayloadChars = 700_000) {
   return {
     api, ctx, key, token: "t", entries, tombstoneIds,
-    limits: { maxEntries, maxBytes },
+    limits: { maxEntries, maxBytes, maxPayloadChars },
     onBatchPushed: vi.fn(),
     assertCurrent: vi.fn(),
   };
@@ -94,6 +94,28 @@ describe("pushEntries", () => {
     });
     const result = await pushEntries(pushParams(api, [entry("huge"), entry("ok")], [], 1));
     expect(result).toEqual({ pushed: 1, rejected: ["huge"] });
+  });
+
+  it("splits a batch the server rejects as too large and skips only the culprit", async () => {
+    const api = fakeApi({
+      pushEntries: vi.fn(async (_c, _t, batch: SyncEntry[]) => {
+        if (batch.some((e) => e.id === "huge")) throw new SyncHttpError(413, "too large");
+        return { serverSeq: 1 };
+      }),
+    });
+    const params = pushParams(api, ["a", "b", "huge", "c", "d"].map((id) => entry(id)));
+    const result = await pushEntries(params);
+    expect(result).toEqual({ pushed: 4, rejected: ["huge"] });
+    // Every id is reported exactly once, so none stays dirty and none is double-cleared.
+    expect(params.onBatchPushed.mock.calls.flat(2).sort()).toEqual(["a", "b", "c", "d", "huge"]);
+  });
+
+  it("skips entries over the payload limit without sending them", async () => {
+    const api = fakeApi();
+    const result = await pushEntries(pushParams(api, [entry("big", "x".repeat(2000)), entry("ok")], [], 100, 1_000_000, 1000));
+    expect(result).toEqual({ pushed: 1, rejected: ["big"] });
+    expect(api.pushEntries).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(api.pushEntries).mock.calls[0][2].map((e) => e.id)).toEqual(["ok"]);
   });
 
   it("stops between batches when the operation became stale", async () => {

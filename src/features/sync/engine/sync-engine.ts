@@ -25,7 +25,8 @@ export const DEFAULT_SYNC_OPTIONS: SyncOptions = {
   requestTimeoutMs: 30_000,
   pullPageSize: 100,
   // The reference server rejects request bodies over 1 MB.
-  batch: { maxEntries: 100, maxBytes: 900_000 },
+  // The reference server caps each encryptedPayload at 700,000 chars.
+  batch: { maxEntries: 100, maxBytes: 900_000, maxPayloadChars: 700_000 },
   bulkReadThreshold: 200,
 };
 
