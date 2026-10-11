@@ -1,28 +1,34 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useEntries } from "../hooks/useEntries.ts";
-import type { WorkLedgerEntry } from "../types/entry.ts";
+import type { EntrySignifier, WorkLedgerEntry } from "../types/entry.ts";
 import type { PartialBlock } from "@blocknote/core";
 
 interface EntriesData {
+  /** Recent days plus pinned and on-demand days; every entry while filters are active. */
   entriesByDay: Map<string, WorkLedgerEntry[]>;
   dayKeys: string[];
   loading: boolean;
+  /** Last load failure, cleared by the next successful refresh. */
+  error: string | null;
+  /** Empty until refreshArchive() is called (the archive view loads it). */
   archivedEntries: Map<string, WorkLedgerEntry[]>;
 }
 
 interface EntriesActions {
   createEntry: (options?: { blocks?: PartialBlock[]; tags?: string[] }) => Promise<WorkLedgerEntry>;
-  updateEntry: (entry: WorkLedgerEntry) => Promise<void>;
-  updateEntryTags: (entryId: string, dayKey: string, tags: string[]) => Promise<void>;
+  saveEntryContent: (entryId: string, blocks: PartialBlock[]) => Promise<void>;
+  updateEntryTags: (entryId: string, tags: string[]) => Promise<void>;
   archiveEntry: (id: string) => Promise<void>;
   unarchiveEntry: (id: string) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
   pinEntry: (id: string) => Promise<void>;
   unpinEntry: (id: string) => Promise<void>;
-  updateEntrySignifier: (id: string, signifier: string | undefined) => Promise<void>;
+  updateEntrySignifier: (id: string, signifier: EntrySignifier | undefined) => Promise<void>;
   refreshArchive: () => Promise<void>;
   refresh: () => Promise<void>;
   loadEntryById: (entryId: string) => Promise<WorkLedgerEntry | null>;
+  loadDay: (dayKey: string) => Promise<WorkLedgerEntry[]>;
+  setLoadAll: (loadAll: boolean) => void;
 }
 
 const EntriesDataContext = createContext<EntriesData | null>(null);
@@ -33,8 +39,10 @@ export function EntriesProvider({ children }: { children: ReactNode }) {
     entriesByDay,
     dayKeys,
     loading,
+    error,
+    archivedEntries,
     createEntry,
-    updateEntry,
+    saveEntryContent,
     updateEntryTags,
     archiveEntry,
     unarchiveEntry,
@@ -42,20 +50,21 @@ export function EntriesProvider({ children }: { children: ReactNode }) {
     pinEntry,
     unpinEntry,
     updateEntrySignifier,
-    archivedEntries,
     refreshArchive,
     refresh,
     loadEntryById,
+    loadDay,
+    setLoadAll,
   } = useEntries();
 
   const data = useMemo<EntriesData>(
-    () => ({ entriesByDay, dayKeys, loading, archivedEntries }),
-    [entriesByDay, dayKeys, loading, archivedEntries],
+    () => ({ entriesByDay, dayKeys, loading, error, archivedEntries }),
+    [entriesByDay, dayKeys, loading, error, archivedEntries],
   );
   const actions = useMemo<EntriesActions>(
     () => ({
       createEntry,
-      updateEntry,
+      saveEntryContent,
       updateEntryTags,
       archiveEntry,
       unarchiveEntry,
@@ -66,8 +75,10 @@ export function EntriesProvider({ children }: { children: ReactNode }) {
       refreshArchive,
       refresh,
       loadEntryById,
+      loadDay,
+      setLoadAll,
     }),
-    [createEntry, updateEntry, updateEntryTags, archiveEntry, unarchiveEntry, deleteEntry, pinEntry, unpinEntry, updateEntrySignifier, refreshArchive, refresh, loadEntryById],
+    [createEntry, saveEntryContent, updateEntryTags, archiveEntry, unarchiveEntry, deleteEntry, pinEntry, unpinEntry, updateEntrySignifier, refreshArchive, refresh, loadEntryById, loadDay, setLoadAll],
   );
 
   return (

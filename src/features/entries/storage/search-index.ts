@@ -1,5 +1,5 @@
 import type { Block } from "@blocknote/core";
-import type { SearchIndexEntry } from "../types/entry.ts";
+import type { SearchIndexEntry, WorkLedgerEntry } from "../types/entry.ts";
 import { getDB } from "../../../storage/db.ts";
 
 export function extractTextFromBlocks(blocks: Block[]): string {
@@ -28,11 +28,24 @@ export function extractTextFromBlocks(blocks: Block[]): string {
   return parts.join(" ");
 }
 
+export function toSearchRow(entry: WorkLedgerEntry): SearchIndexEntry {
+  return {
+    entryId: entry.id,
+    dayKey: entry.dayKey,
+    plainText: extractTextFromBlocks(entry.blocks as Block[]).toLowerCase(),
+    // The entry's own timestamp, so re-indexing (import, unarchive) does not
+    // reorder "recent" wiki-link suggestions.
+    updatedAt: entry.updatedAt,
+    tags: entry.tags ?? [],
+  };
+}
+
 export async function updateSearchIndex(
   entryId: string,
   dayKey: string,
   blocks: Block[],
   tags: string[] = [],
+  updatedAt: number = Date.now(),
 ): Promise<void> {
   const db = await getDB();
   const plainText = extractTextFromBlocks(blocks).toLowerCase();
@@ -40,10 +53,20 @@ export async function updateSearchIndex(
     entryId,
     dayKey,
     plainText,
-    updatedAt: Date.now(),
+    updatedAt,
     tags,
   };
   await db.put("searchIndex", entry);
+}
+
+/** Keeps the search row in line with the entry: archived entries are not searchable. */
+export async function reindexEntry(entry: WorkLedgerEntry): Promise<void> {
+  const db = await getDB();
+  if (entry.isArchived) {
+    await db.delete("searchIndex", entry.id);
+  } else {
+    await db.put("searchIndex", toSearchRow(entry));
+  }
 }
 
 export async function searchEntries(query: string): Promise<SearchIndexEntry[]> {

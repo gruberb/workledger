@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SIGNIFIERS } from "../types/entry.ts";
 
 const DAY_KEY_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -12,7 +13,9 @@ const workLedgerEntrySchema = z
     isArchived: z.boolean().default(false),
     tags: z.array(z.string()).default([]),
     isPinned: z.boolean().default(false),
-    signifier: z.enum(["decision", "question", "idea", "milestone", "note", "task"]).optional(),
+    // Older exports and devices still carry the removed note/task signifiers.
+    // Drop unknown values instead of rejecting the whole entry.
+    signifier: z.enum(SIGNIFIERS).optional().catch(undefined),
   })
   .strip();
 

@@ -1,8 +1,9 @@
-import type { Block } from "@blocknote/core";
 import type { WorkLedgerEntry } from "../types/entry.ts";
 import { getDB } from "../../../storage/db.ts";
-import { updateSearchIndex } from "./search-index.ts";
-import { updateBacklinks } from "./backlinks.ts";
+import { emit } from "../../../utils/events.ts";
+import { normalizeEntry } from "./entries.ts";
+import { toSearchRow } from "./search-index.ts";
+import { updateBacklinksBatch } from "./backlinks.ts";
 import { validateEntry, validateImportEnvelope } from "../utils/validation.ts";
 
 interface ExportEnvelope {
@@ -32,7 +33,8 @@ export async function exportAllEntries(): Promise<void> {
   a.href = url;
   a.download = `workledger-export-${date}.json`;
   a.click();
-  URL.revokeObjectURL(url);
+  // Revoking synchronously can cancel the download in some browsers.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 export async function importEntries(
@@ -41,37 +43,43 @@ export async function importEntries(
   const text = await file.text();
   const envelope = validateImportEnvelope(JSON.parse(text));
 
-  const db = await getDB();
-  let imported = 0;
-  let skipped = 0;
+  const valid: WorkLedgerEntry[] = [];
   let invalid = 0;
-
   for (const raw of envelope.entries) {
-    let entry: WorkLedgerEntry;
     try {
-      entry = validateEntry(raw) as WorkLedgerEntry;
+      valid.push(normalizeEntry(validateEntry(raw)));
     } catch {
       invalid++;
-      continue;
     }
-
-    const existing = await db.get("entries", entry.id);
-    if (existing && !(existing as WorkLedgerEntry).isArchived) {
-      skipped++;
-      continue;
-    }
-    await db.put("entries", entry);
-    if (entry.blocks?.length) {
-      await updateSearchIndex(
-        entry.id,
-        entry.dayKey,
-        entry.blocks as Block[],
-        entry.tags ?? [],
-      );
-      await updateBacklinks(entry.id, entry.blocks as Block[]);
-    }
-    imported++;
   }
 
-  return { imported, skipped, invalid };
+  // Entries and their search rows commit together. Only IDB requests are awaited
+  // inside, so the transaction stays open for the whole batch.
+  const db = await getDB();
+  const tx = db.transaction(["entries", "searchIndex"], "readwrite");
+  const entryStore = tx.objectStore("entries");
+  const searchStore = tx.objectStore("searchIndex");
+  const imported: WorkLedgerEntry[] = [];
+  for (const entry of valid) {
+    const existing = await entryStore.get(entry.id);
+    // Same rule as sync merge: never replace a local version that is as new or newer.
+    if (existing && existing.updatedAt >= entry.updatedAt) continue;
+    await entryStore.put(entry);
+    if (entry.isArchived) {
+      await searchStore.delete(entry.id);
+    } else {
+      await searchStore.put(toSearchRow(entry));
+    }
+    imported.push(entry);
+  }
+  await tx.done;
+
+  await updateBacklinksBatch(imported.map((e) => ({ id: e.id, blocks: e.blocks })));
+  // Imported entries keep their original updatedAt, so sync's timestamp fallback
+  // would never push them. The event marks them dirty.
+  for (const entry of imported) {
+    emit("entry-changed", { entryId: entry.id });
+  }
+
+  return { imported: imported.length, skipped: valid.length - imported.length, invalid };
 }

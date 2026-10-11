@@ -8,16 +8,9 @@ import "@blocknote/mantine/style.css";
 import { workledgerSchema } from "./EditorProvider.tsx";
 import { getWorkLedgerSlashMenuItems } from "./SlashMenuItems.tsx";
 import { getWikiLinkMenuItems } from "./WikiLinkMenuItems.ts";
-import type { WorkLedgerEntry } from "../../entries/index.ts";
+import type { EntryEditorProps } from "../../entries/index.ts";
 import { useAutoSave } from "../../entries/index.ts";
 import { useThemeMode } from "../../theme/index.ts";
-
-interface EntryEditorProps {
-  entry: WorkLedgerEntry;
-  editable?: boolean;
-  onSave: (entry: WorkLedgerEntry) => Promise<void>;
-  autoFocus?: boolean;
-}
 
 export function EntryEditor({
   entry,
@@ -43,17 +36,30 @@ export function EntryEditor({
     [entry.id],
   );
 
-  const { handleChange, lastSavedAtRef } = useAutoSave(entry, onSave);
+  const { handleChange, isPending, lastSavedBlocksRef } = useAutoSave(entry.id, onSave);
 
-  // Apply external content updates (from sync) without re-mounting the editor.
-  // Local auto-saves set lastSavedAtRef before the state update propagates back,
-  // so we skip those. Only sync-originated updatedAt values trigger replaceBlocks.
+  // The blocks array the editor currently reflects. Starts at the mounted
+  // content so mounting never triggers a replace (and a spurious re-save).
+  const appliedBlocksRef = useRef(entry.blocks);
+  const applyingExternalRef = useRef(false);
+
+  // Apply external content updates (sync pull, import) without re-mounting.
+  // Our own saves and metadata-only changes (tags, pin, signifier) keep the
+  // blocks reference, so only genuinely new content reaches replaceBlocks.
   useEffect(() => {
-    if (!entry.updatedAt || entry.updatedAt === lastSavedAtRef.current) return;
+    const incoming = entry.blocks;
+    if (incoming === appliedBlocksRef.current || incoming === lastSavedBlocksRef.current) return;
+    // Unsaved local typing wins; its save is about to write a newer version.
+    if (isPending()) return;
+    appliedBlocksRef.current = incoming;
+    if (JSON.stringify(incoming) === JSON.stringify(editor.document)) return;
+    applyingExternalRef.current = true;
     try {
-      editor.replaceBlocks(editor.document, entry.blocks as never);
+      editor.replaceBlocks(editor.document, incoming as never);
     } catch {
       // ignore if editor isn't ready
+    } finally {
+      applyingExternalRef.current = false;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entry.updatedAt]);
@@ -122,7 +128,10 @@ export function EntryEditor({
   }, [editor]);
 
   const onChange = useCallback(() => {
-    handleChange(editor as never);
+    // replaceBlocks fires onChange synchronously; saving it would echo pulled
+    // content back to sync with a fresh timestamp.
+    if (applyingExternalRef.current) return;
+    handleChange(editor);
   }, [handleChange, editor]);
 
   const slashMenuItems = useMemo(

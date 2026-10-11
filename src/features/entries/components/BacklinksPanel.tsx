@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback, useRef, memo } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { getBacklinks } from "../storage/backlinks.ts";
-import { getEntry } from "../storage/entries.ts";
+import { getEntries } from "../storage/entries.ts";
 import { extractTitle } from "../utils/extract-title.ts";
 import { formatDayKey } from "../../../utils/dates.ts";
 import { emit, on } from "../../../utils/events.ts";
+import { ChevronRightIcon, FileIcon, LinkIcon } from "../../../components/ui/Icons.tsx";
 
 interface BacklinkEntry {
   id: string;
@@ -15,77 +16,48 @@ interface BacklinksPanelProps {
   entryId: string;
 }
 
+function sameIds(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((id, i) => id === b[i]);
+}
+
 export const BacklinksPanel = memo(function BacklinksPanel({ entryId }: BacklinksPanelProps) {
   const [backlinks, setBacklinks] = useState<BacklinkEntry[]>([]);
   const [expanded, setExpanded] = useState(true);
-  const knownSourceIdsRef = useRef<Set<string>>(new Set());
+  const sourceIdsRef = useRef<string[]>([]);
 
-  const fetchBacklinks = useCallback(async () => {
-    const sourceIds = await getBacklinks(entryId);
-    if (sourceIds.length === 0) {
-      knownSourceIdsRef.current = new Set();
-      setBacklinks([]);
-      return;
-    }
-    const entries: BacklinkEntry[] = [];
-    for (const id of sourceIds) {
-      const entry = await getEntry(id);
-      if (entry && !entry.isArchived) {
-        entries.push({ id: entry.id, title: extractTitle(entry), dayKey: entry.dayKey });
-      }
-    }
-    knownSourceIdsRef.current = new Set(sourceIds);
-    setBacklinks(entries);
-  }, [entryId]);
-
-  // Fetch on mount
   useEffect(() => {
     let cancelled = false;
-    getBacklinks(entryId).then(async (sourceIds) => {
-      if (cancelled || sourceIds.length === 0) {
-        if (!cancelled) {
-          knownSourceIdsRef.current = new Set();
-          setBacklinks([]);
-        }
-        return;
-      }
-      const entries: BacklinkEntry[] = [];
-      for (const id of sourceIds) {
-        const entry = await getEntry(id);
-        if (entry && !entry.isArchived) {
-          entries.push({ id: entry.id, title: extractTitle(entry), dayKey: entry.dayKey });
-        }
-      }
-      if (!cancelled) {
-        knownSourceIdsRef.current = new Set(sourceIds);
-        setBacklinks(entries);
-      }
-    });
-    return () => { cancelled = true; };
-  }, [entryId]);
 
-  // Re-fetch when another entry changes — known sources immediately, unknown sources debounced.
-  // Skip when the changed entry is ourselves (self-edits can't create backlinks to self).
-  useEffect(() => {
-    let debounceTimer = 0;
-    const unsubChange = on("entry-changed", ({ entryId: changedId }) => {
-      if (changedId === entryId) return;
-      if (knownSourceIdsRef.current.has(changedId)) {
-        // Known source changed (title, archive, link removal) — re-fetch immediately
-        fetchBacklinks();
-      } else {
-        // Unknown entry changed — could be a new backlink source, debounce the re-fetch
-        clearTimeout(debounceTimer);
-        debounceTimer = window.setTimeout(() => { fetchBacklinks(); }, 2_000);
-      }
-    });
-    const unsubDelete = on("entry-deleted", ({ entryId: deletedId }) => {
-      if (knownSourceIdsRef.current.has(deletedId)) {
-        fetchBacklinks();
-      }
-    });
-    return () => { unsubChange(); unsubDelete(); clearTimeout(debounceTimer); };
-  }, [fetchBacklinks, entryId]);
+    const load = async () => {
+      const sourceIds = await getBacklinks(entryId);
+      const sources = sourceIds.length > 0 ? await getEntries(sourceIds) : [];
+      if (cancelled) return;
+      sourceIdsRef.current = sourceIds;
+      setBacklinks(
+        sources
+          .filter((e) => !e.isArchived)
+          .map((e) => ({ id: e.id, title: extractTitle(e), dayKey: e.dayKey })),
+      );
+    };
+
+    // getBacklinks is served from memory, so checking on every change is cheap.
+    // Reload only when the source list changed or a source itself changed (title).
+    const handleChange = async ({ entryId: changedId }: { entryId: string }) => {
+      if (changedId === entryId) return; // self-edits can't create backlinks to self
+      const sourceIds = await getBacklinks(entryId);
+      if (cancelled) return;
+      if (sourceIds.includes(changedId) || !sameIds(sourceIds, sourceIdsRef.current)) load();
+    };
+
+    load();
+    const unsubChange = on("entry-changed", handleChange);
+    const unsubDelete = on("entry-deleted", handleChange);
+    return () => {
+      cancelled = true;
+      unsubChange();
+      unsubDelete();
+    };
+  }, [entryId]);
 
   if (backlinks.length === 0) return null;
 
@@ -95,23 +67,8 @@ export const BacklinksPanel = memo(function BacklinksPanel({ entryId }: Backlink
         onClick={() => setExpanded((p) => !p)}
         className="flex items-center gap-2 text-[11px] text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] transition-colors w-full"
       >
-        <svg
-          width="10"
-          height="10"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
-        >
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-        </svg>
+        <ChevronRightIcon size={10} strokeWidth={2.5} className={`transition-transform duration-200 ${expanded ? "rotate-90" : ""}`} />
+        <LinkIcon size={12} />
         <span className="uppercase tracking-wider font-medium">Referenced by</span>
         <span className="text-[10px] opacity-60">{backlinks.length}</span>
       </button>
@@ -124,10 +81,7 @@ export const BacklinksPanel = memo(function BacklinksPanel({ entryId }: Backlink
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors"
               title={formatDayKey(bl.dayKey)}
             >
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-              </svg>
+              <FileIcon size={10} className="opacity-50" />
               {bl.title}
             </button>
           ))}

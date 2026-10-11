@@ -1,12 +1,5 @@
 import { SIGNIFIER_CONFIG, type EntrySignifier } from "../../entries/index.ts";
 
-const BG_COLORS: Record<EntrySignifier, string> = {
-  decision: "bg-emerald-100 dark:bg-emerald-950/40",
-  question: "bg-amber-100 dark:bg-amber-950/40",
-  idea: "bg-pink-100 dark:bg-pink-950/40",
-  milestone: "bg-blue-100 dark:bg-blue-950/40",
-};
-
 interface SignifierFilterProps {
   allSignifiers: string[];
   selectedSignifiers: EntrySignifier[];
@@ -56,8 +49,8 @@ export function SignifierFilter({ allSignifiers, selectedSignifiers, onToggle, c
                 onClick={() => onToggle(key as EntrySignifier)}
                 className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-all ${
                   isSelected
-                    ? `${cfg.color} ${BG_COLORS[key as EntrySignifier]} ring-2 ring-offset-1 ring-gray-400 dark:ring-gray-500`
-                    : `${cfg.color} ${BG_COLORS[key as EntrySignifier]}`
+                    ? `${cfg.color} ${cfg.chip} ring-2 ring-offset-1 ring-gray-400 dark:ring-gray-500`
+                    : `${cfg.color} ${cfg.chip}`
                 }`}
               >
                 <span className="w-2 h-2 rounded-full bg-current" />

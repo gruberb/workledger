@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { formatDayKey } from "../../utils/dates.ts";
+import { useTodayKey } from "../../hooks/useTodayKey.ts";
 
 interface DayHeaderProps {
   dayKey: string;
@@ -7,6 +8,8 @@ interface DayHeaderProps {
 }
 
 export const DayHeader = memo(function DayHeader({ dayKey, entryCount }: DayHeaderProps) {
+  // Subscribing re-renders at midnight so "Today" / "Yesterday" stay correct.
+  useTodayKey();
   return (
     <div className="day-header flex items-baseline gap-3 pt-6 max-sm:pt-14 pb-4 px-1 sticky top-0 sticky-header">
       <h2 className="text-gray-800 dark:text-gray-100 day-header-font">

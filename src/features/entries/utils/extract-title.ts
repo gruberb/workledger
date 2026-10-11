@@ -1,5 +1,25 @@
 import type { WorkLedgerEntry } from "../types/entry.ts";
 
+interface InlineLike {
+  type?: string;
+  text?: string;
+  props?: { displayText?: string };
+}
+
+/** Plain text of one block's inline content, including wiki-link labels. */
+function blockText(block: unknown): string {
+  const content = (block as { content?: unknown }).content;
+  if (!Array.isArray(content)) return "";
+  return (content as InlineLike[])
+    .map((c) => (c.type === "text" ? c.text ?? "" : c.type === "entryLink" ? c.props?.displayText ?? "" : ""))
+    .join("")
+    .trim();
+}
+
+function truncate(text: string, max: number): string {
+  return text.length <= max ? text : text.slice(0, max - 3) + "...";
+}
+
 /**
  * Extract a short title from an entry's blocks:
  * 1. First heading block's text
@@ -7,31 +27,13 @@ import type { WorkLedgerEntry } from "../types/entry.ts";
  */
 export function extractTitle(entry: WorkLedgerEntry): string {
   for (const block of entry.blocks) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const b = block as any;
-    if (b.type === "heading" && Array.isArray(b.content)) {
-      const text = b.content
-        .filter((c: { type: string }) => c.type === "text")
-        .map((c: { text: string }) => c.text)
-        .join("");
-      if (text.trim()) return text.trim();
-    }
+    if (block.type !== "heading") continue;
+    const text = blockText(block);
+    if (text) return text;
   }
-  // No heading — use first non-empty text
   for (const block of entry.blocks) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const b = block as any;
-    if (Array.isArray(b.content)) {
-      const text = b.content
-        .filter((c: { type: string }) => c.type === "text")
-        .map((c: { text: string }) => c.text)
-        .join("");
-      if (text.trim()) {
-        const trimmed = text.trim();
-        if (trimmed.length <= 50) return trimmed;
-        return trimmed.slice(0, 47) + "...";
-      }
-    }
+    const text = blockText(block);
+    if (text) return truncate(text, 50);
   }
   return "Untitled entry";
 }
@@ -42,20 +44,9 @@ export function extractTitle(entry: WorkLedgerEntry): string {
  */
 export function extractPreview(entry: WorkLedgerEntry): string | null {
   for (const block of entry.blocks) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const b = block as any;
-    if (b.type === "heading") continue;
-    if (Array.isArray(b.content)) {
-      const text = b.content
-        .filter((c: { type: string }) => c.type === "text")
-        .map((c: { text: string }) => c.text)
-        .join("");
-      if (text.trim()) {
-        const trimmed = text.trim();
-        if (trimmed.length <= 80) return trimmed;
-        return trimmed.slice(0, 77) + "...";
-      }
-    }
+    if (block.type === "heading") continue;
+    const text = blockText(block);
+    if (text) return truncate(text, 80);
   }
   return null;
 }

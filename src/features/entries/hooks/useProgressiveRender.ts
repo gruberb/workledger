@@ -30,20 +30,11 @@ export function useProgressiveRender(totalCount: number, batchSize = 8): number 
   useEffect(() => {
     if (state.rendered >= totalCount) return;
 
-    let rafId = 0;
-    function step() {
-      setState((prev) => {
-        const next = Math.min(prev.rendered + batchSize, totalCount);
-        return { ...prev, rendered: next };
-      });
-      rafId = requestAnimationFrame(() => {
-        // The setState above will trigger a re-render; if still < totalCount,
-        // this effect re-runs and schedules another frame
-      });
-    }
-    rafId = requestAnimationFrame(step);
-
-    return () => { if (rafId) cancelAnimationFrame(rafId); };
+    // Each step re-renders; the effect then re-runs and schedules the next frame.
+    const rafId = requestAnimationFrame(() => {
+      setState((prev) => ({ ...prev, rendered: Math.min(prev.rendered + batchSize, totalCount) }));
+    });
+    return () => cancelAnimationFrame(rafId);
   }, [state.rendered, totalCount, batchSize]);
 
   return Math.min(rendered, totalCount);

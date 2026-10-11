@@ -7,6 +7,10 @@ interface AppEvents {
   "entry-changed": { entryId: string };
   "entry-deleted": { entryId: string };
   "navigate-entry": { entryId: string };
+  /** Another tab holds an older DB version open, so the upgrade cannot start. */
+  "db-blocked": Record<string, never>;
+  /** A newer app version opened the DB in another tab; this tab's connection was closed. */
+  "db-outdated": Record<string, never>;
 }
 
 type EventHandler<T> = (detail: T) => void;
