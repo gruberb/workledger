@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- "Regenerate" button for AI results
+- Saved filters remember selected signifiers
+- Banner when the database upgrade is blocked by another tab, the tab is outdated, or loading fails
+
+### Changed
+
+- Sync payload format v2: each payload is bound to its entry id and deletions are encrypted. Existing data still decrypts; clients older than this version can't read v2 entries until they update
+- Self-hosted sync servers must use https (plain http only for localhost)
+- Startup bundle reduced from about 2.9 MB to 1.8 MB, and the offline precache from 427 files (18.9 MB) to 69 files (7.9 MB). Excalidraw, code highlighting and the AI sidebar load on demand
+- Code highlighting no longer downloads a wasm engine
+- The sidebar text filter applies 200ms after typing stops
+- Entry changes update state locally instead of reloading every entry from storage; the archive loads on first use
+- Sidebar no longer depends on the AI, theme or sync features; their settings are composed in the app shell
+
+### Fixed
+
+- The last half second of typing was lost when an entry unmounted or the tab closed; the same for Excalidraw strokes
+- Changing tags, pin or signifier while typing reverted the unsaved text
+- A malformed AI server URL crashed the app on every reload
+- Weekly Review crashed for notebooks with entries using the retired "note" or "task" signifiers
+- The sidebar "Full search" button did nothing
+- Focus mode could loop saves between the focused editor and its hidden copy
+- Old pinned entries, sidebar clicks on days older than 30 days, search results and deep links to old entries now load the entry instead of doing nothing
+- Filters now include entries older than 30 days
+- Search index was stale after tag changes and for entries created from templates
+- Import overwrote newer archived entries, indexed archived entries for search, and never synced imported entries
+- Escape closed search and cleared filters at the same time
+- Sync: edits made during an in-flight push, or just before a reload, were never pushed
+- Sync: deletes made before a reload or in Local mode came back from the server
+- Sync: a new account never uploaded existing entries
+- Sync: disconnect or account deletion during a pull was undone when the pull finished
+- Sync: a hung request blocked sync until reload; requests now time out and 408/429 are retried
+- Sync: "Sync now" lost its full push when another sync was running
+- Sync: large notebooks failed to push; pushes are now batched
+- Sync: merged entries did not update backlinks, and archived entries appeared in search on other devices
+- Sync: deleting the server account failed silently and disconnected anyway
+- AI: "My Day", "My Week" and "Standup" always showed the first result ever generated
+- AI: switching actions mid-stream mixed outputs and broke "Stop generating"
+- AI: entry actions used content from when the panel was opened
+- AI: availability was never re-checked, so starting Ollama after the app kept AI hidden; Hugging Face checks no longer spend a completion
+- AI: a failed follow-up dropped the user's message
+- Excalidraw: pasted images were lost on reload, a corrupt drawing broke the whole entry, and selection or zoom triggered saves
+- Week labels and AI week ranges were off by a day outside UTC
+- The archive view kept a hidden signifier filter
+- Wiki-link suggestions read every matching entry on each keystroke
+- "Delete all" left the backlinks index behind
+- Empty-results banner tag buttons did nothing
+
+### Removed
+
+- `uuid` dependency (uses `crypto.randomUUID()`), `@types/dompurify`, and unused code across features
+
 ## [3.2.5] - 2026-04-21
 
 ### Fixed

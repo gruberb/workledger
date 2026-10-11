@@ -9,9 +9,10 @@ npm run dev        # Vite dev server (localhost:5173)
 npm run build      # TypeScript check (tsc -b) + Vite production build
 npm run lint       # ESLint (flat config)
 npm run preview    # Preview production build
+npm run test       # Vitest (unit tests, *.test.ts next to the code in __tests__/)
 ```
 
-IMPORTANT: Always run `npm run lint` and `npm run build` after making changes. There is no test suite — build and lint are the primary verification steps.
+IMPORTANT: Always run `npm run lint`, `npm run build` and `npm run test` after making changes. CI runs all three. Tests cover pure logic (sync engine, crypto, storage helpers, date math, parsers); UI behavior still needs a manual browser check.
 
 ## Project structure
 
@@ -19,7 +20,8 @@ Feature-based architecture following [bulletproof-react](https://github.com/alan
 
 ```
 src/
-  app/             # App shell, providers, top-level orchestration
+  app/             # App shell, providers, cross-feature composition (FilterBanner,
+                   # SettingsMenuItems, useEntryNavigation, StorageStatusBanner)
   components/      # Shared components (layout, UI primitives)
   hooks/           # Shared hooks (useKeyboardShortcuts, useIsMobile)
   storage/         # Global IndexedDB abstraction (idb library)
@@ -42,7 +44,10 @@ Each feature owns its `components/`, `context/`, `hooks/`, `storage/`, `types/`,
 - **Features MUST NOT import from other features' internal files.** Import only from a feature's public API (`index.ts`) or shared code (`src/components/`, `src/hooks/`, `src/storage/`, `src/utils/`).
 - **Shared code (`src/hooks/`, `src/components/`, `src/utils/`) MUST NOT import from `src/features/`.** Exception: `useKeyboardShortcuts` is an orchestration hook in `src/hooks/` that ties feature contexts together — this is intentional.
 - **`entries/` is the core data layer** — other features depend on its public API for types and data access.
-- **Cross-feature composition happens in `src/app/App.tsx`**, not inside features.
+- **Cross-feature composition happens in `src/app/`**, not inside features. Examples:
+  - The editor is passed to `EntryStream`/`EntryCard` as an `Editor` component prop, so `entries/` never imports `editor/`.
+  - Theme, font, storage (sync) and AI settings are passed to the sidebar as the `settingsItems` slot (`src/app/SettingsMenuItems.tsx`), so `sidebar/` never imports `ai/`, `theme/` or `sync/`.
+  - `FilterBanner` and `useEntryNavigation` live in `src/app/` because they combine sidebar and entries state.
 
 ### Provider hierarchy (in AppProviders.tsx)
 
@@ -75,37 +80,57 @@ State is categorized, not centralized:
 
 ### Filtering architecture
 
-Sidebar filtering uses two independent dimensions combined with AND logic:
-- `selectedTags: string[]` — exact tag match, toggled by clicking tags in the sidebar
-- `textQuery: string` — text search via search index + in-memory tag substring match
-- Both managed in `SidebarContext`, both must pass for an entry to show
+Sidebar filtering uses three independent dimensions combined with AND logic:
+- `selectedTags: string[]`: exact tag match, toggled by clicking tags in the sidebar
+- `textQuery: string`: text search via search index + in-memory tag substring match, applied 200ms after typing stops
+- `selectedSignifiers: EntrySignifier[]`: signifier match
+- All managed in `SidebarContext`, all must pass for an entry to show. Saved filters store all three (older saved filters without `signifiers` load as `[]`)
+- Filters run over in-memory entries. Only the last 30 days are loaded normally, so `App.tsx` calls `setLoadAll(true)` while filters are active in the main view and trims back when they clear
 
 ## Common gotchas
 
-- The search index is a **separate IndexedDB store** from entries — it must be updated whenever entries are saved (handled by `useAutoSave` hook)
+- The search index is a **separate IndexedDB store** from entries. It must be updated whenever entries change: content saves, tag changes, create, import, archive (row removed), unarchive, sync merge. Archived entries have no search row
+- **Entry writes go through `patchEntry`** (`entries/storage/entries.ts`): one readwrite transaction for get+put, and `updatedAt = max(Date.now(), prev.updatedAt + 1)` so sync last-write-wins stays monotonic under clock skew. Don't add new get-then-put paths
+- **Autosave flushes on unmount, `pagehide` and `visibilitychange: hidden`**. Dropping the pending timer loses the last 500ms of typing. Autosave writes the entry first; index failures are logged, never block the save
+- **`EntryEditor` detects external updates by blocks reference, not `updatedAt`**: metadata changes (pin, tags, signifier) bump `updatedAt` but keep the same `blocks` array, so they must not call `replaceBlocks`. `onChange` is ignored while external content is applied, otherwise pulled content is re-saved and pushed back
+- **Archive is lazy**: `archivedEntries` stays empty until `refreshArchive()` is called (the archive view does this). `refresh()` reloads the archive only if it was already loaded
+- **Backlinks index is a single settings row with an in-memory parsed cache** (`entries/storage/backlinks.ts`). Use `updateBacklinksBatch` for bulk writes; per-entry calls in a loop are O(n x index size). Settings rows derived from entries register via `registerDerivedSetting` so `clearAllData` drops them
+- **DB migrations (`src/storage/db.ts`) must be idempotent over real old data.** v5 removes the retired `note`/`task` signifiers; `validateEntry`/`normalizeEntry` also drop unknown signifiers from imports and sync
 - Excalidraw is wrapped in an error boundary (`ExcalidrawBlock.tsx`) — drawing errors must not crash the app. Add error boundaries around other risky integrations too
-- Debounce timings: auto-save 500ms, search 200ms, sidebar filter 200ms — don't change without testing UX
+- Debounce timings: auto-save 500ms, search 200ms, sidebar filter 200ms, sync push 2s. Don't change without testing UX
 - Vite config has specific `optimizeDeps` for Excalidraw and PNG chunk libraries — don't remove without testing
 - The landing page lives in a separate repo (`workledger-landing`), not in this repo
-- **AI feature is fully optional** — gated by `useAIFeatureGate` hook. All AI code in `src/features/ai/`. Can be removed without affecting core functionality
+- **AI feature is fully optional**: gated by `useAIFeatureGate` (one instance, in `AIContext`). All AI code is in `src/features/ai/`; the app shell touches it only in `App.tsx`, `AppProviders.tsx`, `SettingsMenuItems.tsx` and `useKeyboardShortcuts`. `AISidebar` is lazy-loaded through `features/ai/sidebar.ts`, not `index.ts`, so it stays out of the main bundle
 - Custom BlockNote schema extended with `excalidraw` block type and `entryLink` inline content — defined in `src/features/editor/components/EditorProvider.tsx`
-- **Backlinks index must be updated on import** — `importEntries()` must call `updateBacklinks()` alongside `updateSearchIndex()`. Missing this means wiki-links in imported entries won't generate "Referenced by" panels (was a real bug, fixed)
+- **Backlinks index must be updated on import and sync merge**: `importEntries()` and `applyRemoteEntries()` must update backlinks alongside the search index. Missing this means wiki-links won't generate "Referenced by" panels (was a real bug for import, fixed; sync merge had the same bug)
+- **AI provider construction never throws** (`createProvider` returns null, `getProviderConfigError` explains why). `AIProvider` is wrapped in its own error boundary. A throw in render there once blanked the app on every reload because the bad URL was already saved
+- **AI conversation keys include the local day or ISO week** for day/week/standup actions; without that, "My Day" resumed the first summary ever generated. Only the latest stream may update state; streams abort on Back, action switch, target change and unmount
+- **Shiki uses `shiki/core` with explicit grammar imports** (`editor/utils/code-highlighter.ts`). The list must match `supportedLanguages` in `EditorProvider.tsx`. Importing the full `shiki` bundle emits ~300 language chunks that the service worker would precache
+- **Service worker precache skips optional chunks** (Mermaid-to-Excalidraw, Excalidraw locales) via the `markOptionalChunks` plugin in `vite.config.ts`. Excalidraw is imported only on demand; don't add a module-level `import()` or a `manualChunks` entry for it, both pull it into startup
 - **Lazy editor mounting (`useNearViewport`) must start `near = true`** — starting `false` renders short placeholders that break `scrollIntoView` positions. Starting `true` mounts all editors on first render, then IntersectionObserver unmounts far-away ones after the first frame
 - **`EntryStream` progressive rendering uses per-day budgeting** — `useProgressiveRender` returns a budget that gets allocated across day groups, not a simple flat batch. Don't simplify to a global slice
-- **Sync: Mutex asymmetry** — push reschedules via `schedulePush()` when mutex is held; pull drops silently. Changing this breaks the guarantee that dirty entries are eventually pushed
-- **Sync: Cursor separation** — push only updates `lastSyncAt`, only pull updates `lastSyncSeq`. Mixing these up causes entry loss (pull would skip server entries)
-- **Sync: Dirty tracking is in-memory** — `dirtyEntriesRef` and `deletedEntriesRef` are `useRef` sets, lost on page refresh. The fallback filter `e.updatedAt > config.lastSyncAt` in push and `syncNow()` handle recovery
-- **Sync: Pull pagination cursor** — uses the last entry's `serverSeq` per page, NOT the global `serverSeq` from the response. Using global skips intermediate pages (was a real bug, fixed in v2.2.1)
-- **Sync: Push debounce resets** — the 2s push timeout resets on every `entry-changed`/`entry-deleted` event. Rapid edits batch into one push
-- **Sync: `connect()` does a full bidirectional sync** — encrypts all local entries, sends them, receives all server entries, merges. It's the initial reconciliation, not just a "connect"
-- **Sync: `syncNow()` resets `lastSyncSeq` to 0** — forces a full re-pull from the beginning, then `push(true)` sends everything. It's a recovery tool, not a regular sync
-- **Sync: `unarchiveEntry` DOES emit `entry-changed`** — like `archiveEntry`, it triggers a sync push. Both archive and unarchive operations are synced automatically
-- **Sync: Event listeners are mode-gated** — only registered when `config.mode === "remote"`. Mode switch tears down and re-creates them via `useEffect` cleanup
-- **Sync: Merge uses strict `>`** — `remote.updatedAt > local.updatedAt` means equal timestamps keep the local version. Deletion markers always win regardless of timestamps
+- **Sync logic lives in `SyncEngine`** (`sync/engine/sync-engine.ts`), a plain class with no React dependency; `useSync` only binds it via `useSyncExternalStore`. Test sync behavior against the engine, not the hook
+- **Sync: one operation at a time, coalescing queue.** Queued pushes merge into one (keeping `forceAll` if any request asked for it), queued pulls merge into one. Nothing is dropped while another operation runs
+- **Sync: generation counter.** Every operation captures `generation`; disconnect, account changes and mode switches bump it, and late results are discarded. Never write config from a value captured before an `await`
+- **Sync: cursor separation.** Push only updates `lastSyncAt`; pull only updates `lastSyncSeq` and `lastPullAt` (display only). Pull writing `lastSyncAt` disabled the recovery scan and lost edits (was a real bug, fixed)
+- **Sync: dirty tracking uses change counters.** Dirty ids map to a counter; a push clears only ids whose counter is unchanged since it started, so edits made while a request is in flight stay dirty. `syncedAt` is taken before entries are read
+- **Sync: recovery scan.** `updatedAt > lastSyncAt` runs on activation (startup, switching back to Remote) to catch edits from before this session. Configs from older versions do one full rescan
+- **Sync: tombstones are persisted** in the `settings` row `sync-tombstones` and cleared only after a successful push. They are recorded in Local mode too. A pulled copy of an entry with a pending tombstone is not applied
+- **Sync: pull pagination cursor** uses the last entry's `serverSeq` per page, NOT the global `serverSeq`. Using global skips intermediate pages (was a real bug, fixed in v2.2.1). The stuck-cursor guard also returns the per-page cursor
+- **Sync: push is batched** (default 100 entries / 900 KB; the reference server rejects bodies over 1 MB). A single entry rejected with 413 is skipped, not retried forever
+- **Sync: requests time out** (`requestTimeoutMs`, default 30s) and fail with a typed `SyncHttpError`; 408, 429, 5xx and network errors retry with backoff
+- **Sync: every local mutation emits an event.** Content, tags, pin, signifier, archive, unarchive and import emit `entry-changed`; delete and delete-all emit `entry-deleted`. A new mutation path that skips this never syncs
+- **Sync: push debounce resets.** The 2s push timer resets on every `entry-changed`/`entry-deleted` event, so rapid edits batch into one push. Bulk operations (import, delete all) emit one event per entry; above a threshold the engine does one full read instead of per-entry reads
+- **Sync: `connect()` is the initial reconciliation**: full pull, then batched push of every local entry. `generateSyncId()` (new account) also uploads every existing entry
+- **Sync: `syncNow()` is a recovery tool**: full re-pull from seq 0 plus `forceAll` push
+- **Sync: event listeners are active whenever an account exists**; only pushing depends on Remote mode, so changes made in Local mode are pushed after switching back
+- **Sync: merge (`entries/storage/remote-entries.ts`, `applyRemoteEntries`)** applies a page in one transaction and keeps search and backlinks in step. Strict `>`: equal timestamps keep the local version. Deletions always win
+- **Sync: payload v2.** The entry id is AES-GCM additional data, and `id`/`isDeleted` are inside the ciphertext. Decryption falls back to the v1 format so existing server data still reads. `integrityHash` is SHA-256 of the ciphertext (the server requires 64 hex chars), never of plaintext. Older clients can't read v2 entries until they update
+- **Sync: self-hosted server URLs must be https** (plain http only for localhost, 127.0.0.1, [::1])
 
 ## CI & PR conventions
 
-- GitHub Actions runs lint + build on every push to `main` and on all PRs (Node 22, ubuntu-latest)
+- GitHub Actions runs lint + build + test on every push to `main` and on all PRs (Node 22, ubuntu-latest)
 - Releases triggered by `v*` tags
 - Version tracked in `package.json` and `CHANGELOG.md` (Keep a Changelog format)
 - Keep PRs focused on a single concern
