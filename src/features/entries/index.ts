@@ -25,6 +25,7 @@ export { getEntry, getAllEntries, getAllEntryIds, normalizeEntry } from "./stora
 export { updateBacklinks, removeFromBacklinks } from "./storage/backlinks.ts";
 export { searchEntries, getRecentSearchEntries, extractTextFromBlocks, deleteSearchIndex, updateSearchIndex, reindexEntry } from "./storage/search-index.ts";
 export { exportAllEntries, importEntries } from "./storage/import-export.ts";
+export { applyRemoteEntries, type RemoteEntry } from "./storage/remote-entries.ts";
 
 // Utils (entries-specific)
 export { extractTitle } from "./utils/extract-title.ts";

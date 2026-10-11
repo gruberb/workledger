@@ -18,7 +18,7 @@ export function SyncStatusIndicator() {
     );
   }
 
-  if (status.phase === "pushing" || status.phase === "pulling" || status.phase === "merging") {
+  if (status.phase !== "idle") {
     return (
       <span className="inline-flex items-center gap-1.5 text-[11px] text-[var(--color-notebook-muted)]">
         <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 animate-pulse" />
