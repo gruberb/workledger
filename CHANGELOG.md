@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.3.1] - 2026-10-11
+
+### Fixed
+
+- Sync: an entry larger than the server's per-entry limit (typically a big drawing) made every push fail, because the server rejects the whole batch. Such entries are now skipped before sending, and a batch the server rejects as too large is split until only the oversized entry is left out
+
 ## [3.3.0] - 2026-10-11
 
 ### Added
@@ -444,6 +450,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Local-first storage with IndexedDB -- no server required
 - Landing page
 
+[3.3.1]: https://github.com/gruberb/workledger/releases/tag/v3.3.1
 [3.3.0]: https://github.com/gruberb/workledger/releases/tag/v3.3.0
 [3.1.0]: https://github.com/gruberb/workledger/releases/tag/v3.1.0
 [3.0.2]: https://github.com/gruberb/workledger/releases/tag/v3.0.2
