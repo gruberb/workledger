@@ -75,7 +75,7 @@ export function setSourceLinks(index: BacklinksIndex, sourceEntryId: string, blo
 }
 
 /** Removes an entry both as a link target and as a source, in place. */
-export function removeEntryLinks(index: BacklinksIndex, entryId: string): void {
+function removeEntryLinks(index: BacklinksIndex, entryId: string): void {
   delete index[entryId];
   removeSource(index, entryId);
 }

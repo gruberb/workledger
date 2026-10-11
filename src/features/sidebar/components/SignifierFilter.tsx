@@ -1,4 +1,5 @@
 import { SIGNIFIER_CONFIG, type EntrySignifier } from "../../entries/index.ts";
+import { CollapsibleSectionHeader } from "./CollapsibleSectionHeader.tsx";
 
 interface SignifierFilterProps {
   allSignifiers: string[];
@@ -15,28 +16,7 @@ export function SignifierFilter({ allSignifiers, selectedSignifiers, onToggle, c
 
   return (
     <div>
-      <button
-        onClick={onToggleCollapse}
-        className="flex items-center gap-1.5 w-full text-left px-1 mb-2"
-      >
-        <svg
-          width="10"
-          height="10"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`text-gray-400 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
-        >
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
-        <span className={`uppercase tracking-wider text-gray-400 font-medium ${isExpanded ? "text-[11px]" : "text-xs"}`}>
-          Signifiers
-        </span>
-        <span className={`text-gray-300 ml-1 ${isExpanded ? "text-[10px]" : "text-[11px]"}`}>{allSignifiers.length}</span>
-      </button>
+      <CollapsibleSectionHeader label="Signifiers" count={allSignifiers.length} expanded={isExpanded} onToggle={onToggleCollapse} />
       {isExpanded && (
         <div className="flex flex-wrap gap-1.5 px-1 pt-1 mb-3">
           {allSignifiers.map((key) => {

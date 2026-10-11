@@ -1,13 +1,24 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
-import { useEntriesData, useEntriesActions, searchEntries, extractTextFromBlocks, getAllEntryIds } from "../../entries/index.ts";
+import { useEntriesData, useEntriesActions, searchEntries, extractTextFromBlocks } from "../../entries/index.ts";
 import type { WorkLedgerEntry, EntrySignifier } from "../../entries/index.ts";
-import { clearAllData } from "../../../storage/db.ts";
-import { emit } from "../../../utils/events.ts";
 import type { Block } from "@blocknote/core";
 import { filterEntries } from "../utils/filterEntries.ts";
 import type { SavedFilter } from "../types/saved-filter.ts";
 import { loadSavedFilters, persistSavedFilters } from "../storage/saved-filters.ts";
+import { savedFilterMatches } from "../utils/saved-filters.ts";
 import { generateId } from "../../../utils/id.ts";
+
+// Filtering re-renders the whole entry stream, so it follows typing with a delay.
+const FILTER_DEBOUNCE_MS = 200;
+
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delayMs);
+    return () => clearTimeout(timer);
+  }, [value, delayMs]);
+  return debounced;
+}
 
 // --- Context value types ---
 
@@ -60,7 +71,7 @@ const SidebarDataCtx = createContext<SidebarDataValue | null>(null);
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
   const { entriesByDay, dayKeys, archivedEntries } = useEntriesData();
-  const { refresh, refreshArchive } = useEntriesActions();
+  const { refreshArchive, deleteAllEntries } = useEntriesActions();
 
   const [isOpen, setIsOpen] = useState(
     () => !window.matchMedia("(max-width: 767px)").matches,
@@ -71,6 +82,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const [archiveView, setArchiveView] = useState(false);
   const [reviewView, setReviewView] = useState(false);
   const [activeDayKey, setActiveDayKey] = useState<string | null>(null);
+  const [selectedSignifiers, setSelectedSignifiers] = useState<EntrySignifier[]>([]);
 
   // --- UI actions ---
 
@@ -78,16 +90,16 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const setSidebarOpen = useCallback((open: boolean) => setIsOpen(open), []);
 
   const toggleArchiveView = useCallback(() => {
-    setArchiveView((prev) => {
-      if (!prev) {
-        refreshArchive();
-      }
-      return !prev;
-    });
+    const next = !archiveView;
+    setArchiveView(next);
+    if (next) refreshArchive();
+    // The signifier filter UI is hidden in the archive, so it must not
+    // silently carry over and filter archived entries.
     setSelectedTags([]);
     setTextQuery("");
+    setSelectedSignifiers([]);
     setReviewView(false);
-  }, [refreshArchive]);
+  }, [archiveView, refreshArchive]);
 
   const toggleReviewView = useCallback(() => {
     setReviewView((prev) => !prev);
@@ -97,8 +109,6 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   }, [archiveView]);
 
   // --- Filter actions ---
-
-  const [selectedSignifiers, setSelectedSignifiers] = useState<EntrySignifier[]>([]);
 
   const toggleTag = useCallback((tag: string) => {
     setSelectedTags((prev) =>
@@ -138,17 +148,16 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
       name,
       tags: selectedTags,
       textQuery,
+      signifiers: selectedSignifiers,
     };
     const updated = [...savedFilters, filter];
     setSavedFilters(updated);
     await persistSavedFilters(updated);
-  }, [selectedTags, textQuery, savedFilters]);
+  }, [selectedTags, textQuery, selectedSignifiers, savedFilters]);
 
   const applySavedFilter = useCallback((filter: SavedFilter) => {
     // Toggle off if already active
-    const sameTags = filter.tags.length === selectedTags.length && filter.tags.every((t) => selectedTags.includes(t));
-    const sameQuery = filter.textQuery === textQuery;
-    if (sameTags && sameQuery) {
+    if (savedFilterMatches(filter, { tags: selectedTags, textQuery, signifiers: selectedSignifiers })) {
       setSelectedTags([]);
       setTextQuery("");
       setSelectedSignifiers([]);
@@ -156,8 +165,8 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     }
     setSelectedTags(filter.tags);
     setTextQuery(filter.textQuery);
-    setSelectedSignifiers([]);
-  }, [selectedTags, textQuery]);
+    setSelectedSignifiers(filter.signifiers);
+  }, [selectedTags, textQuery, selectedSignifiers]);
 
   const deleteSavedFilter = useCallback(async (id: string) => {
     const updated = savedFilters.filter((f) => f.id !== id);
@@ -165,40 +174,50 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     await persistSavedFilters(updated);
   }, [savedFilters]);
 
-  // Debounced text search
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (!textQuery.trim()) {
-        setFilteredEntryIds(null);
-        return;
-      }
-      const results = await searchEntries(textQuery);
-      setFilteredEntryIds(new Set(results.map((r) => r.entryId)));
-    }, 200);
-    return () => clearTimeout(timer);
-  }, [textQuery]);
-
   // --- Computed data ---
 
+  // textQuery drives the input; filterQuery drives the (expensive) filtering.
+  const filterQuery = useDebouncedValue(textQuery, FILTER_DEBOUNCE_MS).trim();
+  const hasDisplayFilters = selectedTags.length > 0 || filterQuery !== "" || selectedSignifiers.length > 0;
+
+  // Re-run on entry changes too: autosave updates the search index before
+  // entriesByDay, so edited or new entries get their match state refreshed.
+  useEffect(() => {
+    if (!filterQuery) return;
+    let cancelled = false;
+    searchEntries(filterQuery).then((results) => {
+      if (!cancelled) setFilteredEntryIds(new Set(results.map((r) => r.entryId)));
+    });
+    return () => { cancelled = true; };
+  }, [filterQuery, entriesByDay]);
+
   const displayEntriesByDay = useMemo(() => {
-    if (!hasActiveFilters) return entriesByDay;
-    return filterEntries(entriesByDay, selectedTags, textQuery, (e) => !!filteredEntryIds?.has(e.id), selectedSignifiers);
-  }, [entriesByDay, filteredEntryIds, selectedTags, textQuery, selectedSignifiers, hasActiveFilters]);
+    if (!hasDisplayFilters) return entriesByDay;
+    return filterEntries(entriesByDay, selectedTags, filterQuery, (e) => !!filteredEntryIds?.has(e.id), selectedSignifiers);
+  }, [entriesByDay, filteredEntryIds, selectedTags, filterQuery, selectedSignifiers, hasDisplayFilters]);
 
   const sidebarDayKeys = useMemo(
-    () => (hasActiveFilters ? [...displayEntriesByDay.keys()].sort((a, b) => b.localeCompare(a)) : dayKeys),
-    [hasActiveFilters, displayEntriesByDay, dayKeys],
+    () => (hasDisplayFilters ? [...displayEntriesByDay.keys()].sort((a, b) => b.localeCompare(a)) : dayKeys),
+    [hasDisplayFilters, displayEntriesByDay, dayKeys],
   );
 
+  // Archived entries are not in the search index, so their text is matched in
+  // memory. Extract it once per archive load, not once per keystroke.
+  const archivedText = useMemo(() => {
+    const text = new Map<string, string>();
+    for (const entries of archivedEntries.values()) {
+      for (const e of entries) {
+        text.set(e.id, e.blocks?.length ? extractTextFromBlocks(e.blocks as Block[]).toLowerCase() : "");
+      }
+    }
+    return text;
+  }, [archivedEntries]);
+
   const displayArchivedEntriesByDay = useMemo(() => {
-    if (!hasActiveFilters) return archivedEntries;
-    const textLower = textQuery.trim().toLowerCase();
-    return filterEntries(archivedEntries, selectedTags, textQuery, (e) => {
-      if (!e.blocks?.length) return false;
-      const text = extractTextFromBlocks(e.blocks as Block[]).toLowerCase();
-      return text.includes(textLower);
-    }, selectedSignifiers);
-  }, [archivedEntries, selectedTags, textQuery, selectedSignifiers, hasActiveFilters]);
+    if (!hasDisplayFilters) return archivedEntries;
+    const textLower = filterQuery.toLowerCase();
+    return filterEntries(archivedEntries, selectedTags, filterQuery, (e) => !!archivedText.get(e.id)?.includes(textLower), selectedSignifiers);
+  }, [archivedEntries, archivedText, selectedTags, filterQuery, selectedSignifiers, hasDisplayFilters]);
 
   const archivedDayKeys = useMemo(
     () => [...displayArchivedEntriesByDay.keys()].sort((a, b) => b.localeCompare(a)),
@@ -236,16 +255,9 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   }, [archivedEntries]);
 
   const handleDeleteAll = useCallback(async () => {
-    // Collect all entry IDs before clearing so sync can create deletion tombstones
-    const entryIds = await getAllEntryIds();
-    await clearAllData();
-    for (const id of entryIds) {
-      emit("entry-deleted", { entryId: id as string });
-    }
-    await refresh();
-    await refreshArchive();
+    await deleteAllEntries();
     setActiveDayKey(null);
-  }, [refresh, refreshArchive]);
+  }, [deleteAllEntries]);
 
   // --- Context values (stable via useMemo) ---
 
@@ -320,10 +332,4 @@ export function useSidebarData(): SidebarDataValue {
   const ctx = useContext(SidebarDataCtx);
   if (!ctx) throw new Error("useSidebarData must be used within SidebarProvider");
   return ctx;
-}
-
-// Convenience hook that returns all three — for consumers that need everything
-// eslint-disable-next-line react-refresh/only-export-components
-export function useSidebarContext() {
-  return { ...useSidebarUI(), ...useSidebarFilter(), ...useSidebarData() };
 }

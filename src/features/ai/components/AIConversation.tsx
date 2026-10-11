@@ -1,20 +1,16 @@
 import { useRef, useEffect, useState } from "react";
 import type { AIConversation as AIConversationType } from "../types/ai.ts";
-interface StepLike {
-  id: string;
-  name: string;
-  [key: string]: unknown;
-}
 import { AIMessage, StreamingMessage } from "./AIMessage.tsx";
 
 interface AIConversationProps {
   conversation: AIConversationType;
   streaming: boolean;
   streamContent: string;
-  currentStep: StepLike;
+  stepName: string;
   followUpSuggestions: string[];
   onSendMessage: (message: string) => void;
   onAbort: () => void;
+  onRegenerate: () => void;
   error: string | null;
 }
 
@@ -22,10 +18,11 @@ export function AIConversation({
   conversation,
   streaming,
   streamContent,
-  currentStep,
+  stepName,
   followUpSuggestions,
   onSendMessage,
   onAbort,
+  onRegenerate,
   error,
 }: AIConversationProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -60,12 +57,12 @@ export function AIConversation({
           <AIMessage
             key={msg.id}
             message={msg}
-            stepName={msg.role === "assistant" ? currentStep.name : undefined}
+            stepName={msg.role === "assistant" ? stepName : undefined}
           />
         ))}
 
         {streaming && streamContent && (
-          <StreamingMessage content={streamContent} stepName={currentStep.name} />
+          <StreamingMessage content={streamContent} stepName={stepName} />
         )}
 
         {streaming && !streamContent && (
@@ -84,9 +81,16 @@ export function AIConversation({
           </div>
         )}
 
-        {/* Follow-up suggestions */}
-        {!streaming && conversation.messages.length > 0 && followUpSuggestions.length > 0 && (
+        {/* Regenerate + follow-up suggestions */}
+        {!streaming && conversation.messages.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-2 mt-2">
+            <button
+              onClick={onRegenerate}
+              className="text-xs px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              title="Start over with the latest notes"
+            >
+              Regenerate
+            </button>
             {followUpSuggestions.map((suggestion) => (
               <button
                 key={suggestion}

@@ -1,154 +1,129 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import type { AISettings, AIMessage, AIConversation } from "../types/ai.ts";
 import type { AIAction } from "../actions/types.ts";
-import { createProvider } from "../providers/provider-factory.ts";
+import { createProvider, getProviderConfigError } from "../providers/provider-factory.ts";
 import { buildMessages } from "../prompt-builder.ts";
 import { generateId } from "../../../utils/id.ts";
-import {
-  saveConversation,
-  getConversationsByEntry,
-} from "../storage/ai-conversations.ts";
+import { saveConversation, getConversationsByEntry } from "../storage/ai-conversations.ts";
+
+function message(role: AIMessage["role"], content: string, actionId: string): AIMessage {
+  return { id: generateId(), role, content, timestamp: Date.now(), actionId };
+}
 
 export function useAIConversation(settings: AISettings) {
   const [conversation, setConversation] = useState<AIConversation | null>(null);
   const [streaming, setStreaming] = useState(false);
   const [streamContent, setStreamContent] = useState("");
   const [error, setError] = useState<string | null>(null);
+  // Identifies the one stream allowed to touch state. Any stream whose
+  // controller is no longer here was superseded and must stay silent.
   const abortRef = useRef<AbortController | null>(null);
 
-  const loadConversation = useCallback(async (entryId: string, actionId: string) => {
-    const existing = await getConversationsByEntry(entryId);
-    const match = existing.find((c) => c.frameworkId === actionId);
-    if (match) {
-      setConversation(match);
-      return match;
-    }
-    return null;
+  const cancelStream = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setStreaming(false);
+    setStreamContent("");
   }, []);
 
-  const startConversation = useCallback(
-    (entryId: string, actionId: string) => {
-      const conv: AIConversation = {
-        id: generateId(),
-        entryId,
-        frameworkId: actionId,
-        currentStepId: actionId,
-        messages: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
-      setConversation(conv);
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  const loadConversation = useCallback(async (key: string, actionId: string) => {
+    const existing = await getConversationsByEntry(key);
+    const match = existing.find((c) => c.frameworkId === actionId) ?? null;
+    if (match) {
+      setConversation(match);
       setError(null);
-      return conv;
-    },
-    [],
-  );
+    }
+    return match;
+  }, []);
+
+  /** Pass `replaceId` to overwrite a saved conversation (regenerate). */
+  const startConversation = useCallback((key: string, actionId: string, replaceId?: string) => {
+    const now = Date.now();
+    const conv: AIConversation = {
+      id: replaceId ?? generateId(),
+      entryId: key,
+      frameworkId: actionId,
+      messages: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+    setConversation(conv);
+    setError(null);
+    return conv;
+  }, []);
 
   const sendMessage = useCallback(
-    async (
-      conv: AIConversation,
-      action: AIAction,
-      noteContent: string,
-      userMessage?: string,
-    ) => {
+    async (conv: AIConversation, action: AIAction, userMessage: string) => {
+      abortRef.current?.abort();
+      const abort = new AbortController();
+      abortRef.current = abort;
+      const isCurrent = () => abortRef.current === abort;
+
+      // Keep the user's message even if the request fails, so it isn't lost.
+      let result: AIConversation = {
+        ...conv,
+        messages: [...conv.messages, message("user", userMessage, action.id)],
+        updatedAt: Date.now(),
+      };
+      setConversation(result);
+      setError(null);
+
       const provider = createProvider(settings);
       if (!provider) {
-        setError("No LLM provider configured");
+        setError(getProviderConfigError(settings) ?? "No LLM provider configured");
+        abortRef.current = null;
+        await saveConversation(result);
         return;
       }
 
-      setError(null);
       setStreaming(true);
       setStreamContent("");
-
-      const updatedMessages = [...conv.messages];
-
-      // Add user message if this is a follow-up
-      if (userMessage) {
-        const msg: AIMessage = {
-          id: generateId(),
-          role: "user",
-          content: userMessage,
-          timestamp: Date.now(),
-          actionId: action.id,
-        };
-        updatedMessages.push(msg);
-      } else if (updatedMessages.length === 0) {
-        // First message: add the template-based user prompt
-        const content = action.userPromptTemplate.replace(
-          "{{noteContent}}",
-          noteContent,
-        );
-        const msg: AIMessage = {
-          id: generateId(),
-          role: "user",
-          content,
-          timestamp: Date.now(),
-          actionId: action.id,
-        };
-        updatedMessages.push(msg);
-      }
-
-      const llmMessages = buildMessages(action, noteContent, updatedMessages);
-
-      const abort = new AbortController();
-      abortRef.current = abort;
-
       let fullResponse = "";
       try {
-        const stream = provider.chat(llmMessages, {
+        const stream = provider.chat(buildMessages(action.systemPrompt, result.messages), {
           temperature: settings.temperature,
           maxTokens: settings.maxTokens,
           signal: abort.signal,
         });
-
         for await (const chunk of stream) {
-          if (abort.signal.aborted) break;
+          if (abort.signal.aborted || !isCurrent()) break;
           fullResponse += chunk.content;
           setStreamContent(fullResponse);
         }
+      } catch (err) {
+        const aborted = err instanceof Error && err.name === "AbortError";
+        if (isCurrent() && !aborted) setError(err instanceof Error ? err.message : String(err));
+      }
 
-        const assistantMsg: AIMessage = {
-          id: generateId(),
-          role: "assistant",
-          content: fullResponse,
-          timestamp: Date.now(),
-          actionId: action.id,
-        };
-        updatedMessages.push(assistantMsg);
-
-        const updated: AIConversation = {
-          ...conv,
-          messages: updatedMessages,
-          currentStepId: action.id,
+      if (!isCurrent()) return;
+      if (fullResponse) {
+        result = {
+          ...result,
+          messages: [...result.messages, message("assistant", fullResponse, action.id)],
           updatedAt: Date.now(),
         };
-        setConversation(updated);
-        await saveConversation(updated);
-      } catch (err) {
-        if (err instanceof Error && err.name !== "AbortError") {
-          setError(err.message);
-        } else if (!(err instanceof Error)) {
-          setError(String(err));
-        }
-      } finally {
-        setStreaming(false);
-        setStreamContent("");
-        abortRef.current = null;
       }
+      abortRef.current = null;
+      setConversation(result);
+      setStreaming(false);
+      setStreamContent("");
+      await saveConversation(result);
     },
     [settings],
   );
 
+  /** Stops generation and keeps what has streamed so far. */
   const abort = useCallback(() => {
     abortRef.current?.abort();
   }, []);
 
   const clearConversation = useCallback(() => {
+    cancelStream();
     setConversation(null);
     setError(null);
-    setStreamContent("");
-  }, []);
+  }, [cancelStream]);
 
   return {
     conversation,

@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { memo, useDeferredValue, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { AIMessage as AIMessageType } from "../types/ai.ts";
+
+const REMARK_PLUGINS = [remarkGfm];
 
 interface AIMessageProps {
   message: AIMessageType;
   stepName?: string;
 }
 
-export function AIMessage({ message, stepName }: AIMessageProps) {
+// Saved messages never change, so memo keeps streaming updates from
+// re-parsing the markdown of every earlier message.
+export const AIMessage = memo(function AIMessage({ message, stepName }: AIMessageProps) {
   const [copied, setCopied] = useState(false);
   const isUser = message.role === "user";
 
@@ -38,7 +42,7 @@ export function AIMessage({ message, stepName }: AIMessageProps) {
           <p className="text-sm whitespace-pre-wrap">{message.content}</p>
         ) : (
           <div className="ai-markdown text-sm">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>
               {message.content}
             </ReactMarkdown>
           </div>
@@ -59,7 +63,7 @@ export function AIMessage({ message, stepName }: AIMessageProps) {
       </div>
     </div>
   );
-}
+});
 
 interface StreamingMessageProps {
   content: string;
@@ -67,6 +71,9 @@ interface StreamingMessageProps {
 }
 
 export function StreamingMessage({ content, stepName }: StreamingMessageProps) {
+  // Re-parsing the whole markdown per token is quadratic; deferring lets React
+  // drop intermediate chunks when parsing can't keep up.
+  const deferredContent = useDeferredValue(content);
   return (
     <div className="flex justify-start mb-4">
       <div className="max-w-[90%] rounded-2xl rounded-bl-md px-4 py-3 bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-gray-700 shadow-sm text-gray-700 dark:text-gray-300">
@@ -76,8 +83,8 @@ export function StreamingMessage({ content, stepName }: StreamingMessageProps) {
           </div>
         )}
         <div className="ai-markdown text-sm">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-            {content}
+          <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>
+            {deferredContent}
           </ReactMarkdown>
           <span className="ai-streaming-cursor" />
         </div>

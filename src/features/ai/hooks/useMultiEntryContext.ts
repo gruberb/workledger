@@ -1,17 +1,10 @@
 import { useCallback } from "react";
-import { getAllEntries, extractTextFromBlocks } from "../../entries/index.ts";
+import { getAllEntries, getEntry, extractTextFromBlocks } from "../../entries/index.ts";
 import type { WorkLedgerEntry } from "../../entries/index.ts";
 import type { Block } from "@blocknote/core";
 import { todayKey } from "../../../utils/dates.ts";
+import { weekStartDayKey } from "../../../utils/weeks.ts";
 import type { ActionScope } from "../actions/types.ts";
-
-function getWeekStart(): string {
-  const now = new Date();
-  const day = now.getDay();
-  const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(now.setDate(diff));
-  return monday.toISOString().slice(0, 10);
-}
 
 function entryToText(entry: WorkLedgerEntry): string {
   const text = extractTextFromBlocks(entry.blocks as Block[]);
@@ -27,7 +20,10 @@ export function useMultiEntryContext() {
   ): Promise<string> => {
     if (scope === "entry") {
       if (!targetEntry) return "";
-      return entryToText(targetEntry);
+      // targetEntry is a snapshot from when the AI panel opened; read the
+      // stored version so edits made since then are included.
+      const fresh = await getEntry(targetEntry.id);
+      return entryToText(fresh ?? targetEntry);
     }
 
     const allEntries = await getAllEntries();
@@ -43,7 +39,7 @@ export function useMultiEntryContext() {
     }
 
     if (scope === "week") {
-      const weekStart = getWeekStart();
+      const weekStart = weekStartDayKey(new Date());
       const weekEntries = active
         .filter((e) => e.dayKey >= weekStart)
         .sort((a, b) => a.createdAt - b.createdAt);

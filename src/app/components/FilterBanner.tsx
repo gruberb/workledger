@@ -1,9 +1,11 @@
 import { getTagColor } from "../../utils/tag-colors.ts";
 import { CloseIcon, FilterIcon } from "../../components/ui/Icons.tsx";
 import { SaveFilterButton, type SavedFilter } from "../../features/sidebar/index.ts";
+import type { EntrySignifier } from "../../features/entries/index.ts";
 
 interface FilterBannerProps {
   selectedTags: string[];
+  selectedSignifiers: EntrySignifier[];
   textQuery: string;
   count: number;
   onRemoveTag: (tag: string) => void;
@@ -12,7 +14,7 @@ interface FilterBannerProps {
   savedFilters?: SavedFilter[];
 }
 
-export function FilterBanner({ selectedTags, textQuery, count, onRemoveTag, onClearAll, onSaveFilter, savedFilters }: FilterBannerProps) {
+export function FilterBanner({ selectedTags, selectedSignifiers, textQuery, count, onRemoveTag, onClearAll, onSaveFilter, savedFilters }: FilterBannerProps) {
   return (
     <div className="flex items-center gap-3 pt-6 pb-4 px-1 sticky top-0 sticky-header">
       <div className="flex items-center gap-2 flex-wrap">
@@ -42,6 +44,7 @@ export function FilterBanner({ selectedTags, textQuery, count, onRemoveTag, onCl
             onSave={onSaveFilter}
             savedFilters={savedFilters}
             selectedTags={selectedTags}
+            selectedSignifiers={selectedSignifiers}
             textQuery={textQuery}
           />
         )}

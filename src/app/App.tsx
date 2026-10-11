@@ -15,8 +15,9 @@ import { useEntryNavigation } from "./hooks/useEntryNavigation.ts";
 import { FilterBanner } from "./components/FilterBanner.tsx";
 import { StorageStatusBanner } from "./components/StorageStatusBanner.tsx";
 
-const AISidebar = lazy(() => import("../features/ai/index.ts").then((m) => ({ default: m.AISidebar })));
+const AISidebar = lazy(() => import("../features/ai/sidebar.ts").then((m) => ({ default: m.AISidebar })));
 import { AppProviders } from "./AppProviders.tsx";
+import { SettingsMenuItems } from "./SettingsMenuItems.tsx";
 
 export default function App() {
   return (
@@ -33,10 +34,10 @@ function AppContent() {
   const { loading, error } = useEntriesData();
   const { createEntry, saveEntryContent, updateEntryTags, archiveEntry, unarchiveEntry, deleteEntry, pinEntry, unpinEntry, updateEntrySignifier, setLoadAll } = useEntriesActions();
   const { isOpen: sidebarOpen, archiveView, reviewView } = useSidebarUI();
-  const { textQuery, selectedTags, hasActiveFilters, removeTag, clearAllFilters, saveCurrentFilter, savedFilters } = useSidebarFilter();
+  const { textQuery, selectedTags, selectedSignifiers, hasActiveFilters, removeTag, clearAllFilters, saveCurrentFilter, savedFilters } = useSidebarFilter();
   const { displayEntriesByDay, displayArchivedEntriesByDay } = useSidebarData();
   const { focusedEntryId, handleFocusEntry, handleExitFocus } = useFocusModeContext();
-  const { settings: aiSettings, sidebarOpen: aiSidebarOpen, targetEntry: aiTargetEntry, handleToggleAISidebar, handleOpenAI, available: aiAvailable, updateSettings: updateAISettings, setSidebarOpen: setAISidebarOpen } = useAIContext();
+  const { settings: aiSettings, sidebarOpen: aiSidebarOpen, handleOpenAI, available: aiAvailable, setSidebarOpen: setAISidebarOpen } = useAIContext();
   const { query, results, isOpen: searchOpen, search, open: openSearch, close: closeSearch } = useSearch();
   const { handleNewEntry } = useKeyboardShortcuts({ isOpen: searchOpen, open: openSearch, close: closeSearch });
 
@@ -94,6 +95,7 @@ function AppContent() {
   const filterBanner = hasActiveFilters ? (
     <FilterBanner
       selectedTags={selectedTags}
+      selectedSignifiers={selectedSignifiers}
       textQuery={textQuery}
       count={visibleCount}
       onRemoveTag={removeTag}
@@ -110,6 +112,7 @@ function AppContent() {
       <Sidebar
         onDayClick={handleDayClick}
         onSearchOpen={openSearch}
+        settingsItems={<SettingsMenuItems />}
       />
 
       <AppShell sidebarOpen={sidebarOpen} aiSidebarOpen={aiSidebarOpen}>
@@ -150,13 +153,7 @@ function AppContent() {
           </div>
         }>
           <Suspense fallback={null}>
-            <AISidebar
-              isOpen={aiSidebarOpen}
-              onClose={handleToggleAISidebar}
-              settings={aiSettings}
-              onUpdateSettings={updateAISettings}
-              targetEntry={aiTargetEntry}
-            />
+            <AISidebar />
           </Suspense>
         </ErrorBoundary>
       )}

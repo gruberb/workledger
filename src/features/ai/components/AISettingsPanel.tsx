@@ -1,58 +1,78 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { AISettings } from "../types/ai.ts";
-import { createProvider } from "../providers/provider-factory.ts";
+import type { AIConnectionStatus } from "../hooks/useAIFeatureGate.ts";
+import type { LLMProvider } from "../providers/types.ts";
+import { validateServerUrl } from "../providers/url.ts";
+import { pickProviderDraft, savableUpdates, type ProviderDraft } from "../utils/provider-draft.ts";
+import { ProviderFields } from "./ProviderFields.tsx";
 
-function isNonLocalHttp(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-    if (parsed.protocol !== "http:") return false;
-    const host = parsed.hostname;
-    return host !== "localhost" && host !== "127.0.0.1" && host !== "[::1]";
-  } catch {
-    return false;
-  }
-}
+// Typing in URL and API key fields should not persist (and re-ping the
+// provider) on every keystroke.
+const SAVE_DEBOUNCE_MS = 500;
+
+const STATUS_DISPLAY: Record<AIConnectionStatus, { dot: string; label: string }> = {
+  connected: { dot: "bg-green-500", label: "Connected" },
+  disconnected: { dot: "bg-red-400", label: "Disconnected" },
+  unconfigured: { dot: "bg-red-400", label: "Not configured" },
+  checking: { dot: "bg-gray-300", label: "Checking..." },
+  disabled: { dot: "bg-gray-300", label: "Disabled" },
+};
 
 interface AISettingsPanelProps {
   settings: AISettings;
   onUpdateSettings: (updates: Partial<AISettings>) => Promise<void>;
+  status: AIConnectionStatus;
+  configError: string | null;
+  provider: LLMProvider | null;
 }
 
-export function AISettingsPanel({ settings, onUpdateSettings }: AISettingsPanelProps) {
-  const [pingResult, setPingResult] = useState<{ provider: unknown; ok: boolean } | null>(null);
+export function AISettingsPanel({ settings, onUpdateSettings, status, configError, provider }: AISettingsPanelProps) {
+  const [draft, setDraft] = useState<ProviderDraft>(() => pickProviderDraft(settings));
   const [models, setModels] = useState<string[]>([]);
+  const pendingRef = useRef<Partial<ProviderDraft>>({});
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const provider = useMemo(() => createProvider(settings), [settings]);
-  const connected = !provider ? false : pingResult?.provider === provider ? pingResult.ok : null;
+  const flush = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = null;
+    const updates = savableUpdates(pendingRef.current, (url) => !validateServerUrl(url));
+    pendingRef.current = {};
+    if (Object.keys(updates).length > 0) onUpdateSettings(updates);
+  }, [onUpdateSettings]);
+
+  useEffect(() => flush, [flush]);
+
+  const handleDraftChange = useCallback((updates: Partial<ProviderDraft>) => {
+    setDraft((prev) => ({ ...prev, ...updates }));
+    pendingRef.current = { ...pendingRef.current, ...updates };
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(flush, SAVE_DEBOUNCE_MS);
+  }, [flush]);
 
   useEffect(() => {
-    if (!provider) return;
-    provider.ping().then((ok) => setPingResult({ provider, ok }));
-    provider.listModels().then(setModels);
+    if (!provider?.listModels) return;
+    let cancelled = false;
+    provider.listModels().then((m) => { if (!cancelled) setModels(m); });
+    return () => { cancelled = true; };
   }, [provider]);
+
+  const display = STATUS_DISPLAY[status];
 
   return (
     <div className="px-4 py-4 overflow-y-auto h-full">
       <div className="flex items-center justify-end mb-4">
-        <div className="flex items-center gap-1.5">
-          <span
-            className={`w-2 h-2 rounded-full ${
-              connected === true ? "bg-green-500" : connected === false ? "bg-red-400" : "bg-gray-300"
-            }`}
-          />
-          <span className="text-[10px] text-gray-400">
-            {connected === true ? "Connected" : connected === false ? "Disconnected" : "Checking..."}
-          </span>
+        <div className="flex items-center gap-1.5" title={configError ?? undefined}>
+          <span className={`w-2 h-2 rounded-full ${display.dot}`} />
+          <span className="text-[10px] text-gray-400">{display.label}</span>
         </div>
       </div>
 
       <div className="space-y-4">
-        {/* Provider */}
         <div>
           <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">Provider</label>
           <select
             value={settings.provider}
-            onChange={(e) => onUpdateSettings({ provider: e.target.value as AISettings["provider"] })}
+            onChange={(e) => { flush(); onUpdateSettings({ provider: e.target.value as AISettings["provider"] }); }}
             className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-orange-300 bg-white dark:bg-[#1a1a1a] dark:text-gray-300"
           >
             <option value="ollama">Ollama (Local)</option>
@@ -61,116 +81,15 @@ export function AISettingsPanel({ settings, onUpdateSettings }: AISettingsPanelP
           </select>
         </div>
 
-        {/* Provider-specific fields */}
-        {settings.provider === "ollama" && (
-          <>
-            <div>
-              <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">Server URL</label>
-              <input
-                type="text"
-                value={settings.ollamaUrl}
-                onChange={(e) => onUpdateSettings({ ollamaUrl: e.target.value })}
-                className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-orange-300 bg-white dark:bg-[#1a1a1a] dark:text-gray-300"
-              />
-              {isNonLocalHttp(settings.ollamaUrl) && (
-                <p className="text-[10px] text-amber-500 mt-1">Warning: Using unencrypted HTTP to a non-local server.</p>
-              )}
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">Model</label>
-              {models.length > 0 ? (
-                <select
-                  value={settings.ollamaModel}
-                  onChange={(e) => onUpdateSettings({ ollamaModel: e.target.value })}
-                  className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-orange-300 bg-white dark:bg-[#1a1a1a] dark:text-gray-300"
-                >
-                  {models.map((m) => (
-                    <option key={m} value={m}>{m}</option>
-                  ))}
-                </select>
-              ) : (
-                <input
-                  type="text"
-                  value={settings.ollamaModel}
-                  onChange={(e) => onUpdateSettings({ ollamaModel: e.target.value })}
-                  className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-orange-300 bg-white dark:bg-[#1a1a1a] dark:text-gray-300"
-                />
-              )}
-            </div>
-          </>
-        )}
+        <ProviderFields
+          provider={settings.provider}
+          values={draft}
+          onChange={handleDraftChange}
+          ollamaModels={settings.provider === "ollama" ? models : undefined}
+        />
 
-        {settings.provider === "huggingface" && (
-          <>
-            <div>
-              <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">API Key</label>
-              <input
-                type="password"
-                value={settings.hfApiKey}
-                onChange={(e) => onUpdateSettings({ hfApiKey: e.target.value })}
-                className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-orange-300 bg-white dark:bg-[#1a1a1a] dark:text-gray-300"
-              />
-              <p className="text-[10px] text-gray-400 mt-1">Stored unencrypted in this browser.</p>
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">Model</label>
-              <select
-                value={settings.hfModel}
-                onChange={(e) => onUpdateSettings({ hfModel: e.target.value })}
-                className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-orange-300 bg-white dark:bg-[#1a1a1a] dark:text-gray-300"
-              >
-                <option value="Qwen/Qwen2.5-7B-Instruct">Qwen 2.5 7B Instruct</option>
-                <option value="meta-llama/Llama-3.1-8B-Instruct">Llama 3.1 8B Instruct</option>
-                <option value="meta-llama/Llama-3.2-3B-Instruct">Llama 3.2 3B Instruct</option>
-                <option value="Qwen/Qwen3-8B">Qwen 3 8B</option>
-                <option value="Qwen/Qwen3-4B-Instruct-2507">Qwen 3 4B Instruct</option>
-                <option value="meta-llama/Meta-Llama-3-8B-Instruct">Llama 3 8B Instruct</option>
-                <option value="deepseek-ai/DeepSeek-R1-Distill-Qwen-7B">DeepSeek R1 Distill 7B</option>
-              </select>
-            </div>
-          </>
-        )}
-
-        {settings.provider === "custom" && (
-          <>
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">Base URL</label>
-              <input
-                type="text"
-                value={settings.customUrl}
-                onChange={(e) => onUpdateSettings({ customUrl: e.target.value })}
-                className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-orange-300 bg-white dark:bg-[#1a1a1a] dark:text-gray-300"
-              />
-              {isNonLocalHttp(settings.customUrl) && (
-                <p className="text-[10px] text-amber-500 mt-1">Warning: Using unencrypted HTTP to a non-local server.</p>
-              )}
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">API Key (optional)</label>
-              <input
-                type="password"
-                value={settings.customApiKey}
-                onChange={(e) => onUpdateSettings({ customApiKey: e.target.value })}
-                className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-orange-300 bg-white dark:bg-[#1a1a1a] dark:text-gray-300"
-              />
-              <p className="text-[10px] text-gray-400 mt-1">Stored unencrypted in this browser.</p>
-            </div>
-            <div>
-              <label className="text-xs text-gray-500 block mb-1">Model name</label>
-              <input
-                type="text"
-                value={settings.customModel}
-                onChange={(e) => onUpdateSettings({ customModel: e.target.value })}
-                className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-orange-300 bg-white dark:bg-[#1a1a1a] dark:text-gray-300"
-              />
-            </div>
-          </>
-        )}
-
-        {/* Divider */}
         <div className="border-t border-gray-100 dark:border-gray-800" />
 
-        {/* Temperature */}
         <div>
           <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">
             Temperature: {settings.temperature.toFixed(1)}
@@ -190,7 +109,6 @@ export function AISettingsPanel({ settings, onUpdateSettings }: AISettingsPanelP
           </div>
         </div>
 
-        {/* Max tokens */}
         <div>
           <label className="text-xs text-gray-500 dark:text-gray-400 block mb-1">
             Max tokens: {settings.maxTokens}

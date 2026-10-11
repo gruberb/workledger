@@ -33,12 +33,12 @@ export async function loadSyncConfig(): Promise<SyncConfig> {
   }
 }
 
-export async function saveSyncConfig(config: SyncConfig): Promise<void> {
+async function saveSyncConfig(config: SyncConfig): Promise<void> {
   const db = await getDB();
   await db.put("settings", { key: SETTINGS_KEY, value: JSON.stringify(config) });
 }
 
-export async function clearSyncConfig(): Promise<void> {
+async function clearSyncConfig(): Promise<void> {
   const db = await getDB();
   await db.delete("settings", SETTINGS_KEY);
 }

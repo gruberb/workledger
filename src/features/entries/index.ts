@@ -21,9 +21,8 @@ export type {
 export { SIGNIFIER_CONFIG } from "./types/entry.ts";
 
 // Storage operations (for cross-feature use)
-export { getEntry, getAllEntries, getAllEntryIds, normalizeEntry } from "./storage/entries.ts";
-export { updateBacklinks, removeFromBacklinks } from "./storage/backlinks.ts";
-export { searchEntries, getRecentSearchEntries, extractTextFromBlocks, deleteSearchIndex, updateSearchIndex, reindexEntry } from "./storage/search-index.ts";
+export { getEntry, getAllEntries, getAllEntryIds } from "./storage/entries.ts";
+export { searchEntries, getRecentSearchEntries, extractTextFromBlocks } from "./storage/search-index.ts";
 export { exportAllEntries, importEntries } from "./storage/import-export.ts";
 export { applyRemoteEntries, type RemoteEntry } from "./storage/remote-entries.ts";
 
@@ -31,5 +30,3 @@ export { applyRemoteEntries, type RemoteEntry } from "./storage/remote-entries.t
 export { extractTitle } from "./utils/extract-title.ts";
 export type { EntryTemplate } from "./utils/templates.ts";
 
-// Validation
-export { validateEntry } from "./utils/validation.ts";

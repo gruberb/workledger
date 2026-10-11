@@ -1,11 +1,8 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, type ReactNode } from "react";
 import { useIsMobile } from "../../../hooks/useIsMobile.ts";
-import { useClickOutside } from "../../../hooks/useClickOutside.ts";
 import type { EntrySignifier } from "../../entries/index.ts";
 import type { SavedFilter } from "../types/saved-filter.ts";
 import { useSidebarUI, useSidebarFilter, useSidebarData } from "../context/SidebarContext.tsx";
-import { useThemeContext } from "../../theme/index.ts";
-import { useAIContext } from "../../ai/index.ts";
 import { useEntriesActions } from "../../entries/index.ts";
 import { SidebarSettings } from "./SidebarSettings.tsx";
 import { SidebarDayList } from "./SidebarDayList.tsx";
@@ -18,11 +15,13 @@ import { ImportExport } from "./ImportExport.tsx";
 interface SidebarProps {
   onDayClick: (dayKey: string) => void;
   onSearchOpen: () => void;
+  /** Settings menu items from other features (theme, AI, storage), composed by the app. */
+  settingsItems?: ReactNode;
 }
 
-export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
+export function Sidebar({ onDayClick, onSearchOpen, settingsItems }: SidebarProps) {
   const isMobile = useIsMobile();
-  const { isOpen, toggleSidebar, archiveView, toggleArchiveView, reviewView, toggleReviewView, activeDayKey } = useSidebarUI();
+  const { isOpen, toggleSidebar, archiveView, reviewView, activeDayKey } = useSidebarUI();
   const { textQuery, setTextQuery, selectedTags, toggleTag, hasActiveFilters, selectedSignifiers, toggleSignifier, savedFilters, saveCurrentFilter, applySavedFilter, deleteSavedFilter, clearAllFilters } = useSidebarFilter();
   const {
     displayEntriesByDay,
@@ -31,19 +30,13 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
     archivedDayKeys,
     allTags,
     allSignifiers,
-    archivedCount,
-    handleDeleteAll,
   } = useSidebarData();
-  const { themeId, setTheme, fontFamily, setFont } = useThemeContext();
-  const { settings: aiSettings, handleToggleAI } = useAIContext();
   const { refresh } = useEntriesActions();
 
   const dayKeys = archiveView ? archivedDayKeys : sidebarDayKeys;
   const entriesByDay = archiveView ? (displayArchivedEntriesByDay as Map<string, unknown[]>) : (displayEntriesByDay as Map<string, unknown[]>);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const settingsRef = useRef<HTMLDivElement>(null);
 
   // Bottom panel resize
   const [bottomHeight, setBottomHeight] = useState(160);
@@ -87,9 +80,6 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
     toggleTag(t);
     if (isMobile) toggleSidebar();
   }, [toggleTag, isMobile, toggleSidebar]);
-
-  const closeSettings = useCallback(() => setSettingsOpen(false), []);
-  useClickOutside(settingsRef, closeSettings, settingsOpen);
 
   // Lock body scroll when mobile sidebar is open
   useEffect(() => {
@@ -195,6 +185,7 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
                   savedFilters={savedFilters}
                   selectedTags={selectedTags}
                   textQuery={textQuery}
+                  selectedSignifiers={selectedSignifiers}
                 />
               )}
               {hasActiveFilters && (
@@ -219,24 +210,7 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
                 Full search <kbd className="px-1.5 py-0.5 bg-[var(--color-notebook-surface-alt)] rounded text-[10px]">⌘K</kbd>
               </button>
             )}
-            <SidebarSettings
-              settingsOpen={settingsOpen}
-              setSettingsOpen={setSettingsOpen}
-              settingsRef={settingsRef}
-              isArchiveView={archiveView}
-              onToggleArchiveView={toggleArchiveView}
-              isReviewView={reviewView}
-              onToggleReviewView={toggleReviewView}
-              archivedCount={archivedCount}
-              onToggleAI={handleToggleAI}
-              aiEnabled={aiSettings.enabled}
-              fileInputRef={fileInputRef}
-              onDeleteAll={handleDeleteAll}
-              themeId={themeId}
-              onSetTheme={setTheme}
-              fontFamily={fontFamily}
-              onSetFont={setFont}
-            />
+            <SidebarSettings fileInputRef={fileInputRef}>{settingsItems}</SidebarSettings>
           </div>
         </div>
 
@@ -278,6 +252,7 @@ export function Sidebar({ onDayClick, onSearchOpen }: SidebarProps) {
                 onToggleCollapse={handleToggleFiltersCollapse}
                 selectedTags={selectedTags}
                 textQuery={textQuery}
+                selectedSignifiers={selectedSignifiers}
               />
               <SignifierFilter
                 allSignifiers={allSignifiers}

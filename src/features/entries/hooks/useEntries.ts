@@ -9,6 +9,7 @@ import {
   getActiveEntriesForDay,
   getArchivedEntries,
   loadActiveSnapshot,
+  getAllEntryIds,
   type EntryPatch,
 } from "../storage/entries.ts";
 import { deleteSearchIndex, reindexEntry, updateSearchIndex } from "../storage/search-index.ts";
@@ -21,6 +22,7 @@ import {
   upsertInMap,
   type EntriesByDay,
 } from "../utils/entries-state.ts";
+import { clearAllData } from "../../../storage/db.ts";
 import { generateId } from "../../../utils/id.ts";
 import { todayKey } from "../../../utils/dates.ts";
 import { emit } from "../../../utils/events.ts";
@@ -197,6 +199,14 @@ export function useEntries() {
     if (entry && !entry.isArchived) await pruneDayKey(entry.dayKey);
   }, [pruneDayKey]);
 
+  const deleteAllEntries = useCallback(async () => {
+    // Collect ids before clearing so sync can record a tombstone for each.
+    const ids = await getAllEntryIds();
+    await clearAllData();
+    for (const id of ids) emit("entry-deleted", { entryId: id });
+    await refresh();
+  }, [refresh]);
+
   const pinEntry = useCallback(async (id: string) => {
     await patchMetadata(id, { isPinned: true });
     scrollToEntry(id);
@@ -229,6 +239,7 @@ export function useEntries() {
     archiveEntry,
     unarchiveEntry,
     deleteEntry,
+    deleteAllEntries,
     pinEntry,
     unpinEntry,
     updateEntrySignifier,

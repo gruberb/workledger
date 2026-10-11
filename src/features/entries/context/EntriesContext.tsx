@@ -21,6 +21,7 @@ interface EntriesActions {
   archiveEntry: (id: string) => Promise<void>;
   unarchiveEntry: (id: string) => Promise<void>;
   deleteEntry: (id: string) => Promise<void>;
+  deleteAllEntries: () => Promise<void>;
   pinEntry: (id: string) => Promise<void>;
   unpinEntry: (id: string) => Promise<void>;
   updateEntrySignifier: (id: string, signifier: EntrySignifier | undefined) => Promise<void>;
@@ -47,6 +48,7 @@ export function EntriesProvider({ children }: { children: ReactNode }) {
     archiveEntry,
     unarchiveEntry,
     deleteEntry,
+    deleteAllEntries,
     pinEntry,
     unpinEntry,
     updateEntrySignifier,
@@ -69,6 +71,7 @@ export function EntriesProvider({ children }: { children: ReactNode }) {
       archiveEntry,
       unarchiveEntry,
       deleteEntry,
+      deleteAllEntries,
       pinEntry,
       unpinEntry,
       updateEntrySignifier,
@@ -78,7 +81,7 @@ export function EntriesProvider({ children }: { children: ReactNode }) {
       loadDay,
       setLoadAll,
     }),
-    [createEntry, saveEntryContent, updateEntryTags, archiveEntry, unarchiveEntry, deleteEntry, pinEntry, unpinEntry, updateEntrySignifier, refreshArchive, refresh, loadEntryById, loadDay, setLoadAll],
+    [createEntry, saveEntryContent, updateEntryTags, archiveEntry, unarchiveEntry, deleteEntry, deleteAllEntries, pinEntry, unpinEntry, updateEntrySignifier, refreshArchive, refresh, loadEntryById, loadDay, setLoadAll],
   );
 
   return (

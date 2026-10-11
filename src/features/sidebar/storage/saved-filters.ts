@@ -1,5 +1,6 @@
 import { getDB } from "../../../storage/db.ts";
 import type { SavedFilter } from "../types/saved-filter.ts";
+import { normalizeSavedFilters } from "../utils/saved-filters.ts";
 
 const SETTINGS_KEY = "savedFilters";
 
@@ -8,7 +9,7 @@ export async function loadSavedFilters(): Promise<SavedFilter[]> {
   const row = await db.get("settings", SETTINGS_KEY);
   if (!row) return [];
   try {
-    return JSON.parse(row.value) as SavedFilter[];
+    return normalizeSavedFilters(JSON.parse(row.value));
   } catch {
     return [];
   }

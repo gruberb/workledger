@@ -37,7 +37,6 @@ export interface AIMessage {
   role: "user" | "assistant" | "system";
   content: string;
   timestamp: number;
-  frameworkStepId?: string;
   actionId?: string;
 }
 
@@ -45,7 +44,6 @@ export interface AIConversation {
   id: string;
   entryId: string;
   frameworkId: string;
-  currentStepId: string;
   messages: AIMessage[];
   createdAt: number;
   updatedAt: number;

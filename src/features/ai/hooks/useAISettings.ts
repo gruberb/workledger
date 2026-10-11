@@ -5,13 +5,9 @@ import { loadAISettings, saveAISettings } from "../storage/ai-settings.ts";
 
 export function useAISettings() {
   const [settings, setSettings] = useState<AISettings>(DEFAULT_AI_SETTINGS);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadAISettings().then((s) => {
-      setSettings(s);
-      setLoading(false);
-    });
+    loadAISettings().then(setSettings);
   }, []);
 
   const updateSettings = useCallback(async (updates: Partial<AISettings>) => {
@@ -19,5 +15,5 @@ export function useAISettings() {
     setSettings((prev) => ({ ...prev, ...updates }));
   }, []);
 
-  return { settings, updateSettings, loading };
+  return { settings, updateSettings };
 }

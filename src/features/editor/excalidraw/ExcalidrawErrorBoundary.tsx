@@ -1,9 +1,12 @@
 import { Component, type ReactNode } from "react";
 
-export class ExcalidrawErrorBoundary extends Component<
-  { children: ReactNode },
-  { hasError: boolean }
-> {
+interface ExcalidrawErrorBoundaryProps {
+  children: ReactNode;
+  /** Called before re-rendering children on "Try again", e.g. to reset a failed lazy load. */
+  onRetry?: () => void;
+}
+
+export class ExcalidrawErrorBoundary extends Component<ExcalidrawErrorBoundaryProps, { hasError: boolean }> {
   state = { hasError: false };
   static getDerivedStateFromError() {
     return { hasError: true };
@@ -16,7 +19,10 @@ export class ExcalidrawErrorBoundary extends Component<
             <div className="text-sm font-medium text-stone-500 dark:text-stone-400 mb-1">Drawing failed to load</div>
             <button
               className="text-xs text-amber-600 hover:text-amber-700"
-              onClick={() => this.setState({ hasError: false })}
+              onClick={() => {
+                this.props.onRetry?.();
+                this.setState({ hasError: false });
+              }}
             >
               Try again
             </button>
