@@ -1,18 +1,13 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { createReactBlockSpec } from "@blocknote/react";
-import "@excalidraw/excalidraw/index.css";
 import { useThemeMode } from "../../theme/index.ts";
 import { ExcalidrawErrorBoundary } from "./ExcalidrawErrorBoundary.tsx";
 import { ExcalidrawResizeHandle } from "./ExcalidrawResizeHandle.tsx";
 import { useExcalidrawResize } from "./useExcalidrawResize.ts";
 import { useExcalidrawPersist } from "./useExcalidrawPersist.ts";
+import { getLazyExcalidraw, resetLazyExcalidraw } from "./excalidrawLoader.ts";
+import { parseDrawingData, sceneKey } from "./scene.ts";
 import { sanitizeSvg } from "./sanitize-svg.ts";
-
-const LazyExcalidraw = React.lazy(() =>
-  import("@excalidraw/excalidraw").then((mod) => ({
-    default: mod.Excalidraw,
-  })),
-);
 
 const EXCALIDRAW_STYLES = `
   [data-content-type="excalidraw"] { width: 100%; }
@@ -50,7 +45,7 @@ function ExcalidrawRenderer({
 }: {
   block: {
     id: string;
-    props: { drawingData: string; previewSvg: string; width: number; height: number };
+    props: { drawingData: string; previewSvg: string; previewKey: string; width: number; height: number };
   };
   editor: {
     isEditable: boolean;
@@ -66,10 +61,25 @@ function ExcalidrawRenderer({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const excalidrawAPIRef = useRef<any>(null);
 
+  const [LazyExcalidraw, setLazyExcalidraw] = useState(getLazyExcalidraw);
+
   const defaultHeight = window.matchMedia("(max-width: 767px)").matches ? CANVAS_HEIGHT_MOBILE : CANVAS_HEIGHT;
 
+  const drawing = useMemo(() => parseDrawingData(block.props.drawingData), [block.props.drawingData]);
+  const storedKey = drawing.ok && drawing.snapshot ? sceneKey(drawing.snapshot) : null;
+  // Read once: the persist hook tracks the saved version itself after mount.
+  const [initialKey] = useState(storedKey);
+
   const { resizeHeight, resizeWidth, createResizeHandler } = useExcalidrawResize(block, editor, maxWidth, defaultHeight);
-  const { handleChange, handleClickOutside } = useExcalidrawPersist(block, editor, containerRef, setIsEditing);
+  const { handleChange, handleClickOutside, refreshPreview } = useExcalidrawPersist(block, editor, containerRef, setIsEditing, initialKey);
+
+  // A preview can lag its drawing if the block unmounted before the preview
+  // was re-rendered. previewKey is empty for drawings saved before it existed;
+  // those are trusted as-is. While editing, the preview is refreshed on exit.
+  const previewIsStale = !isEditing && !!block.props.previewSvg && !!block.props.previewKey && storedKey !== null && storedKey !== block.props.previewKey;
+  useEffect(() => {
+    if (previewIsStale && drawing.ok && drawing.snapshot && storedKey) refreshPreview(drawing.snapshot, storedKey);
+  }, [previewIsStale, drawing, storedKey, refreshPreview]);
 
   const heightResize = createResizeHandler("height");
   const widthResize = createResizeHandler("width");
@@ -113,7 +123,11 @@ function ExcalidrawRenderer({
     }
   }, [isEditing, handleClickOutside]);
 
-  const initialData = block.props.drawingData ? JSON.parse(block.props.drawingData) : undefined;
+  const initialData = useMemo(() => {
+    if (!drawing.ok || !drawing.snapshot) return undefined;
+    const { elements, viewBackgroundColor, files } = drawing.snapshot;
+    return { elements, appState: { viewBackgroundColor }, files: files ?? undefined };
+  }, [drawing]);
 
   // Non-editable mode
   if (!editor.isEditable) {
@@ -145,6 +159,14 @@ function ExcalidrawRenderer({
   const canvasHeight = resizeHeight ?? (block.props.height || defaultHeight);
   const ready = maxWidth >= 100;
 
+  if (!drawing.ok) {
+    return (
+      <div ref={containerRef} className="excalidraw-block my-2 rounded-lg border border-stone-200 dark:border-stone-700 p-8 text-center text-sm text-stone-400">
+        This drawing's data is damaged and can't be opened for editing.
+      </div>
+    );
+  }
+
   return (
     <div ref={containerRef} className="excalidraw-block my-2" style={{ width: "100%" }}>
       <div
@@ -152,7 +174,7 @@ function ExcalidrawRenderer({
         style={{ width: "100%", height: `${canvasHeight}px` }}
         onWheel={(e) => e.stopPropagation()}
       >
-        <ExcalidrawErrorBoundary>
+        <ExcalidrawErrorBoundary onRetry={() => { resetLazyExcalidraw(); setLazyExcalidraw(() => getLazyExcalidraw()); }}>
           {ready ? (
             <React.Suspense
               fallback={<div className="flex items-center justify-center h-full bg-stone-50 dark:bg-stone-900 text-stone-400 dark:text-stone-500">Loading drawing canvas...</div>}
@@ -190,6 +212,8 @@ export const excalidrawBlockSpec = createReactBlockSpec(
     propSchema: {
       drawingData: { default: "" },
       previewSvg: { default: "" },
+      // sceneKey of the drawing the preview was rendered from
+      previewKey: { default: "" },
       width: { default: 0 },
       height: { default: CANVAS_HEIGHT },
     },
