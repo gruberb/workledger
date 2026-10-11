@@ -13,6 +13,7 @@ import { emit } from "../utils/events.ts";
 
 const AISidebar = lazy(() => import("../features/ai/sidebar.ts").then((m) => ({ default: m.AISidebar })));
 import { AppProviders } from "./AppProviders.tsx";
+import { SettingsMenuItems } from "./SettingsMenuItems.tsx";
 
 export default function App() {
   return (
@@ -74,6 +75,7 @@ function AppContent() {
       <Sidebar
         onDayClick={handleDayClick}
         onSearchOpen={handleSearchOpen}
+        settingsItems={<SettingsMenuItems />}
       />
 
       <AppShell sidebarOpen={sidebarOpen} aiSidebarOpen={aiSidebarOpen}>

@@ -1,26 +1,29 @@
 import { useState, useRef, useCallback } from "react";
+import type { EntrySignifier } from "../../entries/index.ts";
+import { SIGNIFIER_CONFIG } from "../../entries/index.ts";
 import type { SavedFilter } from "../types/saved-filter.ts";
+import { savedFilterMatches } from "../utils/saved-filters.ts";
 import { useClickOutside } from "../../../hooks/useClickOutside.ts";
+import { CollapsibleSectionHeader } from "./CollapsibleSectionHeader.tsx";
 
 interface SaveFilterButtonProps {
   onSave: (name: string) => void;
   savedFilters?: SavedFilter[];
   selectedTags?: string[];
   textQuery?: string;
+  selectedSignifiers?: EntrySignifier[];
   variant?: "icon" | "text";
 }
 
-export function SaveFilterButton({ onSave, savedFilters, selectedTags, textQuery, variant = "text" }: SaveFilterButtonProps) {
+export function SaveFilterButton({ onSave, savedFilters, selectedTags = [], textQuery = "", selectedSignifiers = [], variant = "text" }: SaveFilterButtonProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const popoverRef = useRef<HTMLDivElement>(null);
 
   // Check if current filters match an existing saved filter
-  const matchingFilter = savedFilters?.find((f) => {
-    const sameTags = f.tags.length === (selectedTags?.length ?? 0) && f.tags.every((t) => selectedTags?.includes(t));
-    const sameQuery = f.textQuery === (textQuery ?? "");
-    return sameTags && sameQuery;
-  });
+  const matchingFilter = savedFilters?.find((f) =>
+    savedFilterMatches(f, { tags: selectedTags, textQuery, signifiers: selectedSignifiers }),
+  );
 
   const closePopover = useCallback(() => { setOpen(false); setName(""); }, []);
   useClickOutside(popoverRef, closePopover, open);
@@ -87,12 +90,6 @@ export function SaveFilterButton({ onSave, savedFilters, selectedTags, textQuery
   );
 }
 
-function filtersMatch(filter: SavedFilter, selectedTags: string[], textQuery: string): boolean {
-  const sameTags = filter.tags.length === selectedTags.length && filter.tags.every((t) => selectedTags.includes(t));
-  const sameQuery = filter.textQuery === textQuery;
-  return sameTags && sameQuery;
-}
-
 interface SavedFilterSectionProps {
   savedFilters: SavedFilter[];
   onApply: (filter: SavedFilter) => void;
@@ -101,41 +98,21 @@ interface SavedFilterSectionProps {
   onToggleCollapse?: () => void;
   selectedTags?: string[];
   textQuery?: string;
+  selectedSignifiers?: EntrySignifier[];
 }
 
-export function SavedFilterSection({ savedFilters, onApply, onDelete, collapsed, onToggleCollapse, selectedTags = [], textQuery = "" }: SavedFilterSectionProps) {
+export function SavedFilterSection({ savedFilters, onApply, onDelete, collapsed, onToggleCollapse, selectedTags = [], textQuery = "", selectedSignifiers = [] }: SavedFilterSectionProps) {
   if (savedFilters.length === 0) return null;
 
   const isExpanded = !collapsed;
 
   return (
     <div>
-      <button
-        onClick={onToggleCollapse}
-        className="flex items-center gap-1.5 w-full text-left px-1 mb-2"
-      >
-        <svg
-          width="10"
-          height="10"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`text-gray-400 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
-        >
-          <polyline points="9 18 15 12 9 6" />
-        </svg>
-        <span className={`uppercase tracking-wider text-gray-400 font-medium ${isExpanded ? "text-[11px]" : "text-xs"}`}>
-          Saved Filters
-        </span>
-        <span className={`text-gray-300 ml-1 ${isExpanded ? "text-[10px]" : "text-[11px]"}`}>{savedFilters.length}</span>
-      </button>
+      <CollapsibleSectionHeader label="Saved Filters" count={savedFilters.length} expanded={isExpanded} onToggle={onToggleCollapse} />
       {isExpanded && (
         <div className="flex flex-wrap gap-1.5 px-1 pt-1 mb-3">
           {savedFilters.map((filter) => {
-            const isActive = filtersMatch(filter, selectedTags, textQuery);
+            const isActive = savedFilterMatches(filter, { tags: selectedTags, textQuery, signifiers: selectedSignifiers });
             return (
               <button
                 key={filter.id}
@@ -145,6 +122,7 @@ export function SavedFilterSection({ savedFilters, onApply, onDelete, collapsed,
                 }`}
                 title={[
                   ...filter.tags.map((t) => `#${t}`),
+                  ...filter.signifiers.map((sig) => SIGNIFIER_CONFIG[sig].label),
                   filter.textQuery ? `"${filter.textQuery}"` : "",
                 ].filter(Boolean).join(" + ")}
               >

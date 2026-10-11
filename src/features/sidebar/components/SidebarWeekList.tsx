@@ -1,5 +1,6 @@
 import { memo, useMemo } from "react";
 import { format } from "date-fns";
+import { isoWeekKey, mondayOfIsoWeek, previousIsoWeekKey, toDayKey } from "../../../utils/weeks.ts";
 
 interface SidebarWeekListProps {
   dayKeys: string[];
@@ -12,56 +13,18 @@ interface WeekSummary {
   entryCount: number;
 }
 
-function getISOWeekKey(dayKey: string): string {
-  const date = new Date(dayKey + "T00:00:00");
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const weekNo = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
-}
-
-function getMondayOfISOWeek(weekKey: string): Date {
-  const [yearStr, weekStr] = weekKey.split("-W");
-  const year = parseInt(yearStr, 10);
-  const week = parseInt(weekStr, 10);
-  const jan4 = new Date(Date.UTC(year, 0, 4));
-  const jan4Day = jan4.getUTCDay() || 7;
-  const mondayWeek1 = new Date(jan4);
-  mondayWeek1.setUTCDate(jan4.getUTCDate() - jan4Day + 1);
-  const monday = new Date(mondayWeek1);
-  monday.setUTCDate(mondayWeek1.getUTCDate() + (week - 1) * 7);
-  return monday;
-}
-
-function getCurrentISOWeekKey(): string {
-  const now = new Date();
-  const dayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  return getISOWeekKey(dayKey);
-}
-
-function getPreviousWeekKey(weekKey: string): string {
-  const monday = getMondayOfISOWeek(weekKey);
-  monday.setUTCDate(monday.getUTCDate() - 7);
-  const dayKey = `${monday.getUTCFullYear()}-${String(monday.getUTCMonth() + 1).padStart(2, "0")}-${String(monday.getUTCDate()).padStart(2, "0")}`;
-  return getISOWeekKey(dayKey);
-}
-
-function formatWeekLabel(weekKey: string): string {
-  const currentWeek = getCurrentISOWeekKey();
+function formatWeekLabel(weekKey: string, currentWeek: string): string {
   if (weekKey === currentWeek) return "This Week";
-  const lastWeek = getPreviousWeekKey(currentWeek);
-  if (weekKey === lastWeek) return "Last Week";
-  const monday = getMondayOfISOWeek(weekKey);
-  return `Week of ${format(monday, "MMM d")}`;
+  if (weekKey === previousIsoWeekKey(currentWeek)) return "Last Week";
+  return `Week of ${format(mondayOfIsoWeek(weekKey), "MMM d")}`;
 }
 
 export const SidebarWeekList = memo(function SidebarWeekList({ dayKeys, entriesByDay }: SidebarWeekListProps) {
   const weeks = useMemo<WeekSummary[]>(() => {
+    const currentWeek = isoWeekKey(toDayKey(new Date()));
     const weekMap = new Map<string, number>();
     for (const dayKey of dayKeys) {
-      const weekKey = getISOWeekKey(dayKey);
+      const weekKey = isoWeekKey(dayKey);
       const count = entriesByDay.get(dayKey)?.length ?? 0;
       weekMap.set(weekKey, (weekMap.get(weekKey) ?? 0) + count);
     }
@@ -69,7 +32,7 @@ export const SidebarWeekList = memo(function SidebarWeekList({ dayKeys, entriesB
       .sort(([a], [b]) => b.localeCompare(a))
       .map(([weekKey, entryCount]) => ({
         weekKey,
-        label: formatWeekLabel(weekKey),
+        label: formatWeekLabel(weekKey, currentWeek),
         entryCount,
       }));
   }, [dayKeys, entriesByDay]);
