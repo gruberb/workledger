@@ -24,7 +24,7 @@ export function FocusModeProvider({ children }: { children: ReactNode }) {
   const handleExitFocus = useCallback(() => {
     scrollRestoreId.current = focusedEntryIdRef.current;
     setFocusedEntryId(null);
-    history.replaceState(null, "", window.location.pathname);
+    history.replaceState(null, "", window.location.pathname + window.location.search);
   }, []);
 
   // After exiting focus mode, scroll to the entry that was focused.

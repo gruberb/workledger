@@ -3,6 +3,7 @@ import { useEntriesActions } from "../features/entries/index.ts";
 import { useSidebarUI, useSidebarFilter } from "../features/sidebar/index.ts";
 import { useFocusModeContext } from "../features/focus-mode/index.ts";
 import { useAIContext } from "../features/ai/index.ts";
+import { scrollToEntry } from "../utils/scroll.ts";
 
 interface SearchControls {
   isOpen: boolean;
@@ -10,7 +11,7 @@ interface SearchControls {
   close: () => void;
 }
 
-export function useKeyboardShortcuts(search: SearchControls) {
+export function useKeyboardShortcuts({ isOpen: searchOpen, open: openSearch, close: closeSearch }: SearchControls) {
   const { createEntry } = useEntriesActions();
   const { archiveView, toggleSidebar } = useSidebarUI();
   const { hasActiveFilters, clearAllFilters } = useSidebarFilter();
@@ -19,9 +20,7 @@ export function useKeyboardShortcuts(search: SearchControls) {
 
   const handleNewEntry = useCallback(async () => {
     const entry = await createEntry();
-    setTimeout(() => {
-      document.getElementById(`entry-${entry.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
-    }, 100);
+    scrollToEntry(entry.id);
   }, [createEntry]);
 
   useEffect(() => {
@@ -32,10 +31,10 @@ export function useKeyboardShortcuts(search: SearchControls) {
       }
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        if (search.isOpen) {
-          search.close();
+        if (searchOpen) {
+          closeSearch();
         } else {
-          search.open();
+          openSearch();
         }
       }
       if ((e.metaKey || e.ctrlKey) && e.key === "\\") {
@@ -48,16 +47,33 @@ export function useKeyboardShortcuts(search: SearchControls) {
           handleToggleAISidebar();
         }
       }
-      if (e.key === "Escape" && focusedEntryId) {
-        handleExitFocus();
-      } else if (e.key === "Escape" && hasActiveFilters) {
-        clearAllFilters();
+      if (e.key === "Escape") {
+        // One press closes only the innermost thing. The search dialog, an editor
+        // suggestion menu, or an input that handled the key (tag editor) owns it.
+        const inputHandled = e.defaultPrevented && (e.target as HTMLElement | null)?.closest("input, textarea");
+        if (searchOpen || escapeOwnedByMenu || inputHandled) return;
+        if (focusedEntryId) {
+          handleExitFocus();
+        } else if (hasActiveFilters) {
+          clearAllFilters();
+        }
       }
     };
 
+    // The editor closes its menu before the event bubbles here, so check in the
+    // capture phase whether one was open.
+    let escapeOwnedByMenu = false;
+    const handleEscapeCapture = (e: KeyboardEvent) => {
+      if (e.key === "Escape") escapeOwnedByMenu = !!document.querySelector(".bn-suggestion-menu");
+    };
+
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [handleNewEntry, search, hasActiveFilters, archiveView, aiSettings.enabled, handleToggleAISidebar, focusedEntryId, handleExitFocus, toggleSidebar, clearAllFilters]);
+    document.addEventListener("keydown", handleEscapeCapture, true);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", handleEscapeCapture, true);
+    };
+  }, [handleNewEntry, searchOpen, openSearch, closeSearch, hasActiveFilters, archiveView, aiSettings.enabled, handleToggleAISidebar, focusedEntryId, handleExitFocus, toggleSidebar, clearAllFilters]);
 
   return { handleNewEntry };
 }
