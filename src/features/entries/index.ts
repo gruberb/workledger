@@ -19,6 +19,7 @@ export { getEntry, getAllEntries, getAllEntryIds, pinEntry, unpinEntry } from ".
 export { getBacklinks, updateBacklinks, removeFromBacklinks } from "./storage/backlinks.ts";
 export { searchEntries, getRecentSearchEntries, extractTextFromBlocks, deleteSearchIndex, updateSearchIndex } from "./storage/search-index.ts";
 export { exportAllEntries, importEntries } from "./storage/import-export.ts";
+export { applyRemoteEntries, type RemoteEntry } from "./storage/remote-entries.ts";
 
 // Utils (entries-specific)
 export { extractTitle, extractPreview } from "./utils/extract-title.ts";
