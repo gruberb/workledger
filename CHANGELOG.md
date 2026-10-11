@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- Sync payload format v2: each payload is bound to its entry id and deletions are encrypted. Existing data still decrypts; clients older than this version can't read v2 entries until they update
+- Sync payload format v2: each payload is bound to its entry id and deletions are encrypted. Existing data still decrypts; clients older than this version can't read v2 entries until they update. On first start after updating, each device re-pulls everything once to recover entries an older version skipped
 - Self-hosted sync servers must use https (plain http only for localhost)
 - Startup bundle reduced from about 2.9 MB to 1.8 MB, and the offline precache from 427 files (18.9 MB) to 69 files (7.9 MB). Excalidraw, code highlighting and the AI sidebar load on demand
 - Code highlighting no longer downloads a wasm engine

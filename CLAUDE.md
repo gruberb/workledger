@@ -85,15 +85,16 @@ Sidebar filtering uses three independent dimensions combined with AND logic:
 - `textQuery: string`: text search via search index + in-memory tag substring match, applied 200ms after typing stops
 - `selectedSignifiers: EntrySignifier[]`: signifier match
 - All managed in `SidebarContext`, all must pass for an entry to show. Saved filters store all three (older saved filters without `signifiers` load as `[]`)
-- Filters run over in-memory entries. Only the last 30 days are loaded normally, so `App.tsx` calls `setLoadAll(true)` while filters are active in the main view and trims back when they clear
+- Filters run over in-memory entries. Only the last 30 days are loaded normally, so `App.tsx` calls `setLoadAll(true)` while filters are applied in the main view (`isFiltering`, which follows the debounced text) and trims back when they clear
 
 ## Common gotchas
 
 - The search index is a **separate IndexedDB store** from entries. It must be updated whenever entries change: content saves, tag changes, create, import, archive (row removed), unarchive, sync merge. Archived entries have no search row
 - **Entry writes go through `patchEntry`** (`entries/storage/entries.ts`): one readwrite transaction for get+put, and `updatedAt = max(Date.now(), prev.updatedAt + 1)` so sync last-write-wins stays monotonic under clock skew. Don't add new get-then-put paths
 - **Autosave flushes on unmount, `pagehide` and `visibilitychange: hidden`**. Dropping the pending timer loses the last 500ms of typing. Autosave writes the entry first; index failures are logged, never block the save
-- **`EntryEditor` detects external updates by blocks reference, not `updatedAt`**: metadata changes (pin, tags, signifier) bump `updatedAt` but keep the same `blocks` array, so they must not call `replaceBlocks`. `onChange` is ignored while external content is applied, otherwise pulled content is re-saved and pushed back
-- **Archive is lazy**: `archivedEntries` stays empty until `refreshArchive()` is called (the archive view does this). `refresh()` reloads the archive only if it was already loaded
+- **`EntryEditor` detects external updates by blocks reference, not `updatedAt`**: the effect is keyed on `entry.blocks`. Metadata changes (pin, tags, signifier) bump `updatedAt` but keep the same `blocks` array, so they must not call `replaceBlocks`. `useAutoSave.isOwnOrOlder` skips every array this editor saved (saves can resolve out of order) and content stamped before its last save. `onChange` is ignored while external content is applied, otherwise pulled content is re-saved and pushed back
+- **Blocks with their own debounce register a pre-save hook** (`editor/utils/pre-save.ts`). The entry's unmount flush runs before its blocks' cleanups, so Excalidraw writes pending strokes into the document when `useAutoSave` flushes (unmount, `pagehide`, tab hidden)
+- **Archive is lazy**: `archivedEntries` stays empty until `refreshArchive()` is called (the archive view does this). `refresh()` does one `getAll` that rebuilds the active view, `archivedCount` (always current) and, once loaded, the archive. Don't add a second scan
 - **Backlinks index is a single settings row with an in-memory parsed cache** (`entries/storage/backlinks.ts`). Use `updateBacklinksBatch` for bulk writes; per-entry calls in a loop are O(n x index size). Settings rows derived from entries register via `registerDerivedSetting` so `clearAllData` drops them
 - **DB migrations (`src/storage/db.ts`) must be idempotent over real old data.** v5 removes the retired `note`/`task` signifiers; `validateEntry`/`normalizeEntry` also drop unknown signifiers from imports and sync
 - Excalidraw is wrapped in an error boundary (`ExcalidrawBlock.tsx`) — drawing errors must not crash the app. Add error boundaries around other risky integrations too
@@ -114,7 +115,7 @@ Sidebar filtering uses three independent dimensions combined with AND logic:
 - **Sync: generation counter.** Every operation captures `generation`; disconnect, account changes and mode switches bump it, and late results are discarded. Never write config from a value captured before an `await`
 - **Sync: cursor separation.** Push only updates `lastSyncAt`; pull only updates `lastSyncSeq` and `lastPullAt` (display only). Pull writing `lastSyncAt` disabled the recovery scan and lost edits (was a real bug, fixed)
 - **Sync: dirty tracking uses change counters.** Dirty ids map to a counter; a push clears only ids whose counter is unchanged since it started, so edits made while a request is in flight stay dirty. `syncedAt` is taken before entries are read
-- **Sync: recovery scan.** `updatedAt > lastSyncAt` runs on activation (startup, switching back to Remote) to catch edits from before this session. Configs from older versions do one full rescan
+- **Sync: recovery scan.** `updatedAt > lastSyncAt` runs on activation (startup, switching back to Remote) to catch edits from before this session. Configs from older versions (no `lastPullAt`) do one full rescan and one full re-pull from seq 0, which recovers v2 entries an old client skipped
 - **Sync: tombstones are persisted** in the `settings` row `sync-tombstones` and cleared only after a successful push. They are recorded in Local mode too. A pulled copy of an entry with a pending tombstone is not applied
 - **Sync: pull pagination cursor** uses the last entry's `serverSeq` per page, NOT the global `serverSeq`. Using global skips intermediate pages (was a real bug, fixed in v2.2.1). The stuck-cursor guard also returns the per-page cursor
 - **Sync: push is batched** (default 100 entries / 900 KB; the reference server rejects bodies over 1 MB). A single entry rejected with 413 is skipped, not retried forever
