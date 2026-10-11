@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.3.0] - 2026-10-11
+
 ### Added
 
 - "Regenerate" button for AI results
@@ -442,6 +444,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Local-first storage with IndexedDB -- no server required
 - Landing page
 
+[3.3.0]: https://github.com/gruberb/workledger/releases/tag/v3.3.0
 [3.1.0]: https://github.com/gruberb/workledger/releases/tag/v3.1.0
 [3.0.2]: https://github.com/gruberb/workledger/releases/tag/v3.0.2
 [3.0.1]: https://github.com/gruberb/workledger/releases/tag/v3.0.1
