@@ -25,11 +25,11 @@ vi.mock("../../../../storage/db.ts", () => ({
 }));
 
 vi.mock("../backlinks.ts", () => ({
-  updateBacklinks: vi.fn(async () => undefined),
+  updateBacklinksBatch: vi.fn(async () => undefined),
   removeFromBacklinks: vi.fn(async () => undefined),
 }));
 
-import { updateBacklinks, removeFromBacklinks } from "../backlinks.ts";
+import { updateBacklinksBatch, removeFromBacklinks } from "../backlinks.ts";
 
 function data(id: string, updatedAt: number, overrides: Record<string, unknown> = {}) {
   return {
@@ -60,7 +60,7 @@ describe("applyRemoteEntries", () => {
     expect(await applyRemoteEntries([live("a", 10)])).toBe(1);
     expect(stores.entries.get("a")).toMatchObject({ id: "a", updatedAt: 10 });
     expect(stores.searchIndex.get("a")).toMatchObject({ plainText: "hello world", tags: ["work"], updatedAt: 10 });
-    expect(updateBacklinks).toHaveBeenCalledWith("a", expect.any(Array));
+    expect(updateBacklinksBatch).toHaveBeenCalledWith([{ id: "a", blocks: expect.any(Array) }]);
   });
 
   it("overwrites only when the remote copy is strictly newer", async () => {

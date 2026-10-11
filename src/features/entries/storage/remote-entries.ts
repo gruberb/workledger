@@ -1,9 +1,8 @@
-import type { Block } from "@blocknote/core";
-import type { SearchIndexEntry, WorkLedgerEntry } from "../types/entry.ts";
+import type { WorkLedgerEntry } from "../types/entry.ts";
 import { getDB } from "../../../storage/db.ts";
 import { validateEntry } from "../utils/validation.ts";
-import { extractTextFromBlocks } from "./search-index.ts";
-import { updateBacklinks, removeFromBacklinks } from "./backlinks.ts";
+import { toSearchRow } from "./search-index.ts";
+import { updateBacklinksBatch, removeFromBacklinks } from "./backlinks.ts";
 
 /** An entry received from another device. `data` is untrusted and validated here. */
 export type RemoteEntry =
@@ -59,21 +58,15 @@ export async function applyRemoteEntries(remote: RemoteEntry[]): Promise<number>
     if (entry.isArchived) {
       await searchIndex.delete(id);
     } else {
-      const row: SearchIndexEntry = {
-        entryId: id,
-        dayKey: entry.dayKey,
-        plainText: extractTextFromBlocks(entry.blocks as Block[]).toLowerCase(),
-        updatedAt: entry.updatedAt,
-        tags: entry.tags ?? [],
-      };
-      await searchIndex.put(row);
+      await searchIndex.put(toSearchRow(entry));
     }
     upserted.push(entry);
   }
   await tx.done;
 
-  // The backlinks index is a single settings row, so these must run one at a time.
-  for (const entry of upserted) await updateBacklinks(entry.id, entry.blocks as Block[]);
+  // The backlinks index is a single settings row: batch upserts into one
+  // parse and write. Remote deletes are rare, so they go one at a time.
+  await updateBacklinksBatch(upserted.map((e) => ({ id: e.id, blocks: e.blocks })));
   for (const id of deleted) await removeFromBacklinks(id);
 
   return upserted.length + deleted.length;
