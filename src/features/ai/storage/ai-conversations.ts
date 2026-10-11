@@ -10,8 +10,3 @@ export async function getConversationsByEntry(entryId: string): Promise<AIConver
   const db = await getDB();
   return db.getAllFromIndex("aiConversations", "by-entryId", entryId);
 }
-
-export async function clearAllConversations(): Promise<void> {
-  const db = await getDB();
-  await db.clear("aiConversations");
-}

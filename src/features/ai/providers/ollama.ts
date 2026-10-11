@@ -1,15 +1,14 @@
 import type { LLMProvider, LLMMessage, LLMStreamChunk } from "./types.ts";
+import { normalizeBaseUrl, validateServerUrl } from "./url.ts";
 
 export class OllamaProvider implements LLMProvider {
   private baseUrl: string;
   private model: string;
 
   constructor(baseUrl: string, model: string) {
-    const parsed = new URL(baseUrl);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      throw new Error("Invalid server URL: only http and https are allowed");
-    }
-    this.baseUrl = baseUrl;
+    const error = validateServerUrl(baseUrl);
+    if (error) throw new Error(error);
+    this.baseUrl = normalizeBaseUrl(baseUrl);
     this.model = model;
   }
 
@@ -90,7 +89,9 @@ export class OllamaProvider implements LLMProvider {
 
   async listModels(): Promise<string[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/tags`);
+      const response = await fetch(`${this.baseUrl}/api/tags`, {
+        signal: AbortSignal.timeout(5000),
+      });
       if (!response.ok) return [];
       const data = await response.json();
       return (data.models || []).map((m: { name: string }) => m.name);

@@ -18,6 +18,6 @@ export interface LLMProvider {
   /** Check if the provider is reachable */
   ping(): Promise<boolean>;
 
-  /** List available models (if supported) */
-  listModels(): Promise<string[]>;
+  /** List models the server has installed, for providers that can */
+  listModels?(): Promise<string[]>;
 }

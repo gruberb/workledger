@@ -1,12 +1,11 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import type { AISettings } from "../types/ai.ts";
-import type { WorkLedgerEntry } from "../../entries/index.ts";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import type { AIAction } from "../actions/types.ts";
-
+import { useAIContext } from "../context/AIContext.tsx";
 import { useAIConversation } from "../hooks/useAIConversation.ts";
 import { useMultiEntryContext } from "../hooks/useMultiEntryContext.ts";
-import { useAIFeatureGate } from "../hooks/useAIFeatureGate.ts";
 import { useIsMobile } from "../../../hooks/useIsMobile.ts";
+import { renderUserPrompt } from "../prompt-builder.ts";
+import { conversationKey } from "../utils/conversation-key.ts";
 import { ActionSelector } from "./ActionSelector.tsx";
 import { AIConversation } from "./AIConversation.tsx";
 import { AISetupGuide } from "./AISetupGuide.tsx";
@@ -14,23 +13,19 @@ import { AISettingsPanel } from "./AISettingsPanel.tsx";
 
 type SidebarMode = "setup" | "actions" | "topic-prompt" | "conversation" | "settings";
 
-interface AISidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
-  settings: AISettings;
-  onUpdateSettings: (updates: Partial<AISettings>) => Promise<void>;
-  targetEntry: WorkLedgerEntry | null;
-}
-
-export function AISidebar({
-  isOpen,
-  onClose,
-  settings,
-  onUpdateSettings,
-  targetEntry,
-}: AISidebarProps) {
+export function AISidebar() {
   const isMobile = useIsMobile();
-  const { available } = useAIFeatureGate(settings);
+  const {
+    settings,
+    updateSettings: onUpdateSettings,
+    available,
+    provider,
+    status,
+    configError,
+    sidebarOpen: isOpen,
+    targetEntry,
+    handleToggleAISidebar: onClose,
+  } = useAIContext();
   const {
     conversation,
     streaming,
@@ -47,42 +42,58 @@ export function AISidebar({
   const [userMode, setUserMode] = useState<SidebarMode>("actions");
   const [activeAction, setActiveAction] = useState<AIAction | null>(null);
   const [topicQuery, setTopicQuery] = useState("");
+  const [activeQuery, setActiveQuery] = useState<string | undefined>(undefined);
+  // Bumped on every new request and on Back, so an action whose context is
+  // still loading can tell it was superseded and must not start a stream.
+  const requestRef = useRef(0);
+
+  // An entry-scoped conversation belongs to the entry it was started for;
+  // once the user targets another entry it must not be shown or keep streaming.
+  const targetEntryId = targetEntry?.id;
+  const isStaleEntryConversation =
+    activeAction?.scope === "entry" && conversation !== null && conversation.entryId !== (targetEntryId ?? "global");
+
+  useEffect(() => {
+    if (isStaleEntryConversation) abort();
+  }, [isStaleEntryConversation, abort]);
 
   // Derive effective mode from connection status + user selection
   const mode = useMemo(() => {
+    if (isStaleEntryConversation && userMode === "conversation") return available ? "actions" : "setup";
     if (!settings.enabled) return userMode;
     if (!available && userMode !== "settings" && userMode !== "conversation") return "setup";
     if (available && userMode === "setup") return "actions";
     return userMode;
-  }, [settings.enabled, available, userMode]);
+  }, [settings.enabled, available, userMode, isStaleEntryConversation]);
 
-  // Reset when target entry changes
-  const targetEntryId = targetEntry?.id;
-  const activeActionId = activeAction?.id;
-  useEffect(() => {
-    if (targetEntryId && activeActionId) {
-      loadConversation(targetEntryId, activeActionId);
-    }
-  }, [targetEntryId, activeActionId, loadConversation]);
+  const resetToActions = useCallback(() => {
+    requestRef.current++;
+    clearConversation();
+    setActiveAction(null);
+    setTopicQuery("");
+    setActiveQuery(undefined);
+    setUserMode("actions");
+  }, [clearConversation]);
 
   const executeAction = useCallback(
-    async (action: AIAction, query?: string) => {
-      const contextEntryId = action.scope === "entry"
-        ? targetEntry?.id ?? "global"
-        : `${action.scope}-${query ?? ""}`;
+    async (action: AIAction, query?: string, replaceId?: string) => {
+      const request = ++requestRef.current;
+      const key = conversationKey(action.scope, { entryId: targetEntry?.id, query });
 
-      // Try loading existing conversation
-      const existing = await loadConversation(contextEntryId, action.id);
-      if (existing) {
-        setUserMode("conversation");
-        return;
+      if (!replaceId) {
+        const existing = await loadConversation(key, action.id);
+        if (request !== requestRef.current) return;
+        if (existing) {
+          setUserMode("conversation");
+          return;
+        }
       }
 
-      // Gather context based on scope
       const noteContent = await gatherContext(action.scope, targetEntry, query);
-      const conv = startConversation(contextEntryId, action.id);
-      sendMessage(conv, action, noteContent);
+      if (request !== requestRef.current) return;
+      const conv = startConversation(key, action.id, replaceId);
       setUserMode("conversation");
+      sendMessage(conv, action, renderUserPrompt(action.userPromptTemplate, noteContent));
     },
     [targetEntry, loadConversation, startConversation, sendMessage, gatherContext],
   );
@@ -90,6 +101,7 @@ export function AISidebar({
   const handleSelectAction = useCallback(
     (action: AIAction) => {
       setActiveAction(action);
+      setActiveQuery(undefined);
 
       if (action.scope === "topic") {
         setTopicQuery("");
@@ -104,30 +116,31 @@ export function AISidebar({
 
   const handleTopicSubmit = useCallback(() => {
     if (!activeAction || !topicQuery.trim()) return;
+    setActiveQuery(topicQuery.trim());
     executeAction(activeAction, topicQuery.trim());
   }, [activeAction, topicQuery, executeAction]);
 
   const handleSendFollowUp = useCallback(
     (message: string) => {
       if (!conversation || !activeAction) return;
-
-      // For follow-ups, we need the original context — use empty string since
-      // the conversation history already has the full context from the first message
-      sendMessage(conversation, activeAction, "", message);
+      // The first message in the history already carries the note context.
+      sendMessage(conversation, activeAction, message);
     },
     [conversation, activeAction, sendMessage],
   );
 
+  const handleRegenerate = useCallback(() => {
+    if (!conversation || !activeAction) return;
+    executeAction(activeAction, activeQuery, conversation.id);
+  }, [conversation, activeAction, activeQuery, executeAction]);
+
   const handleBack = useCallback(() => {
     if (mode === "conversation" || mode === "topic-prompt") {
-      clearConversation();
-      setActiveAction(null);
-      setTopicQuery("");
-      setUserMode("actions");
+      resetToActions();
     } else if (mode === "settings") {
       setUserMode(available ? "actions" : "setup");
     }
-  }, [mode, available, clearConversation]);
+  }, [mode, available, resetToActions]);
 
   // Hide AI sidebar entirely on mobile
   if (isMobile) return null;
@@ -255,10 +268,11 @@ export function AISidebar({
               conversation={conversation}
               streaming={streaming}
               streamContent={streamContent}
-              currentStep={{ id: activeAction.id, name: activeAction.name, description: activeAction.description, systemPrompt: activeAction.systemPrompt, userPromptTemplate: activeAction.userPromptTemplate, followUpSuggestions: activeAction.followUpSuggestions }}
+              stepName={activeAction.name}
               followUpSuggestions={activeAction.followUpSuggestions}
               onSendMessage={handleSendFollowUp}
               onAbort={abort}
+              onRegenerate={handleRegenerate}
               error={error}
             />
           )}
@@ -267,6 +281,9 @@ export function AISidebar({
             <AISettingsPanel
               settings={settings}
               onUpdateSettings={onUpdateSettings}
+              status={status}
+              configError={configError}
+              provider={provider}
             />
           )}
         </div>

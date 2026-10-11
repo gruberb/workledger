@@ -1,5 +1,6 @@
 import type { LLMProvider, LLMMessage, LLMStreamChunk } from "./types.ts";
 import { parseSSEStream } from "./stream-parser.ts";
+import { normalizeBaseUrl, validateServerUrl } from "./url.ts";
 
 export class CustomServerProvider implements LLMProvider {
   private baseUrl: string;
@@ -7,11 +8,9 @@ export class CustomServerProvider implements LLMProvider {
   private apiKey: string | undefined;
 
   constructor(baseUrl: string, model: string, apiKey?: string) {
-    const parsed = new URL(baseUrl);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      throw new Error("Invalid server URL: only http and https are allowed");
-    }
-    this.baseUrl = baseUrl;
+    const error = validateServerUrl(baseUrl);
+    if (error) throw new Error(error);
+    this.baseUrl = normalizeBaseUrl(baseUrl);
     this.model = model;
     this.apiKey = apiKey;
   }
@@ -27,7 +26,7 @@ export class CustomServerProvider implements LLMProvider {
       headers["Authorization"] = `Bearer ${this.apiKey}`;
     }
 
-    const url = `${this.baseUrl.replace(/\/+$/, "")}/v1/chat/completions`;
+    const url = `${this.baseUrl}/v1/chat/completions`;
     const response = await fetch(url, {
       method: "POST",
       headers,
@@ -58,7 +57,7 @@ export class CustomServerProvider implements LLMProvider {
       if (this.apiKey) {
         headers["Authorization"] = `Bearer ${this.apiKey}`;
       }
-      const url = `${this.baseUrl.replace(/\/+$/, "")}/v1/models`;
+      const url = `${this.baseUrl}/v1/models`;
       const response = await fetch(url, {
         headers,
         signal: AbortSignal.timeout(5000),
@@ -66,22 +65,6 @@ export class CustomServerProvider implements LLMProvider {
       return response.ok;
     } catch {
       return false;
-    }
-  }
-
-  async listModels(): Promise<string[]> {
-    try {
-      const headers: Record<string, string> = {};
-      if (this.apiKey) {
-        headers["Authorization"] = `Bearer ${this.apiKey}`;
-      }
-      const url = `${this.baseUrl.replace(/\/+$/, "")}/v1/models`;
-      const response = await fetch(url, { headers });
-      if (!response.ok) return [];
-      const data = await response.json();
-      return (data.data || []).map((m: { id: string }) => m.id);
-    } catch {
-      return [];
     }
   }
 }

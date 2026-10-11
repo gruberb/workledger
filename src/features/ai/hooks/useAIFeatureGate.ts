@@ -1,25 +1,53 @@
 import { useEffect, useMemo, useState } from "react";
 import type { AISettings } from "../types/ai.ts";
-import { createProvider } from "../providers/provider-factory.ts";
+import type { LLMProvider } from "../providers/types.ts";
+import { createProvider, getProviderConfigError } from "../providers/provider-factory.ts";
 
-export function useAIFeatureGate(settings: AISettings) {
-  const [pingResult, setPingResult] = useState<{ provider: unknown; ok: boolean } | null>(null);
+export type AIConnectionStatus = "disabled" | "unconfigured" | "checking" | "connected" | "disconnected";
 
-  const provider = useMemo(() => {
-    if (!settings.enabled) return null;
-    return createProvider(settings);
-  }, [settings]);
+interface GateOptions {
+  /** Wait this long after a settings change before pinging. */
+  debounceMs?: number;
+  /** Re-ping this often while the provider is unreachable (e.g. Ollama not started yet). */
+  retryMs?: number;
+}
 
-  // Derive available and loading from provider + ping result
-  const available = !!provider && pingResult?.provider === provider && pingResult.ok;
-  const loading = !!provider && pingResult?.provider !== provider;
+export function useAIFeatureGate(settings: AISettings, { debounceMs = 300, retryMs = 30_000 }: GateOptions = {}) {
+  const { enabled, provider: providerType, ollamaUrl, ollamaModel, hfApiKey, hfModel, customUrl, customApiKey, customModel } = settings;
+
+  // Keyed on connection fields only: temperature and maxTokens changes must
+  // not create a new provider and trigger another ping.
+  const { provider, configError } = useMemo(() => {
+    if (!enabled) return { provider: null, configError: null };
+    const connection = { ...settings, provider: providerType, ollamaUrl, ollamaModel, hfApiKey, hfModel, customUrl, customApiKey, customModel };
+    return { provider: createProvider(connection), configError: getProviderConfigError(connection) };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, providerType, ollamaUrl, ollamaModel, hfApiKey, hfModel, customUrl, customApiKey, customModel]);
+
+  const [pingResult, setPingResult] = useState<{ provider: LLMProvider; ok: boolean } | null>(null);
 
   useEffect(() => {
     if (!provider) return;
-    provider.ping().then((ok) => {
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const check = async () => {
+      const ok = await provider.ping();
+      if (cancelled) return;
       setPingResult({ provider, ok });
-    });
-  }, [provider]);
+      if (!ok) timer = setTimeout(check, retryMs);
+    };
+    timer = setTimeout(check, debounceMs);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [provider, debounceMs, retryMs]);
 
-  return { available, loading };
+  let status: AIConnectionStatus;
+  if (!enabled) status = "disabled";
+  else if (!provider) status = "unconfigured";
+  else if (pingResult?.provider !== provider) status = "checking";
+  else status = pingResult.ok ? "connected" : "disconnected";
+
+  return { provider, status, configError, available: status === "connected" };
 }

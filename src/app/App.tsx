@@ -11,7 +11,7 @@ import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts.ts";
 import { useIsMobile } from "../hooks/useIsMobile.ts";
 import { emit } from "../utils/events.ts";
 
-const AISidebar = lazy(() => import("../features/ai/index.ts").then((m) => ({ default: m.AISidebar })));
+const AISidebar = lazy(() => import("../features/ai/sidebar.ts").then((m) => ({ default: m.AISidebar })));
 import { AppProviders } from "./AppProviders.tsx";
 
 export default function App() {
@@ -32,7 +32,7 @@ function AppContent() {
   const { textQuery, selectedTags, hasActiveFilters, removeTag, clearAllFilters, saveCurrentFilter, savedFilters } = useSidebarFilter();
   const { displayEntriesByDay, displayArchivedEntriesByDay } = useSidebarData();
   const { focusedEntryId, handleFocusEntry, handleExitFocus } = useFocusModeContext();
-  const { settings: aiSettings, sidebarOpen: aiSidebarOpen, targetEntry: aiTargetEntry, handleToggleAISidebar, handleOpenAI, available: aiAvailable, updateSettings: updateAISettings, setSidebarOpen: setAISidebarOpen } = useAIContext();
+  const { settings: aiSettings, sidebarOpen: aiSidebarOpen, handleOpenAI, available: aiAvailable, setSidebarOpen: setAISidebarOpen } = useAIContext();
   const { query, results, isOpen: searchOpen, search, open: openSearch, close: closeSearch } = useSearch();
   const { handleNewEntry } = useKeyboardShortcuts({ isOpen: searchOpen, open: openSearch, close: closeSearch });
   const { handleSearchResultClick, handleDayClick } = useEntryNavigation();
@@ -128,13 +128,7 @@ function AppContent() {
           </div>
         }>
           <Suspense fallback={null}>
-            <AISidebar
-              isOpen={aiSidebarOpen}
-              onClose={handleToggleAISidebar}
-              settings={aiSettings}
-              onUpdateSettings={updateAISettings}
-              targetEntry={aiTargetEntry}
-            />
+            <AISidebar />
           </Suspense>
         </ErrorBoundary>
       )}
