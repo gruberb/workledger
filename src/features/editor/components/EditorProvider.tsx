@@ -4,8 +4,6 @@ import {
   defaultInlineContentSpecs,
   createCodeBlockSpec,
 } from "@blocknote/core";
-import { createHighlighter } from "shiki";
-import { createCssVariablesTheme } from "shiki/core";
 import { excalidrawBlockSpec } from "../excalidraw/ExcalidrawBlock.tsx";
 import { entryLinkSpec } from "../specs/EntryLinkSpec.tsx";
 
@@ -40,11 +38,8 @@ export const workledgerSchema = BlockNoteSchema.create({
         dockerfile: { name: "Dockerfile", aliases: ["docker"] },
         graphql: { name: "GraphQL", aliases: ["gql"] },
       },
-      createHighlighter: () =>
-        createHighlighter({
-          themes: [createCssVariablesTheme({ name: "css-variables", variablePrefix: "--shiki-" })],
-          langs: [],
-        }),
+      // Loaded with the first code block, so Shiki stays out of the startup bundle.
+      createHighlighter: () => import("../utils/code-highlighter.ts").then((m) => m.createCodeHighlighter()),
     }),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     excalidraw: excalidrawBlockSpec() as any,
