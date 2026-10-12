@@ -3,7 +3,7 @@ import { AppShell } from "../components/layout/AppShell.tsx";
 import { ErrorBoundary } from "../components/ui/ErrorBoundary.tsx";
 import { Sidebar } from "../features/sidebar/index.ts";
 import { useSidebarUI, useSidebarFilter, useSidebarData } from "../features/sidebar/index.ts";
-import { EntryStream, ReviewStream, NewEntryButton, useEntriesData, useEntriesActions, type EntryActions, type EntryTemplate } from "../features/entries/index.ts";
+import { EntryStream, ReviewStream, NewEntryButton, useEntriesData, useEntriesActions, type EntryActions, type EntryTemplate, type WorkLedgerEntry } from "../features/entries/index.ts";
 import { EntryEditor } from "../features/editor/index.ts";
 import { SearchPanel, useSearch } from "../features/search/index.ts";
 import { useFocusModeContext } from "../features/focus-mode/index.ts";
@@ -19,6 +19,13 @@ import { StorageStatusBanner } from "./components/StorageStatusBanner.tsx";
 const AISidebar = lazy(() => import("../features/ai/sidebar.ts").then((m) => ({ default: m.AISidebar })));
 import { AppProviders } from "./AppProviders.tsx";
 import { SettingsMenuItems } from "./SettingsMenuItems.tsx";
+
+// Loaded on first download, and composed here so the entries feature never imports the editor.
+function downloadMarkdown(entry: WorkLedgerEntry) {
+  import("../features/editor/markdown.ts")
+    .then((m) => m.downloadEntryMarkdown(entry))
+    .catch((err) => console.error("Markdown export failed", err));
+}
 
 export default function App() {
   return (
@@ -56,7 +63,7 @@ function AppContent() {
   const aiActionsAvailable = aiSettings.enabled && aiAvailable && !isMobile;
 
   const actions = useMemo<EntryActions>(() => archiveView
-    ? { onSave: saveEntryContent, onDelete: deleteEntry, onUnarchive: unarchiveEntry }
+    ? { onSave: saveEntryContent, onDelete: deleteEntry, onUnarchive: unarchiveEntry, onDownloadMarkdown: downloadMarkdown }
     : {
         onSave: saveEntryContent,
         onTagsChange: updateEntryTags,
@@ -67,6 +74,7 @@ function AppContent() {
         onSignifierChange: updateEntrySignifier,
         onOpenAI: aiActionsAvailable ? handleOpenAI : undefined,
         onFocus: handleFocusEntry,
+        onDownloadMarkdown: downloadMarkdown,
       },
   [archiveView, saveEntryContent, deleteEntry, unarchiveEntry, updateEntryTags, archiveEntry, pinEntry, unpinEntry, updateEntrySignifier, aiActionsAvailable, handleOpenAI, handleFocusEntry]);
 

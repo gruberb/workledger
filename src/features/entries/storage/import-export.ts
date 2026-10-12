@@ -1,6 +1,7 @@
 import type { WorkLedgerEntry } from "../types/entry.ts";
 import { getDB } from "../../../storage/db.ts";
 import { emit } from "../../../utils/events.ts";
+import { downloadFile } from "../../../utils/download.ts";
 import { normalizeEntry } from "./entries.ts";
 import { toSearchRow } from "./search-index.ts";
 import { updateBacklinksBatch } from "./backlinks.ts";
@@ -24,17 +25,8 @@ export async function exportAllEntries(): Promise<void> {
     entries,
   };
 
-  const blob = new Blob([JSON.stringify(envelope, null, 2)], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
   const date = new Date().toISOString().slice(0, 10);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `workledger-export-${date}.json`;
-  a.click();
-  // Revoking synchronously can cancel the download in some browsers.
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  downloadFile(`workledger-export-${date}.json`, JSON.stringify(envelope, null, 2), "application/json");
 }
 
 export async function importEntries(
