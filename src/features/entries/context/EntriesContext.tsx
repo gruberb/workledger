@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useEntries } from "../hooks/useEntries.ts";
-import type { EntrySignifier, WorkLedgerEntry } from "../types/entry.ts";
+import type { EntrySignifier, NewEntryOptions, WorkLedgerEntry } from "../types/entry.ts";
 import type { PartialBlock } from "@blocknote/core";
 
 interface EntriesData {
@@ -14,10 +14,13 @@ interface EntriesData {
   archivedEntries: Map<string, WorkLedgerEntry[]>;
   /** Always current, even before the archive is loaded. */
   archivedCount: number;
+  /** Tags and signifiers across all non-archived entries as of the last full read; loaded entries may add newer ones. */
+  storedTags: string[];
+  storedSignifiers: EntrySignifier[];
 }
 
 interface EntriesActions {
-  createEntry: (options?: { blocks?: PartialBlock[]; tags?: string[] }) => Promise<WorkLedgerEntry>;
+  createEntry: (options?: NewEntryOptions) => Promise<WorkLedgerEntry>;
   saveEntryContent: (entryId: string, blocks: PartialBlock[]) => Promise<void>;
   updateEntryTags: (entryId: string, tags: string[]) => Promise<void>;
   archiveEntry: (id: string) => Promise<void>;
@@ -45,6 +48,8 @@ export function EntriesProvider({ children }: { children: ReactNode }) {
     error,
     archivedEntries,
     archivedCount,
+    storedTags,
+    storedSignifiers,
     createEntry,
     saveEntryContent,
     updateEntryTags,
@@ -63,8 +68,8 @@ export function EntriesProvider({ children }: { children: ReactNode }) {
   } = useEntries();
 
   const data = useMemo<EntriesData>(
-    () => ({ entriesByDay, dayKeys, loading, error, archivedEntries, archivedCount }),
-    [entriesByDay, dayKeys, loading, error, archivedEntries, archivedCount],
+    () => ({ entriesByDay, dayKeys, loading, error, archivedEntries, archivedCount, storedTags, storedSignifiers }),
+    [entriesByDay, dayKeys, loading, error, archivedEntries, archivedCount, storedTags, storedSignifiers],
   );
   const actions = useMemo<EntriesActions>(
     () => ({

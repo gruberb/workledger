@@ -1,10 +1,12 @@
 import type { PartialBlock } from "@blocknote/core";
+import type { EntrySignifier } from "../types/entry.ts";
 
 export interface EntryTemplate {
   id: string;
   name: string;
   icon: string;
-  tag: string;
+  tag?: string;
+  signifier?: EntrySignifier;
   blocks: PartialBlock[];
 }
 
@@ -12,7 +14,117 @@ function italic(text: string) {
   return [{ type: "text" as const, text, styles: { italic: true, textColor: "gray" } }];
 }
 
+function heading(text: string, level: 2 | 3 = 2): PartialBlock {
+  return { type: "heading", props: { level }, content: text };
+}
+
+function hint(text: string): PartialBlock {
+  return { type: "paragraph", content: italic(text) };
+}
+
+/** "Label: hint" line, so the label survives when the hint is overwritten. */
+function field(label: string, placeholder: string): PartialBlock {
+  return {
+    type: "bulletListItem",
+    content: [{ type: "text", text: `${label}: `, styles: { bold: true } }, ...italic(placeholder)],
+  };
+}
+
+function table(header: string[], rows = 1): PartialBlock {
+  return {
+    type: "table",
+    content: {
+      type: "tableContent",
+      headerRows: 1,
+      rows: [{ cells: header }, ...Array.from({ length: rows }, () => ({ cells: header.map(() => "") }))],
+    },
+  };
+}
+
+// RFD = Request for Discussion. Each section is a heading plus hints, so shortening
+// an RFD means deleting sections; the brief and full variants share the five lines.
+const RFD_STATUS: PartialBlock[] = [
+  field("Status", "draft / discussion / approved / rejected / superseded / withdrawn"),
+  field("Delivery", "not started / in progress / verified / released / not applicable"),
+  field("Next action", "One specific investigation, review or implementation step"),
+];
+
+const RFD_FIVE_LINES: PartialBlock[] = [
+  field("Problem", "What happens now, who is affected, and why does it matter?"),
+  field("Outcome", "One observable finish condition for this work"),
+  field("Boundary", "What must stay unchanged, and what is out of scope?"),
+  field("Uncertainty", "Which open question could invalidate the approach?"),
+  field("Next check", "The smallest action that reduces that uncertainty"),
+];
+
+const RFD_LOG_COLUMNS = ["Date", "Evidence or question", "Interpretation", "Decision changed or kept", "Next action"];
+
 export const ENTRY_TEMPLATES: EntryTemplate[] = [
+  {
+    id: "rfd-brief",
+    name: "RFD (brief)",
+    icon: "R",
+    signifier: "rfd",
+    blocks: [
+      ...RFD_STATUS,
+      heading("Intent"),
+      ...RFD_FIVE_LINES,
+      heading("Log"),
+      table(RFD_LOG_COLUMNS),
+      heading("Closeout"),
+      hint("What happened compared with the intended outcome? Which assumption failed?"),
+      { type: "paragraph", content: "" },
+    ],
+  },
+  {
+    id: "rfd-full",
+    name: "RFD (full)",
+    icon: "R",
+    signifier: "rfd",
+    blocks: [
+      heading("Summary"),
+      field("Owner", "Person maintaining this document"),
+      field("Reviewers", "Decision owner and reviewers, or unassigned"),
+      ...RFD_STATUS,
+      field("Current direction", "One sentence, provisional until approved"),
+      heading("Intent"),
+      ...RFD_FIVE_LINES,
+      heading("1. Problem and outcome"),
+      field("Current problem", "Condition, affected user or operator, consequence, evidence"),
+      field("Desired outcome", "Observable improvement, independent of the preferred technology"),
+      field("Example", "Input or situation, action, expected result"),
+      heading("Goals", 3),
+      { type: "bulletListItem", content: italic("G1: goal and how it will be evaluated") },
+      heading("Non-goals", 3),
+      { type: "bulletListItem", content: italic("Plausible adjacent work excluded from this change") },
+      heading("2. Current system and boundaries"),
+      hint("Trace one representative case through the existing system: inputs, components, state, outputs, consumers."),
+      table(["Statement", "Kind", "Evidence or authority", "Implication"]),
+      field("Preserved behavior", "What consumers or operators rely on"),
+      field("Constraints", "Platform, compatibility, privacy, operations, schedule, with sources"),
+      heading("3. Unknowns and investigations"),
+      table(["Question", "Hypothesis", "Decision affected", "Resolving evidence", "State"]),
+      heading("4. Options and decision"),
+      hint("Each credible option with its trade-offs against the goals. Separate findings from hypotheses."),
+      field("Decision", "Chosen option and why, or what evidence is still missing"),
+      heading("5. Contract"),
+      hint("Interfaces, data, behavior and failure semantics the implementation must satisfy."),
+      heading("6. Acceptance cases"),
+      { type: "checkListItem", content: italic("Success case: input, expected result") },
+      { type: "checkListItem", content: italic("Failure case: input, expected error or recovery") },
+      heading("7. Implementation and verification"),
+      table(["Slice", "Outcome", "Depends on", "Required checks", "State and evidence"]),
+      field("Rollout and rollback", "Transition, gates, owner and recovery action"),
+      heading("8. Checkpoint and log"),
+      field("Decisions settled / open", ""),
+      field("Checks run and results", ""),
+      field("Blockers", ""),
+      table(RFD_LOG_COLUMNS),
+      heading("Closeout"),
+      hint("What happened compared with the intended outcome? Which assumption failed? What should the next reader know?"),
+      { type: "paragraph", content: "" },
+    ],
+  },
   {
     id: "decision-log",
     name: "Decision Log",

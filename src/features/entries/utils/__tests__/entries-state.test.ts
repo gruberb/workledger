@@ -53,6 +53,16 @@ describe("buildActiveSnapshot", () => {
     expect(buildActiveSnapshot(entries, { recentDays: 1, extraDays: new Set(["2026-01-01"]) }).entriesByDay.has("2026-01-01")).toBe(true);
     expect(buildActiveSnapshot(entries, { recentDays: 1, all: true }).entriesByDay.size).toBe(4);
   });
+
+  it("collects tags and signifiers from entries outside the recent window, but not archived ones", () => {
+    const old = entry("old", "2025-01-01", 1, { tags: ["image_service"], signifier: "rfd" });
+    const recent = entry("recent", "2026-10-11", 2, { tags: ["daily"] });
+    const gone = entry("gone", "2026-10-10", 3, { tags: ["archived-only"], signifier: "idea", isArchived: true });
+    const snapshot = buildActiveSnapshot([old, recent, gone], { recentDays: 1 });
+    expect(snapshot.entriesByDay.has("2025-01-01")).toBe(false);
+    expect(snapshot.allTags.sort()).toEqual(["daily", "image_service"]);
+    expect(snapshot.allSignifiers).toEqual(["rfd"]);
+  });
 });
 
 describe("map helpers", () => {

@@ -13,7 +13,7 @@ export interface WorkLedgerEntry {
   signifier?: EntrySignifier;
 }
 
-export const SIGNIFIERS = ["decision", "question", "idea", "milestone"] as const;
+export const SIGNIFIERS = ["decision", "question", "idea", "milestone", "rfd"] as const;
 
 export type EntrySignifier = (typeof SIGNIFIERS)[number];
 
@@ -63,6 +63,13 @@ export const SIGNIFIER_CONFIG: Record<EntrySignifier, SignifierStyle> = {
     card: "bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/40",
     accent: "border-blue-400",
   },
+  rfd: {
+    label: "RFD",
+    color: "text-violet-500",
+    chip: "bg-violet-100 dark:bg-violet-950/40",
+    card: "bg-violet-50 dark:bg-violet-950/30 border-violet-100 dark:border-violet-900/40",
+    accent: "border-violet-400",
+  },
 };
 
 export interface SearchIndexEntry {
@@ -71,6 +78,12 @@ export interface SearchIndexEntry {
   plainText: string;
   updatedAt: number;
   tags: string[];
+}
+
+export interface NewEntryOptions {
+  blocks?: PartialBlock[];
+  tags?: string[];
+  signifier?: EntrySignifier;
 }
 
 /** Per-entry callbacks. Omit one to hide its control (e.g. archive view has no pin). */

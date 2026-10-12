@@ -83,7 +83,7 @@ function AppContent() {
   }, [setAISidebarOpen]);
 
   const handleNewEntryFromTemplate = useCallback(async (template: EntryTemplate) => {
-    const entry = await createEntry({ blocks: template.blocks, tags: [template.tag] });
+    const entry = await createEntry({ blocks: template.blocks, tags: template.tag ? [template.tag] : [], signifier: template.signifier });
     scrollToEntry(entry.id);
   }, [createEntry]);
 

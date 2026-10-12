@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- RFD support: a new `RFD` signifier and two templates, "RFD (brief)" (status plus the five intent lines) and "RFD (full)" (summary, problem, boundaries, unknowns, options, contract, acceptance cases, implementation, checkpoint and log). Each section is a heading with hints, so an RFD can be shortened by deleting sections. Combine the signifier with a project tag and save the filter to get every RFD of a project in one click
+- Templates can set a signifier
+
+### Fixed
+
+- The sidebar tag and signifier filters list values from all entries, not just the last 30 days that are loaded in memory, so a project tag or RFD used only in older entries can be selected again
+
 ## [3.4.0] - 2026-10-11
 
 ### Added
