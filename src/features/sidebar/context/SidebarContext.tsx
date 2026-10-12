@@ -92,12 +92,12 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
   // --- UI actions ---
 
-  // Crossing the breakpoint (resize, rotate) resets the sidebar: the mobile drawer
-  // must not cover the content after shrinking, and desktop shows it again.
+  // Shrinking to mobile closes the sidebar so the drawer does not cover the
+  // content. Widening keeps whatever the user had, so it never opens by itself.
   const [wasMobile, setWasMobile] = useState(isMobile);
   if (wasMobile !== isMobile) {
     setWasMobile(isMobile);
-    setIsOpen(!isMobile);
+    if (isMobile) setIsOpen(false);
   }
 
   const toggleSidebar = useCallback(() => setIsOpen((prev) => !prev), []);

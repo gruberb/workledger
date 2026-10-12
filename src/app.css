@@ -300,6 +300,12 @@
   font-weight: 600;
 }
 
+@media (max-width: 767px) {
+  .day-header-font {
+    font-size: 1.6rem;
+  }
+}
+
 /* Entry ruling line */
 .entry-ruling {
   height: 1px;

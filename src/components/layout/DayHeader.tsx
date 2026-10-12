@@ -11,7 +11,7 @@ export const DayHeader = memo(function DayHeader({ dayKey, entryCount }: DayHead
   // Subscribing re-renders at midnight so "Today" / "Yesterday" stay correct.
   useTodayKey();
   return (
-    <div className="day-header flex items-baseline gap-3 pt-6 max-md:pt-3 pb-4 max-md:pb-2 px-1 sticky top-0 sticky-header">
+    <div className="day-header flex items-baseline gap-3 pt-4 max-md:pt-3 pb-3 max-md:pb-1 px-1 sticky top-0 sticky-header">
       <h2 className="text-gray-800 dark:text-gray-100 day-header-font">
         {formatDayKey(dayKey)}
       </h2>

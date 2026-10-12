@@ -16,7 +16,7 @@ interface FilterBannerProps {
 
 export function FilterBanner({ selectedTags, selectedSignifiers, textQuery, count, onRemoveTag, onClearAll, onSaveFilter, savedFilters }: FilterBannerProps) {
   return (
-    <div className="flex items-center gap-3 pt-6 pb-4 px-1 sticky top-0 sticky-header">
+    <div className="flex items-center gap-3 pt-4 pb-3 px-1 sticky top-0 sticky-header">
       <div className="flex items-center gap-2 flex-wrap">
         <FilterIcon size={16} className="text-gray-400 shrink-0" />
         {selectedTags.map((tag) => (

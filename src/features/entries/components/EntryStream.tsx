@@ -106,7 +106,7 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, filt
       {isFocused && (
         focusedEntry ? (
           <div>
-            <div className={`flex items-center gap-3 px-1 sticky top-0 sticky-header ${preview ? "py-2" : "pt-6 pb-4"}`}>
+            <div className={`flex items-center gap-3 px-1 sticky top-0 sticky-header ${preview ? "py-2" : "pt-4 pb-3"}`}>
               <button
                 onClick={onExitFocus}
                 className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
@@ -122,7 +122,7 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, filt
                 <EntryDetailControls entry={focusedEntry} actions={actions} isArchiveView={isArchiveView} onGone={onExitFocus ?? noop} />
               )}
             </div>
-            <div className={preview ? "pt-3" : "pt-6"}>
+            <div className={preview ? "pt-3" : "pt-4"}>
               <EntryCard
                 entry={focusedEntry}
                 isLatest={focusedEntry.id === autoFocusEntryId}
@@ -180,7 +180,7 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, filt
                 <DayHeader dayKey={dayKey} entryCount={entries.length} />
               )}
               {entriesToRender.map((entry, idx) => (
-                <div key={entry.id} className={idx === 0 && !isFiltering && !preview ? "mt-4" : ""}>
+                <div key={entry.id} className={idx === 0 && !isFiltering && !preview ? "mt-3" : ""}>
                   {preview ? (
                     <EntryPreviewRow entry={entry} onOpen={handleOpen} />
                   ) : (

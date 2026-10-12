@@ -24,7 +24,7 @@ export function AppShell({ sidebarOpen, aiSidebarOpen, header, children }: AppSh
       style={header ? undefined : ({ "--app-header-h": "0px" } as CSSProperties)}
     >
       {header}
-      <main className={`max-w-7xl mx-auto pb-8 relative ${isMobile ? "pt-2 px-4" : "pt-6 px-12"}`}>
+      <main className={`max-w-7xl mx-auto pb-8 relative ${isMobile ? "px-4" : "px-12"}`}>
         {children}
       </main>
     </div>

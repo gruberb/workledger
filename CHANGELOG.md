@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.8.1] - 2026-10-12
+
+### Fixed
+
+- The AI sidebar button now sits in the top bar next to search, with the same round style, instead of floating below it in the corner
+- Widening the window no longer opens the sidebar by itself; it keeps the state it had. Shrinking to mobile still closes it
+- Mobile: tapping "+" always opens the new-entry menu, with "Blank entry" first and the templates below, instead of hiding templates behind a long-press
+- Bigger view title in the top bar and less empty space above the first day and entry
+
 ## [3.8.0] - 2026-10-12
 
 ### Added
