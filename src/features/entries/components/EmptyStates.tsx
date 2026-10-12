@@ -10,7 +10,9 @@ export function EmptyArchive() {
         Archive is empty
       </h2>
       <p className="text-sm text-gray-400 max-w-sm">
-        Archived entries will appear here. Archive entries from the main view using the box icon.
+        Archived entries will appear here. Archive entries from the main view using the{" "}
+        <span className="max-md:hidden">box icon.</span>
+        <span className="md:hidden">actions menu (⋯) of an open entry.</span>
       </p>
     </div>
   );
@@ -24,8 +26,11 @@ export function EmptyEntries() {
         Start your first entry
       </h2>
       <p className="text-base text-gray-400 max-w-sm">
-        Press <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">⌘J</kbd> or
-        click the button below to create your first notebook entry.
+        <span className="max-md:hidden">
+          Press <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">⌘J</kbd> or
+          click the button below to create your first notebook entry.
+        </span>
+        <span className="md:hidden">Tap + in the top bar to create your first notebook entry.</span>
       </p>
     </div>
   );

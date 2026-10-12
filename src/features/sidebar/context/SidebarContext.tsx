@@ -7,6 +7,7 @@ import type { SavedFilter } from "../types/saved-filter.ts";
 import { loadSavedFilters, persistSavedFilters } from "../storage/saved-filters.ts";
 import { savedFilterMatches } from "../utils/saved-filters.ts";
 import { generateId } from "../../../utils/id.ts";
+import { useIsMobile } from "../../../hooks/useIsMobile.ts";
 
 // Filtering re-renders the whole entry stream, so it follows typing with a delay.
 const FILTER_DEBOUNCE_MS = 200;
@@ -22,6 +23,8 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
 
 // --- Context value types ---
 
+export type SidebarView = "journal" | "review" | "archive";
+
 interface SidebarUIValue {
   isOpen: boolean;
   toggleSidebar: () => void;
@@ -30,6 +33,8 @@ interface SidebarUIValue {
   toggleArchiveView: () => void;
   reviewView: boolean;
   toggleReviewView: () => void;
+  /** Switches straight to a view; does nothing if it is already shown. */
+  setView: (view: SidebarView) => void;
   activeDayKey: string | null;
   setActiveDayKey: (key: string | null) => void;
 }
@@ -75,9 +80,8 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const { entriesByDay, dayKeys, archivedEntries, archivedCount, storedTags, storedSignifiers } = useEntriesData();
   const { refreshArchive, deleteAllEntries } = useEntriesActions();
 
-  const [isOpen, setIsOpen] = useState(
-    () => !window.matchMedia("(max-width: 767px)").matches,
-  );
+  const isMobile = useIsMobile();
+  const [isOpen, setIsOpen] = useState(() => !isMobile);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [textQuery, setTextQuery] = useState("");
   const [filteredEntryIds, setFilteredEntryIds] = useState<Set<string> | null>(null);
@@ -87,6 +91,14 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const [selectedSignifiers, setSelectedSignifiers] = useState<EntrySignifier[]>([]);
 
   // --- UI actions ---
+
+  // Crossing the breakpoint (resize, rotate) resets the sidebar: the mobile drawer
+  // must not cover the content after shrinking, and desktop shows it again.
+  const [wasMobile, setWasMobile] = useState(isMobile);
+  if (wasMobile !== isMobile) {
+    setWasMobile(isMobile);
+    setIsOpen(!isMobile);
+  }
 
   const toggleSidebar = useCallback(() => setIsOpen((prev) => !prev), []);
   const setSidebarOpen = useCallback((open: boolean) => setIsOpen(open), []);
@@ -109,6 +121,18 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
       setArchiveView(false);
     }
   }, [archiveView]);
+
+  const setView = useCallback((view: SidebarView) => {
+    if (view === "archive") {
+      if (!archiveView) toggleArchiveView();
+    } else if (view === "review") {
+      if (!reviewView) toggleReviewView();
+    } else if (archiveView) {
+      toggleArchiveView();
+    } else if (reviewView) {
+      toggleReviewView();
+    }
+  }, [archiveView, reviewView, toggleArchiveView, toggleReviewView]);
 
   // --- Filter actions ---
 
@@ -265,9 +289,10 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     toggleArchiveView,
     reviewView,
     toggleReviewView,
+    setView,
     activeDayKey,
     setActiveDayKey,
-  }), [isOpen, toggleSidebar, setSidebarOpen, archiveView, toggleArchiveView, reviewView, toggleReviewView, activeDayKey]);
+  }), [isOpen, toggleSidebar, setSidebarOpen, archiveView, toggleArchiveView, reviewView, toggleReviewView, setView, activeDayKey]);
 
   const filterValue: SidebarFilterValue = useMemo(() => ({
     selectedTags,

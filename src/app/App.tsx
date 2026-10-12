@@ -1,9 +1,9 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "../components/layout/AppShell.tsx";
 import { ErrorBoundary } from "../components/ui/ErrorBoundary.tsx";
 import { Sidebar } from "../features/sidebar/index.ts";
 import { useSidebarUI, useSidebarFilter, useSidebarData } from "../features/sidebar/index.ts";
-import { EntryStream, ReviewStream, NewEntryButton, useEntriesData, useEntriesActions, type EntryActions, type EntryTemplate, type WorkLedgerEntry } from "../features/entries/index.ts";
+import { EntryStream, ReviewStream, NewEntryButton, NewEntryIconButton, useEntriesData, useEntriesActions, type EntryActions, type EntryTemplate, type WorkLedgerEntry } from "../features/entries/index.ts";
 import { EntryEditor } from "../features/editor/index.ts";
 import { SearchPanel, useSearch } from "../features/search/index.ts";
 import { useFocusModeContext } from "../features/focus-mode/index.ts";
@@ -15,6 +15,7 @@ import { scrollToEntry } from "../utils/scroll.ts";
 import { useEntryNavigation } from "./hooks/useEntryNavigation.ts";
 import { FilterBanner } from "./components/FilterBanner.tsx";
 import { StorageStatusBanner } from "./components/StorageStatusBanner.tsx";
+import { AppHeader } from "./components/AppHeader.tsx";
 
 const AISidebar = lazy(() => import("../features/ai/sidebar.ts").then((m) => ({ default: m.AISidebar })));
 import { AppProviders } from "./AppProviders.tsx";
@@ -41,7 +42,7 @@ function AppContent() {
   const isMobile = useIsMobile();
   const { loading, error } = useEntriesData();
   const { createEntry, saveEntryContent, updateEntryTags, archiveEntry, unarchiveEntry, deleteEntry, pinEntry, unpinEntry, updateEntrySignifier, setLoadAll } = useEntriesActions();
-  const { isOpen: sidebarOpen, archiveView, reviewView } = useSidebarUI();
+  const { isOpen: sidebarOpen, toggleSidebar, archiveView, reviewView } = useSidebarUI();
   const { textQuery, selectedTags, selectedSignifiers, hasActiveFilters, removeTag, clearAllFilters, saveCurrentFilter, savedFilters } = useSidebarFilter();
   const { isFiltering, displayEntriesByDay, displayArchivedEntriesByDay } = useSidebarData();
   const { focusedEntryId, handleFocusEntry, handleExitFocus } = useFocusModeContext();
@@ -63,7 +64,7 @@ function AppContent() {
   const aiActionsAvailable = aiSettings.enabled && aiAvailable && !isMobile;
 
   const actions = useMemo<EntryActions>(() => archiveView
-    ? { onSave: saveEntryContent, onDelete: deleteEntry, onUnarchive: unarchiveEntry, onDownloadMarkdown: downloadMarkdown }
+    ? { onSave: saveEntryContent, onDelete: deleteEntry, onUnarchive: unarchiveEntry, onFocus: handleFocusEntry, onDownloadMarkdown: downloadMarkdown }
     : {
         onSave: saveEntryContent,
         onTagsChange: updateEntryTags,
@@ -90,10 +91,25 @@ function AppContent() {
     setAISidebarOpen(true);
   }, [setAISidebarOpen]);
 
+  // Small screens show previews, so a new entry opens full-screen instead of scrolling to a card.
+  const [newEntryId, setNewEntryId] = useState<string | null>(null);
+  const showCreated = useCallback((entry: WorkLedgerEntry) => {
+    if (isMobile) {
+      setNewEntryId(entry.id);
+      handleFocusEntry(entry);
+    } else {
+      scrollToEntry(entry.id);
+    }
+  }, [isMobile, handleFocusEntry]);
+
   const handleNewEntryFromTemplate = useCallback(async (template: EntryTemplate) => {
     const entry = await createEntry({ blocks: template.blocks, tags: template.tag ? [template.tag] : [], signifier: template.signifier });
-    scrollToEntry(entry.id);
-  }, [createEntry]);
+    showCreated(entry);
+  }, [createEntry, showCreated]);
+
+  const handleHeaderNewEntry = useCallback(async () => {
+    showCreated(await createEntry());
+  }, [createEntry, showCreated]);
 
   if (loading) {
     return (
@@ -105,6 +121,11 @@ function AppContent() {
       </>
     );
   }
+
+  const viewTitle = reviewView ? "Weekly review" : archiveView ? "Archive" : "Journal";
+  // The full-screen entry has its own header (back, info, actions).
+  const showHeader = !(isMobile && focusedEntryId);
+  const canCreate = !archiveView && !reviewView;
 
   const filterBanner = hasActiveFilters ? (
     <FilterBanner
@@ -130,7 +151,22 @@ function AppContent() {
       />
       <LogseqImportInput inputRef={logseqInputRef} />
 
-      <AppShell sidebarOpen={sidebarOpen} aiSidebarOpen={aiSidebarOpen}>
+      <AppShell
+        sidebarOpen={sidebarOpen}
+        aiSidebarOpen={aiSidebarOpen}
+        header={showHeader ? (
+          <AppHeader
+            title={viewTitle}
+            showMenu={isMobile || !sidebarOpen}
+            reserveRight={!isMobile && aiSettings.enabled && !aiSidebarOpen}
+            onMenu={toggleSidebar}
+            onSearch={openSearch}
+            action={isMobile && canCreate ? (
+              <NewEntryIconButton onClick={handleHeaderNewEntry} onCreateFromTemplate={handleNewEntryFromTemplate} />
+            ) : undefined}
+          />
+        ) : undefined}
+      >
         {reviewView ? (
           <ReviewStream
             entriesByDay={displayEntriesByDay}
@@ -146,11 +182,13 @@ function AppContent() {
             filterBanner={filterBanner}
             focusedEntryId={focusedEntryId}
             onExitFocus={handleExitFocus}
+            preview={isMobile}
+            autoFocusEntryId={newEntryId}
           />
         )}
       </AppShell>
 
-      {!archiveView && !reviewView && !focusedEntryId && <NewEntryButton onClick={handleNewEntry} onCreateFromTemplate={handleNewEntryFromTemplate} aiSidebarOpen={aiSidebarOpen && !isMobile} />}
+      {!isMobile && canCreate && !focusedEntryId && <NewEntryButton onClick={handleNewEntry} onCreateFromTemplate={handleNewEntryFromTemplate} aiSidebarOpen={aiSidebarOpen} />}
 
       <SearchPanel
         isOpen={searchOpen}

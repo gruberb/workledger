@@ -10,6 +10,7 @@ import { SidebarTagCloud } from "./SidebarTagCloud.tsx";
 import { SavedFilterSection, SaveFilterButton } from "./SavedFilters.tsx";
 import { SignifierFilter } from "./SignifierFilter.tsx";
 import { SidebarWeekList } from "./SidebarWeekList.tsx";
+import { SidebarNav } from "./SidebarNav.tsx";
 import { ImportExport } from "./ImportExport.tsx";
 
 interface SidebarProps {
@@ -61,25 +62,29 @@ export function Sidebar({ onDayClick, onSearchOpen, settingsItems }: SidebarProp
     document.addEventListener("mouseup", onUp);
   }, [bottomHeight]);
 
+  const closeOnMobile = useCallback(() => {
+    if (isMobile) toggleSidebar();
+  }, [isMobile, toggleSidebar]);
+
   const handleDayClick = useCallback((dayKey: string) => {
     onDayClick(dayKey);
-    if (isMobile) toggleSidebar();
-  }, [onDayClick, isMobile, toggleSidebar]);
+    closeOnMobile();
+  }, [onDayClick, closeOnMobile]);
 
   const handleApplyFilter = useCallback((f: SavedFilter) => {
     applySavedFilter(f);
-    if (isMobile) toggleSidebar();
-  }, [applySavedFilter, isMobile, toggleSidebar]);
+    closeOnMobile();
+  }, [applySavedFilter, closeOnMobile]);
 
   const handleToggleSignifier = useCallback((s: EntrySignifier) => {
     toggleSignifier(s);
-    if (isMobile) toggleSidebar();
-  }, [toggleSignifier, isMobile, toggleSidebar]);
+    closeOnMobile();
+  }, [toggleSignifier, closeOnMobile]);
 
   const handleToggleTag = useCallback((t: string) => {
     toggleTag(t);
-    if (isMobile) toggleSidebar();
-  }, [toggleTag, isMobile, toggleSidebar]);
+    closeOnMobile();
+  }, [toggleTag, closeOnMobile]);
 
   // Lock body scroll when mobile sidebar is open
   useEffect(() => {
@@ -95,20 +100,6 @@ export function Sidebar({ onDayClick, onSearchOpen, settingsItems }: SidebarProp
 
   return (
     <>
-      {/* Toggle button — only visible when sidebar is closed */}
-      {!isOpen && (
-        <button
-          onClick={toggleSidebar}
-          className={`fixed top-4 left-4 ${isMobile ? "z-50" : "z-10"} p-2 rounded-lg bg-[var(--color-notebook-surface)]/80 hover:bg-[var(--color-notebook-surface)] border border-[var(--color-notebook-border)] shadow-sm transition-all duration-300 text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)]`}
-          title="Expand sidebar (⌘\)"
-          aria-label="Expand sidebar"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
-      )}
-
       {/* Mobile backdrop */}
       {isMobile && isOpen && (
         <div className="fixed inset-0 z-30 bg-black/40 transition-opacity duration-300" onClick={toggleSidebar} />
@@ -121,7 +112,7 @@ export function Sidebar({ onDayClick, onSearchOpen, settingsItems }: SidebarProp
           bg-[var(--color-notebook-surface)] border-r border-[var(--color-notebook-border)]
           shadow-[1px_0_12px_rgba(0,0,0,0.03)] dark:shadow-[1px_0_12px_rgba(0,0,0,0.3)]
           transition-transform duration-300 ease-in-out
-          ${isMobile ? "w-full" : "w-80"} pt-[23px] pb-5 px-[22px]
+          ${isMobile ? "w-[85%] max-w-sm" : "w-80"} pt-[23px] pb-5 px-[22px]
           flex flex-col
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
@@ -147,20 +138,7 @@ export function Sidebar({ onDayClick, onSearchOpen, settingsItems }: SidebarProp
           </button>
         </div>
 
-        {/* Review mode label */}
-        {reviewView && (
-          <div className="mb-3 shrink-0 flex items-center gap-2 px-2">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--color-notebook-muted)]">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-            <p className="text-[11px] uppercase tracking-wider text-[var(--color-notebook-muted)] font-medium">
-              Weekly Review
-            </p>
-          </div>
-        )}
+        <SidebarNav onSearch={onSearchOpen} onSelect={closeOnMobile} />
 
         {/* Filter */}
         <div className="mb-5 shrink-0">
@@ -196,21 +174,6 @@ export function Sidebar({ onDayClick, onSearchOpen, settingsItems }: SidebarProp
                 </button>
               )}
             </div>
-          </div>
-          <div className="flex items-center justify-between mt-2 px-2">
-            {archiveView ? (
-              <p className="text-[11px] uppercase tracking-wider text-amber-500 font-medium flex items-center gap-2">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" /><line x1="10" y1="12" x2="14" y2="12" />
-                </svg>
-                Archive
-              </p>
-            ) : (
-              <button onClick={() => { onSearchOpen(); if (isMobile) toggleSidebar(); }} className="text-sm text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] transition-colors">
-                Full search <kbd className="px-1.5 py-0.5 bg-[var(--color-notebook-surface-alt)] rounded text-[10px]">⌘K</kbd>
-              </button>
-            )}
-            <SidebarSettings fileInputRef={fileInputRef}>{settingsItems}</SidebarSettings>
           </div>
         </div>
 
@@ -271,6 +234,10 @@ export function Sidebar({ onDayClick, onSearchOpen, settingsItems }: SidebarProp
             </div>
           </div>
         )}
+
+        <div className="shrink-0 pt-3 flex justify-end">
+          <SidebarSettings fileInputRef={fileInputRef}>{settingsItems}</SidebarSettings>
+        </div>
 
         {/* Import file input */}
         <ImportExport fileInputRef={fileInputRef} onRefresh={refresh} />

@@ -1,13 +1,15 @@
-import { type ReactNode } from "react";
+import { type CSSProperties, type ReactNode } from "react";
 import { useIsMobile } from "../../hooks/useIsMobile.ts";
 
 interface AppShellProps {
   sidebarOpen: boolean;
   aiSidebarOpen?: boolean;
+  /** Sticky bar above the content. Without one, sticky section headers stick to the very top. */
+  header?: ReactNode;
   children: ReactNode;
 }
 
-export function AppShell({ sidebarOpen, aiSidebarOpen, children }: AppShellProps) {
+export function AppShell({ sidebarOpen, aiSidebarOpen, header, children }: AppShellProps) {
   const isMobile = useIsMobile();
 
   return (
@@ -18,8 +20,11 @@ export function AppShell({ sidebarOpen, aiSidebarOpen, children }: AppShellProps
         ${!isMobile && sidebarOpen ? "pl-80" : "pl-0"}
         ${!isMobile && aiSidebarOpen ? "pr-96" : "pr-0"}
       `}
+      // Sticky section headers sit below the header (see --app-header-h in app.css).
+      style={header ? undefined : ({ "--app-header-h": "0px" } as CSSProperties)}
     >
-      <main className={`max-w-7xl mx-auto pt-6 pb-8 relative ${isMobile ? "px-4" : "px-12"}`}>
+      {header}
+      <main className={`max-w-7xl mx-auto pb-8 relative ${isMobile ? "pt-2 px-4" : "pt-6 px-12"}`}>
         {children}
       </main>
     </div>

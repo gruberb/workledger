@@ -1,6 +1,6 @@
 // Public API for the sidebar feature
 export { Sidebar } from "./components/Sidebar.tsx";
-export { SidebarProvider, useSidebarUI, useSidebarFilter, useSidebarData } from "./context/SidebarContext.tsx";
+export { SidebarProvider, useSidebarUI, useSidebarFilter, useSidebarData, type SidebarView } from "./context/SidebarContext.tsx";
 export { SaveFilterButton } from "./components/SavedFilters.tsx";
 export type { SavedFilter } from "./types/saved-filter.ts";
 
