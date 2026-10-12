@@ -48,7 +48,7 @@
   --color-notebook-scrollbar-hover: #b09b7c;
 }
 
-/* High Contrast: black on white text (21:1), yellow accent, visible borders */
+/* High Contrast: white on black text (21:1), yellow accent, visible borders */
 [data-theme="high-contrast"] {
   --color-notebook-bg: #000000;
   --color-notebook-text: #ffffff;
@@ -63,9 +63,25 @@
   --color-notebook-scrollbar-hover: #ffffff;
 }
 
-[data-theme="high-contrast"] :focus-visible {
+[data-theme="high-contrast"] :focus-visible,
+[data-theme="high-contrast-light"] :focus-visible {
   outline: 2px solid var(--color-notebook-accent);
   outline-offset: 2px;
+}
+
+/* High Contrast Light: black on white text (21:1), blue accent, visible borders */
+[data-theme="high-contrast-light"] {
+  --color-notebook-bg: #ffffff;
+  --color-notebook-text: #000000;
+  --color-notebook-accent: #0033cc;
+  --color-notebook-ruling: #595959;
+  --color-notebook-surface: #ffffff;
+  --color-notebook-surface-alt: #f2f2f2;
+  --color-notebook-muted: #3d3d3d;
+  --color-notebook-border: #595959;
+  --color-notebook-code-bg: #ebebeb;
+  --color-notebook-scrollbar: #6b6b6b;
+  --color-notebook-scrollbar-hover: #000000;
 }
 
 /* Dracula theme */
@@ -176,6 +192,21 @@
   --shiki-token-string-expression: #ffb86b;
   --shiki-token-punctuation: #ffffff;
   --shiki-token-link: #79c0ff;
+}
+
+/* Shiki — High Contrast Light overrides */
+[data-theme="high-contrast-light"] {
+  --shiki-foreground: #000000;
+  --shiki-background: transparent;
+  --shiki-token-constant: #0033cc;
+  --shiki-token-string: #005a1f;
+  --shiki-token-comment: #4d4d4d;
+  --shiki-token-keyword: #a3003c;
+  --shiki-token-parameter: #000000;
+  --shiki-token-function: #5b21b6;
+  --shiki-token-string-expression: #8a3b00;
+  --shiki-token-punctuation: #000000;
+  --shiki-token-link: #0033cc;
 }
 
 /* Shiki — Dracula overrides */
