@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.4.0] - 2026-10-11
+
+### Added
+
+- Import a Logseq graph from the settings menu: pick the graph folder, and journals become entries on their dates, pages become titled entries, `[[links]]` become entry links, tasks become checklists and `#tags` become tags. Re-importing updates earlier imports instead of duplicating them
+- README documents both import formats
+
 ## [3.3.1] - 2026-10-11
 
 ### Fixed
@@ -450,6 +457,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Local-first storage with IndexedDB -- no server required
 - Landing page
 
+[3.4.0]: https://github.com/gruberb/workledger/releases/tag/v3.4.0
 [3.3.1]: https://github.com/gruberb/workledger/releases/tag/v3.3.1
 [3.3.0]: https://github.com/gruberb/workledger/releases/tag/v3.3.0
 [3.1.0]: https://github.com/gruberb/workledger/releases/tag/v3.1.0
