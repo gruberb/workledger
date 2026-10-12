@@ -7,6 +7,8 @@ import { ArrowLeftIcon, PinIcon } from "../../../components/ui/Icons.tsx";
 import { formatDayKey, formatTime } from "../../../utils/dates.ts";
 import { findEntry } from "../utils/entries-state.ts";
 import { useProgressiveRender } from "../hooks/useProgressiveRender.ts";
+import { EntryDetailControls } from "./EntryDetailControls.tsx";
+import { EntryPreviewRow } from "./EntryPreviewRow.tsx";
 
 interface EntryStreamProps {
   entriesByDay: Map<string, WorkLedgerEntry[]>;
@@ -17,9 +19,18 @@ interface EntryStreamProps {
   filterBanner?: ReactNode;
   focusedEntryId?: string | null;
   onExitFocus?: () => void;
+  /**
+   * Compact layout for small screens: entries are preview rows that open
+   * full-screen (through `actions.onFocus`), with info and actions behind buttons.
+   */
+  preview?: boolean;
+  /** Entry to put the cursor in when it opens full-screen (a just-created one). */
+  autoFocusEntryId?: string | null;
 }
 
-export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, filterBanner, focusedEntryId, onExitFocus }: EntryStreamProps) {
+function noop() {}
+
+export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, filterBanner, focusedEntryId, onExitFocus, preview, autoFocusEntryId }: EntryStreamProps) {
   const isFiltering = !!filterBanner;
 
   const sortedDays = useMemo(
@@ -83,6 +94,7 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, filt
   const overlayActions = useMemo(() => ({ ...actions, onFocus: undefined }), [actions]);
 
   const isFocused = !!focusedEntryId;
+  const handleOpen = actions.onFocus ?? noop;
 
   if (sortedDays.length === 0 && !isFiltering) {
     return isArchiveView ? <EmptyArchive /> : <EmptyEntries />;
@@ -94,25 +106,30 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, filt
       {isFocused && (
         focusedEntry ? (
           <div>
-            <div className="flex items-center gap-3 pt-6 pb-4 px-1 sticky top-0 sticky-header">
+            <div className={`flex items-center gap-3 px-1 sticky top-0 sticky-header ${preview ? "py-2" : "pt-6 pb-4"}`}>
               <button
                 onClick={onExitFocus}
                 className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 title="Back to all entries (Esc)"
+                aria-label="Back to all entries"
               >
-                <ArrowLeftIcon size={18} />
+                <ArrowLeftIcon size={preview ? 22 : 18} />
               </button>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="flex-1 min-w-0 truncate text-sm text-gray-500 dark:text-gray-400">
                 {formatDayKey(focusedEntry.dayKey)} &middot; {formatTime(focusedEntry.createdAt)}
               </span>
+              {preview && (
+                <EntryDetailControls entry={focusedEntry} actions={actions} isArchiveView={isArchiveView} onGone={onExitFocus ?? noop} />
+              )}
             </div>
-            <div className="pt-6">
+            <div className={preview ? "pt-3" : "pt-6"}>
               <EntryCard
                 entry={focusedEntry}
-                isLatest={false}
+                isLatest={focusedEntry.id === autoFocusEntryId}
                 actions={overlayActions}
                 Editor={Editor}
                 isArchiveView={isArchiveView}
+                bare={preview}
               />
             </div>
           </div>
@@ -144,7 +161,11 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, filt
             </div>
             {pinnedEntries.filter((e) => e.id !== focusedEntryId).map((entry) => (
               <div key={entry.id}>
-                <EntryCard entry={entry} isLatest={false} actions={actions} Editor={Editor} />
+                {preview ? (
+                  <EntryPreviewRow entry={entry} onOpen={handleOpen} />
+                ) : (
+                  <EntryCard entry={entry} isLatest={false} actions={actions} Editor={Editor} />
+                )}
               </div>
             ))}
           </div>
@@ -159,14 +180,18 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, filt
                 <DayHeader dayKey={dayKey} entryCount={entries.length} />
               )}
               {entriesToRender.map((entry, idx) => (
-                <div key={entry.id} className={idx === 0 && !isFiltering ? "mt-4" : ""}>
-                  <EntryCard
-                    entry={entry}
-                    isLatest={idx === 0 && !isFiltering && !isArchiveView}
-                    actions={actions}
-                    Editor={Editor}
-                    isArchiveView={isArchiveView}
-                  />
+                <div key={entry.id} className={idx === 0 && !isFiltering && !preview ? "mt-4" : ""}>
+                  {preview ? (
+                    <EntryPreviewRow entry={entry} onOpen={handleOpen} />
+                  ) : (
+                    <EntryCard
+                      entry={entry}
+                      isLatest={idx === 0 && !isFiltering && !isArchiveView}
+                      actions={actions}
+                      Editor={Editor}
+                      isArchiveView={isArchiveView}
+                    />
+                  )}
                 </div>
               ))}
             </div>

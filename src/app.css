@@ -230,9 +230,15 @@
   letter-spacing: -0.02em;
 }
 
+:root {
+  /* Height of the app header; sticky section headers stick below it. */
+  --app-header-h: 52px;
+}
+
 /* Sticky header — fully opaque, z-10 so it covers scrolling content.
    BlockNote menus (z-index 300+) still appear above these. */
 .sticky-header {
+  top: var(--app-header-h);
   background-color: var(--color-notebook-bg);
   border-bottom: 1px solid var(--color-notebook-border);
   z-index: 10;

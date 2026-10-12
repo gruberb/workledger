@@ -5,6 +5,7 @@ import { formatTime } from "../../../utils/dates.ts";
 import { ConfirmAction } from "../../../components/ui/ConfirmAction.tsx";
 import { AIIcon, ArchiveIcon, CheckIcon, DownloadIcon, ExpandIcon, LinkIcon, PinIcon, RestoreIcon, TrashIcon } from "../../../components/ui/Icons.tsx";
 import { SignifierPicker } from "./SignifierPicker.tsx";
+import { copyEntryLink } from "../utils/entry-link.ts";
 
 const HOVER_BUTTON = "opacity-0 group-hover:opacity-100 max-sm:opacity-100 transition-opacity p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-300 dark:text-gray-600";
 
@@ -20,8 +21,7 @@ export function EntryToolbar({ entry, actions, isArchiveView }: EntryToolbarProp
   const { onSignifierChange, onPin, onUnpin, onFocus, onOpenAI, onArchive, onDelete, onUnarchive, onDownloadMarkdown } = actions;
 
   const handleCopyLink = useCallback(() => {
-    const url = `${window.location.origin}${window.location.pathname}#entry-${entry.id}`;
-    navigator.clipboard.writeText(url).then(() => {
+    copyEntryLink(entry.id).then(() => {
       setLinkCopied(true);
       setTimeout(() => setLinkCopied(false), 2000);
     });

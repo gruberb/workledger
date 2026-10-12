@@ -7,6 +7,8 @@ interface FocusModeContextValue {
   handleExitFocus: () => void;
 }
 
+const HISTORY_STATE = { workledgerFocus: true };
+
 const FocusModeCtx = createContext<FocusModeContextValue | null>(null);
 
 export function FocusModeProvider({ children }: { children: ReactNode }) {
@@ -16,15 +18,32 @@ export function FocusModeProvider({ children }: { children: ReactNode }) {
   const scrollRestoreId = useRef<string | null>(null);
 
   const handleFocusEntry = useCallback((entry: WorkLedgerEntry) => {
+    // Own history entry, so the browser or phone back button closes the entry
+    // instead of leaving the app. Focusing another entry replaces it.
+    const url = `#entry-${entry.id}`;
+    if (focusedEntryIdRef.current) history.replaceState(HISTORY_STATE, "", url);
+    else history.pushState(HISTORY_STATE, "", url);
     setFocusedEntryId(entry.id);
-    history.replaceState(null, "", `#entry-${entry.id}`);
     window.scrollTo({ top: 0, behavior: "instant" });
   }, []);
 
   const handleExitFocus = useCallback(() => {
     scrollRestoreId.current = focusedEntryIdRef.current;
     setFocusedEntryId(null);
-    history.replaceState(null, "", window.location.pathname + window.location.search);
+    // Pop our own entry so the stack stays clean; the URL goes back with it.
+    if (history.state?.workledgerFocus) history.back();
+    else history.replaceState(null, "", window.location.pathname + window.location.search);
+  }, []);
+
+  // Back (button or swipe) while an entry is focused closes it.
+  useEffect(() => {
+    const handlePopState = () => {
+      if (!focusedEntryIdRef.current) return;
+      scrollRestoreId.current = focusedEntryIdRef.current;
+      setFocusedEntryId(null);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
   // After exiting focus mode, scroll to the entry that was focused.

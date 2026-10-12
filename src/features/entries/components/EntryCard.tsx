@@ -14,6 +14,8 @@ interface EntryCardProps {
   actions: EntryActions;
   Editor: EntryEditorComponent;
   isArchiveView?: boolean;
+  /** Editor and backlinks only. The toolbar and tags live elsewhere (the mobile info panel and action sheet). */
+  bare?: boolean;
 }
 
 function EntryPlaceholder({ entry, height }: { entry: WorkLedgerEntry; height?: number }) {
@@ -31,16 +33,16 @@ function EntryPlaceholder({ entry, height }: { entry: WorkLedgerEntry; height?: 
 
 // Default shallow memo: entries keep their object identity unless they changed,
 // and `actions` / `Editor` are stable references from the app.
-export const EntryCard = memo(function EntryCard({ entry, isLatest, actions, Editor, isArchiveView }: EntryCardProps) {
+export const EntryCard = memo(function EntryCard({ entry, isLatest, actions, Editor, isArchiveView, bare }: EntryCardProps) {
   const isOld = entry.dayKey < useTodayKey();
   const cardRef = useRef<HTMLDivElement>(null);
   const { near: nearViewport, lastHeight } = useNearViewport(cardRef);
   const { onTagsChange } = actions;
 
   return (
-    <div ref={cardRef} className="entry-card group scroll-mt-[120px]" id={`entry-${entry.id}`}>
-      <EntryToolbar entry={entry} actions={actions} isArchiveView={isArchiveView} />
-      {onTagsChange && !isArchiveView && (
+    <div ref={cardRef} className="entry-card group scroll-mt-[172px]" id={`entry-${entry.id}`}>
+      {!bare && <EntryToolbar entry={entry} actions={actions} isArchiveView={isArchiveView} />}
+      {!bare && onTagsChange && !isArchiveView && (
         <div className="mb-2">
           <TagEditor
             tags={entry.tags ?? []}
@@ -48,7 +50,7 @@ export const EntryCard = memo(function EntryCard({ entry, isLatest, actions, Edi
           />
         </div>
       )}
-      {isArchiveView && entry.tags?.length > 0 && (
+      {!bare && isArchiveView && entry.tags?.length > 0 && (
         <div className="mb-2 px-1">
           <div className="flex flex-wrap gap-1.5">
             {entry.tags.map((tag) => (
