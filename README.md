@@ -29,7 +29,7 @@
 
 ### Customize your workspace
 
-- **5 theme presets** -- Light, Dark, Dracula, Catppuccin Mocha, and Solarized Light — each adapts the entire UI including syntax highlighting
+- **7 theme presets** -- Nord Aurora (light), Nord Polar Night (dark), Punktespiegel, High Contrast, Dracula, Catppuccin Mocha, and Solarized Light — each adapts the entire UI including syntax highlighting
 - **7 font families** -- Figtree, Plus Jakarta Sans, DM Sans, Urbanist, Inter, JetBrains Mono, or Source Serif
 - **Focus mode** -- Full-screen, distraction-free writing on a single entry
 - **Progressive Web App** -- Install as a standalone app on any device, works offline

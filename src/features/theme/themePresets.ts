@@ -1,6 +1,8 @@
 export type ThemeId =
-  | "default-light"
-  | "default-dark"
+  | "nord-light"
+  | "nord-dark"
+  | "punktespiegel"
+  | "high-contrast"
   | "dracula"
   | "catppuccin-mocha"
   | "solarized-light";
@@ -15,8 +17,10 @@ export interface ThemePreset {
 }
 
 export const THEME_PRESETS: ThemePreset[] = [
-  { id: "default-light", label: "Default Light", isDark: false, accentColor: "#f97316" },
-  { id: "default-dark", label: "Default Dark", isDark: true, accentColor: "#fb923c" },
+  { id: "nord-light", label: "Nord Aurora", isDark: false, accentColor: "#4a6b95" },
+  { id: "nord-dark", label: "Nord Polar Night", isDark: true, accentColor: "#88c0d0" },
+  { id: "punktespiegel", label: "Punktespiegel", isDark: false, accentColor: "#206080" },
+  { id: "high-contrast", label: "High Contrast", isDark: true, accentColor: "#ffd60a" },
   { id: "dracula", label: "Dracula", isDark: true, accentColor: "#bd93f9" },
   { id: "catppuccin-mocha", label: "Catppuccin Mocha", isDark: true, accentColor: "#f5a97f" },
   { id: "solarized-light", label: "Solarized Light", isDark: false, accentColor: "#859900" },

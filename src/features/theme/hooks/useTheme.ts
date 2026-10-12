@@ -13,14 +13,14 @@ const VALID_FONT_IDS = new Set<string>(FONT_OPTIONS.map((f) => f.id));
 
 function getSystemThemeId(): ThemeId {
   return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "default-dark"
-    : "default-light";
+    ? "nord-dark"
+    : "nord-light";
 }
 
-/** Migrate legacy "dark"/"light" values to ThemeId */
+/** Migrate legacy "dark"/"light" and retired "default-*" values to ThemeId */
 function migrateThemeValue(value: string): ThemeId | null {
-  if (value === "dark") return "default-dark";
-  if (value === "light") return "default-light";
+  if (value === "dark" || value === "default-dark") return "nord-dark";
+  if (value === "light" || value === "default-light") return "nord-light";
   if (VALID_THEME_IDS.has(value)) return value as ThemeId;
   return null;
 }
@@ -107,7 +107,7 @@ export function useTheme() {
     if (hasExplicitTheme) return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const handler = (e: MediaQueryListEvent) => {
-      const id = e.matches ? "default-dark" : "default-light";
+      const id = e.matches ? "nord-dark" : "nord-light";
       setThemeIdState(id);
     };
     mq.addEventListener("change", handler);

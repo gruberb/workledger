@@ -3,34 +3,69 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Notebook theme — clean, bright palette inspired by modern productivity apps */
+/* Notebook theme. Base values are Nord Aurora (Snow Storm surfaces, darkened Frost accent) */
 @theme {
-  --color-notebook-bg: #fafafa;
-  --color-notebook-text: #1a1a1a;
-  --color-notebook-accent: #f97316;
-  --color-notebook-ruling: #e5e5e5;
-  --color-notebook-surface: #ffffff;
-  --color-notebook-surface-alt: #fcfcfc;
-  --color-notebook-muted: #666666;
-  --color-notebook-border: #e5e5e5;
-  --color-notebook-code-bg: #e8e8e8;
-  --color-notebook-scrollbar: #d1d5db;
-  --color-notebook-scrollbar-hover: #9ca3af;
+  --color-notebook-bg: #eceff4;
+  --color-notebook-text: #2e3440;
+  --color-notebook-accent: #4a6b95;
+  --color-notebook-ruling: #d8dee9;
+  --color-notebook-surface: #f8f9fc;
+  --color-notebook-surface-alt: #e5e9f0;
+  --color-notebook-muted: #4c566a;
+  --color-notebook-border: #d8dee9;
+  --color-notebook-code-bg: #e1e6ee;
+  --color-notebook-scrollbar: #c3ccdb;
+  --color-notebook-scrollbar-hover: #9aa7bd;
 }
 
-/* Dark mode overrides (Default Dark — also serves as base for Tailwind dark: variant) */
+/* Nord Polar Night: also the base for the Tailwind dark: variant */
 .dark {
-  --color-notebook-bg: #0f0f0f;
-  --color-notebook-text: #f5f5f5;
-  --color-notebook-accent: #fb923c;
-  --color-notebook-ruling: #2a2a2a;
-  --color-notebook-surface: #1a1a1a;
-  --color-notebook-surface-alt: #161616;
-  --color-notebook-muted: #a3a3a3;
-  --color-notebook-border: #2a2a2a;
-  --color-notebook-code-bg: #1e1e1e;
-  --color-notebook-scrollbar: #404040;
-  --color-notebook-scrollbar-hover: #525252;
+  --color-notebook-bg: #2e3440;
+  --color-notebook-text: #eceff4;
+  --color-notebook-accent: #88c0d0;
+  --color-notebook-ruling: #434c5e;
+  --color-notebook-surface: #3b4252;
+  --color-notebook-surface-alt: #353c4a;
+  --color-notebook-muted: #a3adc0;
+  --color-notebook-border: #434c5e;
+  --color-notebook-code-bg: #272c36;
+  --color-notebook-scrollbar: #4c566a;
+  --color-notebook-scrollbar-hover: #626f89;
+}
+
+/* Punktespiegel: linen paper, aubergine ink, azure accent (palette from fun-ui) */
+[data-theme="punktespiegel"] {
+  --color-notebook-bg: #f3ecdc;
+  --color-notebook-text: #2a1f33;
+  --color-notebook-accent: #206080;
+  --color-notebook-ruling: #e2d8c4;
+  --color-notebook-surface: #fdfaf2;
+  --color-notebook-surface-alt: #f8f3e7;
+  --color-notebook-muted: #786060;
+  --color-notebook-border: #e2d8c4;
+  --color-notebook-code-bg: #e8dfca;
+  --color-notebook-scrollbar: #c9b597;
+  --color-notebook-scrollbar-hover: #b09b7c;
+}
+
+/* High Contrast: black on white text (21:1), yellow accent, visible borders */
+[data-theme="high-contrast"] {
+  --color-notebook-bg: #000000;
+  --color-notebook-text: #ffffff;
+  --color-notebook-accent: #ffd60a;
+  --color-notebook-ruling: #8c8c8c;
+  --color-notebook-surface: #0a0a0a;
+  --color-notebook-surface-alt: #141414;
+  --color-notebook-muted: #d4d4d4;
+  --color-notebook-border: #8c8c8c;
+  --color-notebook-code-bg: #1a1a1a;
+  --color-notebook-scrollbar: #8c8c8c;
+  --color-notebook-scrollbar-hover: #ffffff;
+}
+
+[data-theme="high-contrast"] :focus-visible {
+  outline: 2px solid var(--color-notebook-accent);
+  outline-offset: 2px;
 }
 
 /* Dracula theme */
@@ -85,32 +120,62 @@
 
 /* Shiki syntax highlighting — CSS variable theme (light) */
 :root {
-  --shiki-foreground: #24292e;
+  --shiki-foreground: #2e3440;
   --shiki-background: transparent;
-  --shiki-token-constant: #005cc5;
-  --shiki-token-string: #032f62;
-  --shiki-token-comment: #6a737d;
-  --shiki-token-keyword: #d73a49;
-  --shiki-token-parameter: #24292e;
-  --shiki-token-function: #6f42c1;
-  --shiki-token-string-expression: #22863a;
-  --shiki-token-punctuation: #24292e;
-  --shiki-token-link: #005cc5;
+  --shiki-token-constant: #8f5e84;
+  --shiki-token-string: #4f7a3a;
+  --shiki-token-comment: #6b768a;
+  --shiki-token-keyword: #4a6b95;
+  --shiki-token-parameter: #2e3440;
+  --shiki-token-function: #3b7f8c;
+  --shiki-token-string-expression: #a1573f;
+  --shiki-token-punctuation: #4c566a;
+  --shiki-token-link: #4a6b95;
 }
 
-/* Shiki syntax highlighting — dark overrides */
+/* Shiki syntax highlighting — Nord Polar Night (dark base) */
 .dark {
-  --shiki-foreground: #e1e4e8;
+  --shiki-foreground: #d8dee9;
   --shiki-background: transparent;
-  --shiki-token-constant: #79b8ff;
-  --shiki-token-string: #9ecbff;
-  --shiki-token-comment: #6a737d;
-  --shiki-token-keyword: #f97583;
-  --shiki-token-parameter: #e1e4e8;
-  --shiki-token-function: #b392f0;
-  --shiki-token-string-expression: #85e89d;
-  --shiki-token-punctuation: #e1e4e8;
-  --shiki-token-link: #79b8ff;
+  --shiki-token-constant: #b48ead;
+  --shiki-token-string: #a3be8c;
+  --shiki-token-comment: #7b88a1;
+  --shiki-token-keyword: #81a1c1;
+  --shiki-token-parameter: #d8dee9;
+  --shiki-token-function: #88c0d0;
+  --shiki-token-string-expression: #ebcb8b;
+  --shiki-token-punctuation: #d8dee9;
+  --shiki-token-link: #88c0d0;
+}
+
+/* Shiki — Punktespiegel overrides */
+[data-theme="punktespiegel"] {
+  --shiki-foreground: #2a1f33;
+  --shiki-background: transparent;
+  --shiki-token-constant: #206080;
+  --shiki-token-string: #4f6a26;
+  --shiki-token-comment: #786060;
+  --shiki-token-keyword: #843c24;
+  --shiki-token-parameter: #2a1f33;
+  --shiki-token-function: #503050;
+  --shiki-token-string-expression: #9a6a08;
+  --shiki-token-punctuation: #4e3f4c;
+  --shiki-token-link: #206080;
+}
+
+/* Shiki — High Contrast overrides */
+[data-theme="high-contrast"] {
+  --shiki-foreground: #ffffff;
+  --shiki-background: transparent;
+  --shiki-token-constant: #79c0ff;
+  --shiki-token-string: #9aff9a;
+  --shiki-token-comment: #bdbdbd;
+  --shiki-token-keyword: #ff9ac1;
+  --shiki-token-parameter: #ffffff;
+  --shiki-token-function: #ffd60a;
+  --shiki-token-string-expression: #ffb86b;
+  --shiki-token-punctuation: #ffffff;
+  --shiki-token-link: #79c0ff;
 }
 
 /* Shiki — Dracula overrides */
