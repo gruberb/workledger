@@ -1,4 +1,4 @@
-import type { WorkLedgerEntry } from "../types/entry.ts";
+import type { EntrySignifier, WorkLedgerEntry } from "../types/entry.ts";
 
 /** Entries grouped by dayKey, newest first within each day. */
 export type EntriesByDay = Map<string, WorkLedgerEntry[]>;
@@ -8,6 +8,9 @@ export interface ActiveSnapshot {
   /** Every day with at least one non-archived entry, newest first. */
   dayKeys: string[];
   archivedCount: number;
+  /** Tags and signifiers on any non-archived entry, loaded or not, for the sidebar filters. */
+  allTags: string[];
+  allSignifiers: EntrySignifier[];
   /** Only built when `withArchive` is set. */
   archivedEntriesByDay?: EntriesByDay;
 }
@@ -36,9 +39,13 @@ export function buildActiveSnapshot(entries: WorkLedgerEntry[], options: Snapsho
   const archived = sorted.filter((e) => e.isArchived);
 
   const allDays = new Set<string>();
+  const allTags = new Set<string>();
+  const allSignifiers = new Set<EntrySignifier>();
   const included = new Set<string>(options.extraDays);
   for (const entry of active) {
     allDays.add(entry.dayKey);
+    for (const tag of entry.tags) allTags.add(tag);
+    if (entry.signifier) allSignifiers.add(entry.signifier);
     if (options.all || entry.isPinned) included.add(entry.dayKey);
   }
   const dayKeys = [...allDays].sort((a, b) => b.localeCompare(a));
@@ -61,7 +68,14 @@ export function buildActiveSnapshot(entries: WorkLedgerEntry[], options: Snapsho
       else archivedEntriesByDay.set(entry.dayKey, [entry]);
     }
   }
-  return { entriesByDay, dayKeys, archivedCount: archived.length, archivedEntriesByDay };
+  return {
+    entriesByDay,
+    dayKeys,
+    archivedCount: archived.length,
+    allTags: [...allTags],
+    allSignifiers: [...allSignifiers],
+    archivedEntriesByDay,
+  };
 }
 
 export function findEntry(map: EntriesByDay, id: string): WorkLedgerEntry | undefined {

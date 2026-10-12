@@ -42,11 +42,12 @@
 - **Syntax highlighting** -- 24 languages with Shiki, theme-aware code blocks
 - **Wiki-style linking** -- Type `[[` to link between entries and build a knowledge graph
 - **Backlinks** -- "Referenced by" panel below each entry shows all entries that link to it, auto-maintained on save
-- **Entry templates** -- Start entries with structured sections: Decision Log, Debugging Session, Meeting Notes, Learning Log, and End of Day — each with pre-filled headings and auto-tags
-- **Entry signifiers** -- Label entries as Decision, Question, Idea, or Milestone with color-coded indicators; filterable in the sidebar. Most entries need no signifier — use them to highlight what matters
+- **Entry templates** -- Start entries with structured sections: RFD (brief and full), Decision Log, Debugging Session, Meeting Notes, Learning Log, and End of Day, each with pre-filled headings and auto-tags or signifiers
+- **Entry signifiers** -- Label entries as Decision, Question, Idea, Milestone or RFD with color-coded indicators; filterable in the sidebar. Most entries need no signifier; use them to highlight what matters
+- **RFDs** -- Write RFDs (Requests for Discussion) as entries: start from the brief or full RFD template and delete the sections you don't need. Tag each RFD with its project, then filter by the RFD signifier plus the project tag (and save the filter) to see every RFD of a project. Link RFDs from daily notes with `[[`, and the RFD's "Referenced by" panel shows its history
 - **Pin entries** -- Pin important entries to the top of your stream
 - **Tagging** -- Color-coded tags for categorization and filtering
-- **Saved filters** -- Save tag + text filter combinations as named presets for one-click access
+- **Saved filters** -- Save tag, signifier and text filter combinations as named presets for one-click access. Tags and signifiers from all entries are listed, not only recent ones
 - **Search** -- Full-text search across all entries and tags (`Cmd+K`)
 
 ### Review your work

@@ -72,7 +72,7 @@ const SidebarDataCtx = createContext<SidebarDataValue | null>(null);
 // --- Provider ---
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
-  const { entriesByDay, dayKeys, archivedEntries, archivedCount } = useEntriesData();
+  const { entriesByDay, dayKeys, archivedEntries, archivedCount, storedTags, storedSignifiers } = useEntriesData();
   const { refreshArchive, deleteAllEntries } = useEntriesActions();
 
   const [isOpen, setIsOpen] = useState(
@@ -226,8 +226,10 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     [displayArchivedEntriesByDay],
   );
 
+  // Only recent days are in memory, so start from the tags of every stored entry
+  // (collected by the last full read) and add edits made since.
   const allTags = useMemo(() => {
-    const tagSet = new Set<string>();
+    const tagSet = new Set<string>(storedTags);
     for (const entries of entriesByDay.values()) {
       for (const entry of entries) {
         for (const tag of entry.tags ?? []) {
@@ -236,17 +238,17 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
       }
     }
     return [...tagSet].sort((a, b) => a.localeCompare(b));
-  }, [entriesByDay]);
+  }, [entriesByDay, storedTags]);
 
   const allSignifiers = useMemo(() => {
-    const set = new Set<string>();
+    const set = new Set<string>(storedSignifiers);
     for (const entries of entriesByDay.values()) {
       for (const entry of entries) {
         if (entry.signifier) set.add(entry.signifier);
       }
     }
     return [...set];
-  }, [entriesByDay]);
+  }, [entriesByDay, storedSignifiers]);
 
   const handleDeleteAll = useCallback(async () => {
     await deleteAllEntries();

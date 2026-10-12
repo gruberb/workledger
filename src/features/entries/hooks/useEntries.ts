@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { Block, PartialBlock } from "@blocknote/core";
-import type { EntrySignifier, WorkLedgerEntry } from "../types/entry.ts";
+import type { EntrySignifier, NewEntryOptions, WorkLedgerEntry } from "../types/entry.ts";
 import {
   putEntry,
   patchEntry,
@@ -49,6 +49,8 @@ export function useEntries() {
   const [archivedEntries, setArchivedEntries] = useState<EntriesByDay>(new Map());
   // Known from the startup scan, so the sidebar can show it before the archive loads.
   const [archivedCount, setArchivedCount] = useState(0);
+  const [storedTags, setStoredTags] = useState<string[]>([]);
+  const [storedSignifiers, setStoredSignifiers] = useState<EntrySignifier[]>([]);
 
   // Days loaded on demand outside the recent window; kept across refreshes.
   const extraDaysRef = useRef(new Set<string>());
@@ -71,6 +73,8 @@ export function useEntries() {
       setEntriesByDay(snapshot.entriesByDay);
       setDayKeys(snapshot.dayKeys);
       setArchivedCount(snapshot.archivedCount);
+      setStoredTags(snapshot.allTags);
+      setStoredSignifiers(snapshot.allSignifiers);
       if (snapshot.archivedEntriesByDay) setArchivedEntries(snapshot.archivedEntriesByDay);
       setError(null);
     } catch (err) {
@@ -128,7 +132,7 @@ export function useEntries() {
     return updated;
   }, []);
 
-  const createEntry = useCallback(async (options?: { blocks?: PartialBlock[]; tags?: string[] }): Promise<WorkLedgerEntry> => {
+  const createEntry = useCallback(async (options?: NewEntryOptions): Promise<WorkLedgerEntry> => {
     const now = Date.now();
     const entry: WorkLedgerEntry = {
       id: generateId(),
@@ -139,6 +143,7 @@ export function useEntries() {
       isArchived: false,
       tags: options?.tags ?? [],
       isPinned: false,
+      ...(options?.signifier && { signifier: options.signifier }),
     };
     await putEntry(entry);
     // Template entries must be searchable and linkable before their first edit.
@@ -243,6 +248,8 @@ export function useEntries() {
     error,
     archivedEntries,
     archivedCount,
+    storedTags,
+    storedSignifiers,
     createEntry,
     saveEntryContent,
     updateEntryTags,

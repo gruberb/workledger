@@ -86,6 +86,7 @@ Sidebar filtering uses three independent dimensions combined with AND logic:
 - `textQuery: string`: text search via search index + in-memory tag substring match, applied 200ms after typing stops
 - `selectedSignifiers: EntrySignifier[]`: signifier match
 - All managed in `SidebarContext`, all must pass for an entry to show. Saved filters store all three (older saved filters without `signifiers` load as `[]`)
+- Tag and signifier chips come from `storedTags`/`storedSignifiers` (collected by the full read in `buildActiveSnapshot`, so no extra scan) merged with loaded entries. Building them from loaded entries only hid tags used outside the recent window
 - Filters run over in-memory entries. Only the last 30 days are loaded normally, so `App.tsx` calls `setLoadAll(true)` while filters are applied in the main view (`isFiltering`, which follows the debounced text) and trims back when they clear
 
 ## Common gotchas
@@ -97,6 +98,7 @@ Sidebar filtering uses three independent dimensions combined with AND logic:
 - **Blocks with their own debounce register a pre-save hook** (`editor/utils/pre-save.ts`). The entry's unmount flush runs before its blocks' cleanups, so Excalidraw writes pending strokes into the document when `useAutoSave` flushes (unmount, `pagehide`, tab hidden)
 - **Archive is lazy**: `archivedEntries` stays empty until `refreshArchive()` is called (the archive view does this). `refresh()` does one `getAll` that rebuilds the active view, `archivedCount` (always current) and, once loaded, the archive. Don't add a second scan
 - **Backlinks index is a single settings row with an in-memory parsed cache** (`entries/storage/backlinks.ts`). Use `updateBacklinksBatch` for bulk writes; per-entry calls in a loop are O(n x index size). Settings rows derived from entries register via `registerDerivedSetting` so `clearAllData` drops them
+- **Adding a signifier breaks older clients**: `validateEntry`/`normalizeEntry` drop unknown signifiers, and the next edit on an old device pushes the entry without it. Release notes must tell users to update every synced device first (the `rfd` signifier shipped this way)
 - **DB migrations (`src/storage/db.ts`) must be idempotent over real old data.** v5 removes the retired `note`/`task` signifiers; `validateEntry`/`normalizeEntry` also drop unknown signifiers from imports and sync
 - Excalidraw is wrapped in an error boundary (`ExcalidrawBlock.tsx`) — drawing errors must not crash the app. Add error boundaries around other risky integrations too
 - Debounce timings: auto-save 500ms, search 200ms, sidebar filter 200ms, sync push 2s. Don't change without testing UX
