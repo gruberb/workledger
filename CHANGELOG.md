@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.7.0] - 2026-10-12
+
+### Changed
+
+- New navigation on every screen size: a slim top bar (menu, current view, search) replaces the floating sidebar toggle, and Search, Journal, Weekly review and Archive are always listed at the top of the sidebar instead of hiding in the settings menu. The settings button moved to the bottom of the sidebar
+- Mobile: the Journal is a list of entry previews under small day headers. Tapping one opens it full-screen with a back button, an info panel (dates, signifier, tags) and an actions sheet (copy link, download, pin, archive, delete). "+" sits in the top bar (long-press for templates), so no button floats over the text. The drawer is 85% wide so the page stays visible behind it
+- Crossing the mobile breakpoint (resize, rotate) closes or opens the sidebar to match the layout
+- An open entry now has its own browser history entry on every screen size: the back button or swipe closes it instead of leaving the app
+- A new entry created on mobile opens full-screen with the cursor in the editor
+
 ## [3.6.0] - 2026-10-12
 
 ### Added
