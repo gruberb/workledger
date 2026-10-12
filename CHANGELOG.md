@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Templates can set a signifier
 - AI: bring your own key for Anthropic, OpenAI and OpenRouter. Defaults are `claude-opus-5-5`, `gpt-5` and `openrouter/auto`; the model field suggests the models your key can use
 - AI: web search for research actions on Anthropic, OpenAI and OpenRouter, with the cited pages listed under each answer. Toggle it in AI settings
+- Download a single entry as Markdown from its toolbar, with YAML front matter (title, date, tags, signifier, id). Wiki-links stay as `[[Title]]` and drawings become a `[Drawing]` placeholder, so the file can go straight to a local LLM
 - AI: new actions "Ask / Research" (free-form question, with the selected entry as context), "Research an Unknown", "Draft RFD from Notes" and "Critique this RFD"
 
 ### Fixed

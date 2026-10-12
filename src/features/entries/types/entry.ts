@@ -98,6 +98,7 @@ export interface EntryActions {
   onSignifierChange?: (id: string, signifier: EntrySignifier | undefined) => void;
   onOpenAI?: (entry: WorkLedgerEntry) => void;
   onFocus?: (entry: WorkLedgerEntry) => void;
+  onDownloadMarkdown?: (entry: WorkLedgerEntry) => void;
 }
 
 export interface EntryEditorProps {

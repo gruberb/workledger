@@ -3,7 +3,7 @@ import type { EntryActions, WorkLedgerEntry } from "../types/entry.ts";
 import { SIGNIFIER_CONFIG } from "../types/entry.ts";
 import { formatTime } from "../../../utils/dates.ts";
 import { ConfirmAction } from "../../../components/ui/ConfirmAction.tsx";
-import { AIIcon, ArchiveIcon, CheckIcon, ExpandIcon, LinkIcon, PinIcon, RestoreIcon, TrashIcon } from "../../../components/ui/Icons.tsx";
+import { AIIcon, ArchiveIcon, CheckIcon, DownloadIcon, ExpandIcon, LinkIcon, PinIcon, RestoreIcon, TrashIcon } from "../../../components/ui/Icons.tsx";
 import { SignifierPicker } from "./SignifierPicker.tsx";
 
 const HOVER_BUTTON = "opacity-0 group-hover:opacity-100 max-sm:opacity-100 transition-opacity p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-300 dark:text-gray-600";
@@ -17,7 +17,7 @@ interface EntryToolbarProps {
 export function EntryToolbar({ entry, actions, isArchiveView }: EntryToolbarProps) {
   const [confirming, setConfirming] = useState<"archive" | "delete" | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
-  const { onSignifierChange, onPin, onUnpin, onFocus, onOpenAI, onArchive, onDelete, onUnarchive } = actions;
+  const { onSignifierChange, onPin, onUnpin, onFocus, onOpenAI, onArchive, onDelete, onUnarchive, onDownloadMarkdown } = actions;
 
   const handleCopyLink = useCallback(() => {
     const url = `${window.location.origin}${window.location.pathname}#entry-${entry.id}`;
@@ -118,6 +118,17 @@ export function EntryToolbar({ entry, actions, isArchiveView }: EntryToolbarProp
               </button>
             )}
           </>
+        )}
+
+        {!confirming && onDownloadMarkdown && (
+          <button
+            onClick={() => onDownloadMarkdown(entry)}
+            className={`${HOVER_BUTTON} hover:text-gray-500 dark:hover:text-gray-400`}
+            title="Download as Markdown"
+            aria-label="Download as Markdown"
+          >
+            <DownloadIcon />
+          </button>
         )}
 
         {!confirming && isArchiveView && onUnarchive && (
