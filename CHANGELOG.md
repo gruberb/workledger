@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.6.0] - 2026-10-12
+
 ### Added
 
 - Punktespiegel theme (linen paper, aubergine ink, azure accent) and a High Contrast theme (black and white with a yellow accent and visible focus outlines).
@@ -480,6 +482,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Local-first storage with IndexedDB -- no server required
 - Landing page
 
+[3.6.0]: https://github.com/gruberb/workledger/releases/tag/v3.6.0
 [3.5.0]: https://github.com/gruberb/workledger/releases/tag/v3.5.0
 [3.4.0]: https://github.com/gruberb/workledger/releases/tag/v3.4.0
 [3.3.1]: https://github.com/gruberb/workledger/releases/tag/v3.3.1
