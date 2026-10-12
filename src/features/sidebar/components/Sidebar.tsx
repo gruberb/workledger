@@ -22,7 +22,7 @@ interface SidebarProps {
 
 export function Sidebar({ onDayClick, onSearchOpen, settingsItems }: SidebarProps) {
   const isMobile = useIsMobile();
-  const { isOpen, toggleSidebar, archiveView, reviewView, activeDayKey } = useSidebarUI();
+  const { isOpen, toggleSidebar, archiveView, reviewView, activeDayKey, reviewWeekKey, setReviewWeekKey } = useSidebarUI();
   const { textQuery, setTextQuery, selectedTags, toggleTag, hasActiveFilters, selectedSignifiers, toggleSignifier, savedFilters, saveCurrentFilter, applySavedFilter, deleteSavedFilter, clearAllFilters } = useSidebarFilter();
   const {
     displayEntriesByDay,
@@ -70,6 +70,11 @@ export function Sidebar({ onDayClick, onSearchOpen, settingsItems }: SidebarProp
     onDayClick(dayKey);
     closeOnMobile();
   }, [onDayClick, closeOnMobile]);
+
+  const handleWeekSelect = useCallback((weekKey: string) => {
+    setReviewWeekKey(weekKey);
+    closeOnMobile();
+  }, [setReviewWeekKey, closeOnMobile]);
 
   const handleApplyFilter = useCallback((f: SavedFilter) => {
     applySavedFilter(f);
@@ -182,6 +187,8 @@ export function Sidebar({ onDayClick, onSearchOpen, settingsItems }: SidebarProp
           <SidebarWeekList
             dayKeys={dayKeys}
             entriesByDay={entriesByDay}
+            selectedWeekKey={reviewWeekKey}
+            onSelect={handleWeekSelect}
           />
         ) : (
           <SidebarDayList

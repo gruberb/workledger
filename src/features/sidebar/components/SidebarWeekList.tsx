@@ -5,6 +5,9 @@ import { isoWeekKey, mondayOfIsoWeek, previousIsoWeekKey, toDayKey } from "../..
 interface SidebarWeekListProps {
   dayKeys: string[];
   entriesByDay: Map<string, unknown[]>;
+  /** Week shown by the review, highlighted here. */
+  selectedWeekKey: string;
+  onSelect: (weekKey: string) => void;
 }
 
 interface WeekSummary {
@@ -14,12 +17,13 @@ interface WeekSummary {
 }
 
 function formatWeekLabel(weekKey: string, currentWeek: string): string {
-  if (weekKey === currentWeek) return "This Week";
-  if (weekKey === previousIsoWeekKey(currentWeek)) return "Last Week";
+  if (weekKey === currentWeek) return "This week";
+  if (weekKey === previousIsoWeekKey(currentWeek)) return "Last week";
   return `Week of ${format(mondayOfIsoWeek(weekKey), "MMM d")}`;
 }
 
-export const SidebarWeekList = memo(function SidebarWeekList({ dayKeys, entriesByDay }: SidebarWeekListProps) {
+/** Weeks with notes; a click jumps the review there. */
+export const SidebarWeekList = memo(function SidebarWeekList({ dayKeys, entriesByDay, selectedWeekKey, onSelect }: SidebarWeekListProps) {
   const weeks = useMemo<WeekSummary[]>(() => {
     const currentWeek = isoWeekKey(toDayKey(new Date()));
     const weekMap = new Map<string, number>();
@@ -56,20 +60,25 @@ export const SidebarWeekList = memo(function SidebarWeekList({ dayKeys, entriesB
         </svg>
         Weeks
       </p>
-      {weeks.map((week) => (
-        <div
-          key={week.weekKey}
-          className="px-3 py-2 rounded-lg text-sm flex items-center justify-between gap-2 text-gray-600 dark:text-gray-400"
-        >
-          <span className="truncate">{week.label}</span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
-            <span className="text-xs text-gray-400 dark:text-gray-500">
-              {week.entryCount}
+      {weeks.map((week) => {
+        const active = week.weekKey === selectedWeekKey;
+        return (
+          <button
+            key={week.weekKey}
+            onClick={() => onSelect(week.weekKey)}
+            aria-current={active ? "true" : undefined}
+            className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between gap-2 transition-colors ${active ? "sidebar-day-active font-medium" : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"}`}
+          >
+            <span className="truncate">{week.label}</span>
+            <span className="flex items-center gap-1.5">
+              <span className={`w-1.5 h-1.5 rounded-full ${active ? "sidebar-day-dot" : "bg-gray-300 dark:bg-gray-600"}`} />
+              <span className={`text-xs ${active ? "sidebar-day-count" : "text-gray-400 dark:text-gray-500"}`}>
+                {week.entryCount}
+              </span>
             </span>
-          </span>
-        </div>
-      ))}
+          </button>
+        );
+      })}
     </nav>
   );
 });

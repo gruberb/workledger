@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import type { EntrySignifier, WorkLedgerEntry } from "../types/entry.ts";
-import { formatDayKey } from "../../../utils/dates.ts";
+import { isoWeekDayKeys, isoWeekKey, mondayOfIsoWeek, previousIsoWeekKey } from "../../../utils/weeks.ts";
 
 export interface DayGroup {
   dayKey: string;
@@ -8,47 +8,21 @@ export interface DayGroup {
   entries: WorkLedgerEntry[];
 }
 
-export interface WeekGroup {
+export interface WeekSummary {
   weekKey: string;
-  weekLabel: string;
+  label: string;
+  /** Monday to Sunday of the week, e.g. "Oct 5 – Oct 11, 2026". */
   dateRange: string;
+  /** Newest day first; only days with entries. */
   days: DayGroup[];
   entryCount: number;
-  topTags: [string, number][];
   signifierCounts: [EntrySignifier, number][];
+  /** Most used first. */
+  tagCounts: [string, number][];
 }
 
-function toDayKey(year: number, monthIndex: number, day: number): string {
-  return `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-}
-
-export function getISOWeekKey(dayKey: string): string {
-  const [year, month, day] = dayKey.split("-").map(Number);
-  const d = new Date(Date.UTC(year, month - 1, day));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const weekNo = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-  return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
-}
-
-/** Monday of an ISO week as a day key (calendar math in UTC, no timezone shift). */
-export function getMondayDayKey(weekKey: string): string {
-  const [yearStr, weekStr] = weekKey.split("-W");
-  const year = parseInt(yearStr, 10);
-  const week = parseInt(weekStr, 10);
-  const jan4 = new Date(Date.UTC(year, 0, 4));
-  const jan4Day = jan4.getUTCDay() || 7;
-  const monday = new Date(jan4);
-  monday.setUTCDate(jan4.getUTCDate() - jan4Day + 1 + (week - 1) * 7);
-  return toDayKey(monday.getUTCFullYear(), monday.getUTCMonth(), monday.getUTCDate());
-}
-
-function previousWeekKey(weekKey: string): string {
-  const [year, month, day] = getMondayDayKey(weekKey).split("-").map(Number);
-  const prev = new Date(Date.UTC(year, month - 1, day - 7));
-  return getISOWeekKey(toDayKey(prev.getUTCFullYear(), prev.getUTCMonth(), prev.getUTCDate()));
-}
+/** What the review list is narrowed to; `null` shows every entry. */
+export type ReviewChip = { kind: "signifier"; value: EntrySignifier } | { kind: "tag"; value: string } | null;
 
 /** Parses a day key as local midnight so date-fns formats the intended date. */
 function localDate(dayKey: string): Date {
@@ -57,62 +31,60 @@ function localDate(dayKey: string): Date {
 }
 
 export function formatWeekLabel(weekKey: string, todayKey: string): string {
-  const currentWeek = getISOWeekKey(todayKey);
-  if (weekKey === currentWeek) return "This Week";
-  if (weekKey === previousWeekKey(currentWeek)) return "Last Week";
-  return `Week of ${format(localDate(getMondayDayKey(weekKey)), "MMM d")}`;
+  const currentWeek = isoWeekKey(todayKey);
+  if (weekKey === currentWeek) return "This week";
+  if (weekKey === previousIsoWeekKey(currentWeek)) return "Last week";
+  return `Week of ${format(mondayOfIsoWeek(weekKey), "MMM d")}`;
 }
 
-function formatDateRange(dayKeys: string[]): string {
-  const sorted = [...dayKeys].sort();
-  if (sorted.length === 0) return "";
-  if (sorted.length === 1) return formatDayKey(sorted[0]);
-  return `${formatDayKey(sorted[0])} – ${formatDayKey(sorted[sorted.length - 1])}`;
+function formatWeekRange(dayKeys: string[]): string {
+  const first = localDate(dayKeys[0]);
+  const last = localDate(dayKeys[dayKeys.length - 1]);
+  return `${format(first, "MMM d")} – ${format(last, "MMM d, yyyy")}`;
 }
 
-export function groupByWeek(entriesByDay: Map<string, WorkLedgerEntry[]>, todayKey: string): WeekGroup[] {
-  const weekMap = new Map<string, Map<string, WorkLedgerEntry[]>>();
-  for (const [dayKey, entries] of entriesByDay) {
-    const weekKey = getISOWeekKey(dayKey);
-    if (!weekMap.has(weekKey)) weekMap.set(weekKey, new Map());
-    weekMap.get(weekKey)!.set(dayKey, entries);
-  }
+/** Most used first; ties alphabetical so the chip order does not jump between renders. */
+function countBy<K extends string>(keys: Iterable<K>): [K, number][] {
+  const counts = new Map<K, number>();
+  for (const key of keys) counts.set(key, (counts.get(key) ?? 0) + 1);
+  return [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+}
 
-  return [...weekMap.entries()]
-    .sort(([a], [b]) => b.localeCompare(a))
-    .map(([weekKey, dayMap]) => {
-      const tagCounts = new Map<string, number>();
-      const sigCounts = new Map<EntrySignifier, number>();
-      let entryCount = 0;
-
-      const days: DayGroup[] = [...dayMap.entries()]
-        .sort(([a], [b]) => b.localeCompare(a))
-        .map(([dayKey, entries]) => {
-          entryCount += entries.length;
-          for (const entry of entries) {
-            for (const tag of entry.tags ?? []) {
-              tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
-            }
-            if (entry.signifier) {
-              sigCounts.set(entry.signifier, (sigCounts.get(entry.signifier) ?? 0) + 1);
-            }
-          }
-          return {
-            dayKey,
-            dayLabel: format(localDate(dayKey), "EEEE, MMM d"),
-            // Copy: the arrays belong to React state and must not be sorted in place.
-            entries: [...entries].sort((a, b) => b.createdAt - a.createdAt),
-          };
-        });
-
-      return {
-        weekKey,
-        weekLabel: formatWeekLabel(weekKey, todayKey),
-        dateRange: formatDateRange([...dayMap.keys()]),
-        days,
-        entryCount,
-        topTags: [...tagCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6),
-        signifierCounts: [...sigCounts.entries()].sort((a, b) => b[1] - a[1]),
-      };
+/** Entries of one ISO week, grouped by day, with signifier and tag counts. */
+export function summarizeWeek(entriesByDay: Map<string, WorkLedgerEntry[]>, weekKey: string, todayKey: string): WeekSummary {
+  const weekDays = isoWeekDayKeys(weekKey);
+  const days: DayGroup[] = [];
+  for (const dayKey of [...weekDays].reverse()) {
+    const entries = entriesByDay.get(dayKey);
+    if (!entries?.length) continue;
+    days.push({
+      dayKey,
+      dayLabel: format(localDate(dayKey), "EEEE, MMM d"),
+      // Copy: the arrays belong to React state and must not be sorted in place.
+      entries: [...entries].sort((a, b) => b.createdAt - a.createdAt),
     });
+  }
+  const all = days.flatMap((d) => d.entries);
+  return {
+    weekKey,
+    label: formatWeekLabel(weekKey, todayKey),
+    dateRange: formatWeekRange(weekDays),
+    days,
+    entryCount: all.length,
+    signifierCounts: countBy(all.flatMap((e) => (e.signifier ? [e.signifier] : []))),
+    tagCounts: countBy(all.flatMap((e) => e.tags ?? [])),
+  };
+}
+
+export function matchesChip(entry: WorkLedgerEntry, chip: ReviewChip): boolean {
+  if (!chip) return true;
+  return chip.kind === "signifier" ? entry.signifier === chip.value : (entry.tags ?? []).includes(chip.value);
+}
+
+/** Days narrowed to the entries matching the chip; empty days are dropped. */
+export function filterDays(days: DayGroup[], chip: ReviewChip): DayGroup[] {
+  if (!chip) return days;
+  return days
+    .map((day) => ({ ...day, entries: day.entries.filter((e) => matchesChip(e, chip)) }))
+    .filter((day) => day.entries.length > 0);
 }
