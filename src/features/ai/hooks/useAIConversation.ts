@@ -1,13 +1,15 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import type { AISettings, AIMessage, AIConversation } from "../types/ai.ts";
+import type { AISource } from "../providers/types.ts";
 import type { AIAction } from "../actions/types.ts";
 import { createProvider, getProviderConfigError } from "../providers/provider-factory.ts";
 import { buildMessages } from "../prompt-builder.ts";
 import { generateId } from "../../../utils/id.ts";
 import { saveConversation, getConversationsByEntry } from "../storage/ai-conversations.ts";
 
-function message(role: AIMessage["role"], content: string, actionId: string): AIMessage {
-  return { id: generateId(), role, content, timestamp: Date.now(), actionId };
+function message(role: AIMessage["role"], content: string, actionId: string, sources?: AISource[]): AIMessage {
+  const msg: AIMessage = { id: generateId(), role, content, timestamp: Date.now(), actionId };
+  return sources && sources.length > 0 ? { ...msg, sources } : msg;
 }
 
 export function useAIConversation(settings: AISettings) {
@@ -81,14 +83,21 @@ export function useAIConversation(settings: AISettings) {
       setStreaming(true);
       setStreamContent("");
       let fullResponse = "";
+      // Keyed by URL: the same page is often both searched and cited several times.
+      const sources = new Map<string, AISource>();
       try {
         const stream = provider.chat(buildMessages(action.systemPrompt, result.messages), {
           temperature: settings.temperature,
           maxTokens: settings.maxTokens,
           signal: abort.signal,
+          webSearch: settings.webSearch && !!action.webSearch,
         });
         for await (const chunk of stream) {
           if (abort.signal.aborted || !isCurrent()) break;
+          for (const source of chunk.sources ?? []) {
+            if (!sources.has(source.url) || source.title) sources.set(source.url, source);
+          }
+          if (!chunk.content) continue;
           fullResponse += chunk.content;
           setStreamContent(fullResponse);
         }
@@ -101,7 +110,7 @@ export function useAIConversation(settings: AISettings) {
       if (fullResponse) {
         result = {
           ...result,
-          messages: [...result.messages, message("assistant", fullResponse, action.id)],
+          messages: [...result.messages, message("assistant", fullResponse, action.id, [...sources.values()])],
           updatedAt: Date.now(),
         };
       }

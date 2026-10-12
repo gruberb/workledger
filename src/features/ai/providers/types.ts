@@ -3,17 +3,32 @@ export interface LLMMessage {
   content: string;
 }
 
+/** A web page the model cited or searched. */
+export interface AISource {
+  url: string;
+  title?: string;
+}
+
 export interface LLMStreamChunk {
   content: string;
   done: boolean;
+  sources?: AISource[];
+}
+
+export interface ChatOptions {
+  temperature: number;
+  maxTokens: number;
+  signal?: AbortSignal;
+  /** Let the model search the web. Ignored by providers without `supportsWebSearch`. */
+  webSearch?: boolean;
 }
 
 export interface LLMProvider {
+  /** Whether `chat` honors `webSearch`. */
+  readonly supportsWebSearch: boolean;
+
   /** Send messages and stream back response chunks */
-  chat(
-    messages: LLMMessage[],
-    options: { temperature: number; maxTokens: number; signal?: AbortSignal },
-  ): AsyncGenerator<LLMStreamChunk>;
+  chat(messages: LLMMessage[], options: ChatOptions): AsyncGenerator<LLMStreamChunk>;
 
   /** Check if the provider is reachable */
   ping(): Promise<boolean>;

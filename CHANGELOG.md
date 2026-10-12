@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - RFD support: a new `RFD` signifier and two templates, "RFD (brief)" (status plus the five intent lines) and "RFD (full)" (summary, problem, boundaries, unknowns, options, contract, acceptance cases, implementation, checkpoint and log). Each section is a heading with hints, so an RFD can be shortened by deleting sections. Combine the signifier with a project tag and save the filter to get every RFD of a project in one click
 - Templates can set a signifier
+- AI: bring your own key for Anthropic, OpenAI and OpenRouter. Defaults are `claude-opus-5-5`, `gpt-5` and `openrouter/auto`; the model field suggests the models your key can use
+- AI: web search for research actions on Anthropic, OpenAI and OpenRouter, with the cited pages listed under each answer. Toggle it in AI settings
+- AI: new actions "Ask / Research" (free-form question, with the selected entry as context), "Research an Unknown", "Draft RFD from Notes" and "Critique this RFD"
 
 ### Fixed
 

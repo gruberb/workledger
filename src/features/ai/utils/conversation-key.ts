@@ -20,5 +20,8 @@ export function conversationKey(
       return `week-${isoWeekKey(toDayKey(now))}`;
     case "topic":
       return `topic-${(context.query ?? "").trim().toLowerCase()}`;
+    case "ask":
+      // Every question is its own conversation; asking again must not resume an old answer.
+      return `ask-${now.getTime()}`;
   }
 }

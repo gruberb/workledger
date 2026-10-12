@@ -1,4 +1,4 @@
-import type { LLMStreamChunk } from "./types.ts";
+import type { AISource, LLMStreamChunk } from "./types.ts";
 
 /**
  * Incremental Server-Sent Events decoder. Returns the `data` payload of each
@@ -49,37 +49,65 @@ export function createSSEDecoder() {
   };
 }
 
+/** Keeps only http(s) links: sources are rendered as clickable anchors. */
+export function toSource(url: unknown, title: unknown): AISource | null {
+  if (typeof url !== "string") return null;
+  try {
+    const { protocol } = new URL(url);
+    if (protocol !== "https:" && protocol !== "http:") return null;
+  } catch {
+    return null;
+  }
+  return typeof title === "string" && title ? { url, title } : { url };
+}
+
+/** `url_citation` annotations, as sent by OpenRouter's web plugin and OpenAI-compatible servers. */
+function parseAnnotations(annotations: unknown): AISource[] {
+  if (!Array.isArray(annotations)) return [];
+  return annotations.flatMap((a) => {
+    if (a?.type !== "url_citation") return [];
+    // OpenRouter nests the fields under `url_citation`; others put them on the annotation.
+    const citation = a.url_citation ?? a;
+    const source = toSource(citation.url, citation.title);
+    return source ? [source] : [];
+  });
+}
+
 /** Maps one OpenAI-compatible chat completion SSE payload to a chunk. */
-function parseChatCompletionEvent(data: string): LLMStreamChunk | null {
+export function parseChatCompletionEvent(data: string): LLMStreamChunk | null {
   if (data === "[DONE]") return { content: "", done: true };
   try {
     const json = JSON.parse(data);
-    const content = json.choices?.[0]?.delta?.content || "";
-    const finished = json.choices?.[0]?.finish_reason != null;
-    return { content, done: finished };
+    const choice = json.choices?.[0];
+    const content = choice?.delta?.content || "";
+    const finished = choice?.finish_reason != null;
+    const sources = parseAnnotations(choice?.delta?.annotations ?? choice?.message?.annotations);
+    return sources.length > 0 ? { content, done: finished, sources } : { content, done: finished };
   } catch {
     return null; // skip malformed chunks
+  }
+}
+
+/** Decodes an SSE response body into event payloads. */
+export async function* readSSEData(reader: ReadableStreamDefaultReader<Uint8Array>): AsyncGenerator<string> {
+  const textDecoder = new TextDecoder();
+  const sse = createSSEDecoder();
+  while (true) {
+    const { done, value } = await reader.read();
+    yield* done
+      ? [...sse.push(textDecoder.decode()), ...sse.flush()]
+      : sse.push(textDecoder.decode(value, { stream: true }));
+    if (done) return;
   }
 }
 
 export async function* parseSSEStream(
   reader: ReadableStreamDefaultReader<Uint8Array>,
 ): AsyncGenerator<LLMStreamChunk> {
-  const textDecoder = new TextDecoder();
-  const sse = createSSEDecoder();
-
-  while (true) {
-    const { done, value } = await reader.read();
-    const events = done
-      ? [...sse.push(textDecoder.decode()), ...sse.flush()]
-      : sse.push(textDecoder.decode(value, { stream: true }));
-
-    for (const data of events) {
-      const chunk = parseChatCompletionEvent(data);
-      if (!chunk) continue;
-      yield chunk;
-      if (data === "[DONE]") return;
-    }
-    if (done) return;
+  for await (const data of readSSEData(reader)) {
+    const chunk = parseChatCompletionEvent(data);
+    if (!chunk) continue;
+    yield chunk;
+    if (data === "[DONE]") return;
   }
 }

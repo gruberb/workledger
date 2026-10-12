@@ -11,9 +11,25 @@ interface AISetupGuideProps {
 
 const TABS: { id: AIProviderType; label: string }[] = [
   { id: "ollama", label: "Local (Ollama)" },
+  { id: "anthropic", label: "Anthropic" },
+  { id: "openai", label: "OpenAI" },
+  { id: "openrouter", label: "OpenRouter" },
   { id: "huggingface", label: "Hugging Face" },
   { id: "custom", label: "Custom Server" },
 ];
+
+function keySteps(site: string, page: string) {
+  return (
+    <>
+      <p className="text-xs text-gray-600 dark:text-gray-300 font-medium mb-2">Bring your own key:</p>
+      <ol className="text-xs text-gray-500 space-y-1.5 list-decimal list-inside">
+        <li>Sign in at <span className="text-orange-600 font-medium">{site}</span></li>
+        <li>Create a key under {page}</li>
+        <li>Paste it below. Requests go straight from this browser to the provider; supports web search</li>
+      </ol>
+    </>
+  );
+}
 
 const codeClass = "px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-[11px]";
 
@@ -38,6 +54,9 @@ const INSTRUCTIONS: Record<AIProviderType, ReactNode> = {
       </ol>
     </>
   ),
+  anthropic: keySteps("platform.claude.com", "Settings > API keys"),
+  openai: keySteps("platform.openai.com", "API keys"),
+  openrouter: keySteps("openrouter.ai", "Keys. The default model, openrouter/auto, picks one per request"),
   custom: (
     <>
       <p className="text-xs text-gray-600 dark:text-gray-300 font-medium mb-2">Connect to any OpenAI-compatible server:</p>
@@ -88,7 +107,7 @@ export function AISetupGuide({ settings, onUpdateSettings }: AISetupGuideProps) 
         Connect to a local or remote LLM to power AI actions.
       </p>
 
-      <div className="flex border-b border-gray-100 dark:border-gray-800 mb-4">
+      <div className="flex flex-wrap border-b border-gray-100 dark:border-gray-800 mb-4">
         {TABS.map((tab) => (
           <button
             key={tab.id}

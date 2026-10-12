@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { AISettings } from "../types/ai.ts";
 import type { LLMProvider } from "../providers/types.ts";
 import { createProvider, getProviderConfigError } from "../providers/provider-factory.ts";
+import { pickProviderDraft } from "../utils/provider-draft.ts";
 
 export type AIConnectionStatus = "disabled" | "unconfigured" | "checking" | "connected" | "disconnected";
 
@@ -13,16 +14,17 @@ interface GateOptions {
 }
 
 export function useAIFeatureGate(settings: AISettings, { debounceMs = 300, retryMs = 30_000 }: GateOptions = {}) {
-  const { enabled, provider: providerType, ollamaUrl, ollamaModel, hfApiKey, hfModel, customUrl, customApiKey, customModel } = settings;
+  const { enabled, provider: providerType } = settings;
+  const connectionKey = JSON.stringify(pickProviderDraft(settings));
 
-  // Keyed on connection fields only: temperature and maxTokens changes must
-  // not create a new provider and trigger another ping.
+  // Keyed on connection fields only: temperature, maxTokens and webSearch changes
+  // must not create a new provider and trigger another ping.
   const { provider, configError } = useMemo(() => {
     if (!enabled) return { provider: null, configError: null };
-    const connection = { ...settings, provider: providerType, ollamaUrl, ollamaModel, hfApiKey, hfModel, customUrl, customApiKey, customModel };
+    const connection = { ...settings, provider: providerType };
     return { provider: createProvider(connection), configError: getProviderConfigError(connection) };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, providerType, ollamaUrl, ollamaModel, hfApiKey, hfModel, customUrl, customApiKey, customModel]);
+  }, [enabled, providerType, connectionKey]);
 
   const [pingResult, setPingResult] = useState<{ provider: LLMProvider; ok: boolean } | null>(null);
 

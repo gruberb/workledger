@@ -11,6 +11,7 @@ const SCOPE_LABELS: Record<string, string> = {
   day: "Today",
   week: "This week",
   topic: "Search",
+  ask: "Ask",
 };
 
 export function ActionSelector({ onSelectAction, hasTargetEntry }: ActionSelectorProps) {

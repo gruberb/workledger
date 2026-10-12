@@ -9,13 +9,19 @@ import { VitePWA } from "vite-plugin-pwa";
 // can still load on demand when online.
 const MERMAID_MODULE = /node_modules\/(mermaid|@excalidraw\/mermaid-to-excalidraw|elkjs|cytoscape[^/]*|cose-base|layout-base|katex|dagre-d3-es)\//;
 const EXCALIDRAW_LOCALE_MODULE = /node_modules\/@excalidraw\/excalidraw\/dist\/[^/]+\/locales\//;
+// The Anthropic SDK (and the dependencies bundled with it) only serves API calls,
+// which need the network anyway.
+const ANTHROPIC_SDK_MODULE = /node_modules\/@anthropic-ai\/sdk\//;
 const CORE_MODULE = /^(?!.*node_modules)|node_modules\/@excalidraw\/excalidraw\/(?!.*\/locales\/)/;
 
 const optionalChunks = new Set<string>();
 
 function isOptionalChunk(moduleIds: string[]): boolean {
   if (moduleIds.length === 0 || moduleIds.some((id) => CORE_MODULE.test(id))) return false;
-  return moduleIds.every((id) => EXCALIDRAW_LOCALE_MODULE.test(id)) || moduleIds.some((id) => MERMAID_MODULE.test(id));
+  return (
+    moduleIds.every((id) => EXCALIDRAW_LOCALE_MODULE.test(id)) ||
+    moduleIds.some((id) => MERMAID_MODULE.test(id) || ANTHROPIC_SDK_MODULE.test(id))
+  );
 }
 
 /** Records optional chunk file names so the service worker can skip precaching them. */

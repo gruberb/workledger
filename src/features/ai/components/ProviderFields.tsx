@@ -10,21 +10,52 @@ interface ProviderFieldsProps {
   provider: AIProviderType;
   values: ProviderDraft;
   onChange: (updates: Partial<ProviderDraft>) => void;
-  /** Models installed on the Ollama server; falls back to a text input when empty. */
-  ollamaModels?: string[];
+  /** Models the provider reports; offered as suggestions, or as a select for Ollama. */
+  models?: string[];
 }
 
-export function ProviderFields({ provider, values, onChange, ollamaModels = [] }: ProviderFieldsProps) {
+/** Hosted providers that need only a key and a model. */
+const HOSTED: Partial<Record<AIProviderType, { key: "anthropicApiKey" | "openaiApiKey" | "openrouterApiKey"; model: "anthropicModel" | "openaiModel" | "openrouterModel"; keyPlaceholder: string }>> = {
+  anthropic: { key: "anthropicApiKey", model: "anthropicModel", keyPlaceholder: "sk-ant-..." },
+  openai: { key: "openaiApiKey", model: "openaiModel", keyPlaceholder: "sk-..." },
+  openrouter: { key: "openrouterApiKey", model: "openrouterModel", keyPlaceholder: "sk-or-..." },
+};
+
+export function ProviderFields({ provider, values, onChange, models = [] }: ProviderFieldsProps) {
+  const hosted = HOSTED[provider];
+  if (hosted) {
+    return (
+      <>
+        <SecretField label="API Key" value={values[hosted.key]} placeholder={hosted.keyPlaceholder} onChange={(v) => onChange({ [hosted.key]: v })} />
+        <div>
+          <label className={labelClass}>Model</label>
+          <input
+            type="text"
+            list={models.length > 0 ? `${provider}-models` : undefined}
+            value={values[hosted.model]}
+            onChange={(e) => onChange({ [hosted.model]: e.target.value })}
+            className={inputClass}
+          />
+          {models.length > 0 && (
+            <datalist id={`${provider}-models`}>
+              {models.map((m) => <option key={m} value={m} />)}
+            </datalist>
+          )}
+        </div>
+      </>
+    );
+  }
+
   if (provider === "ollama") {
     return (
       <>
         <UrlField label="Server URL" value={values.ollamaUrl} placeholder="http://localhost:11434" onChange={(ollamaUrl) => onChange({ ollamaUrl })} />
         <div>
           <label className={labelClass}>Model name</label>
-          {ollamaModels.length > 0 ? (
+          {models.length > 0 ? (
             <select value={values.ollamaModel} onChange={(e) => onChange({ ollamaModel: e.target.value })} className={inputClass}>
-              {!ollamaModels.includes(values.ollamaModel) && <option value={values.ollamaModel}>{values.ollamaModel}</option>}
-              {ollamaModels.map((m) => <option key={m} value={m}>{m}</option>)}
+              {!models.includes(values.ollamaModel) && <option value={values.ollamaModel}>{values.ollamaModel}</option>}
+              {models.map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
           ) : (
             <>

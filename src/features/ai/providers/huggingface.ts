@@ -1,4 +1,4 @@
-import type { LLMProvider, LLMMessage, LLMStreamChunk } from "./types.ts";
+import type { ChatOptions, LLMProvider, LLMMessage, LLMStreamChunk } from "./types.ts";
 import { parseSSEStream } from "./stream-parser.ts";
 
 /** Curated models available through HF Inference Providers. */
@@ -13,6 +13,7 @@ export const HF_MODELS: { id: string; label: string }[] = [
 ];
 
 export class HuggingFaceProvider implements LLMProvider {
+  readonly supportsWebSearch = false;
   private apiKey: string;
   private model: string;
 
@@ -23,7 +24,7 @@ export class HuggingFaceProvider implements LLMProvider {
 
   async *chat(
     messages: LLMMessage[],
-    options: { temperature: number; maxTokens: number; signal?: AbortSignal },
+    options: ChatOptions,
   ): AsyncGenerator<LLMStreamChunk> {
     const response = await fetch(
       `https://router.huggingface.co/v1/chat/completions`,
