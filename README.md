@@ -59,7 +59,7 @@
 
 - **Local-first** -- All data stored in IndexedDB, no server required
 - **Optional server sync** -- End-to-end encrypted sync across devices. Use the default server or [self-host your own](https://github.com/gruberb/workledger-sync) — generate a sync ID, and your entries are encrypted before leaving the browser
-- **Import & export** -- Export all entries as JSON for backup, import them back anytime
+- **Import & export** -- Export all entries as JSON for backup, import them back anytime, or import a Logseq graph (see [Importing](#importing))
 - **Archive & restore** -- Archive old entries to keep your workspace clean, browse and restore them anytime
 - **Mobile-friendly** -- Responsive layout with touch-friendly controls
 - **Keyboard-driven** -- `Cmd+J` new entry, `Cmd+K` search, `Cmd+\` toggle sidebar, `Escape` clear filter
@@ -90,6 +90,56 @@ Actions support multi-entry context (day, week, or topic scope) and topic search
 <p align="center">
   <img src="docs/images/ai/ai_in_action.png" alt="AI notebook companion" width="720">
 </p>
+
+## Importing
+
+Both imports are in the **gear menu** in the left sidebar. Importing never overwrites a newer version of an entry, so it is safe to run again.
+
+### WorkLedger JSON
+
+**Import entries** takes the file written by **Export entries**:
+
+```json
+{
+  "version": 1,
+  "exportedAt": "2026-10-11T12:00:00.000Z",
+  "entryCount": 1,
+  "entries": [
+    {
+      "id": "3f2b...",
+      "dayKey": "2026-10-11",
+      "createdAt": 1760184000000,
+      "updatedAt": 1760184000000,
+      "blocks": [],
+      "isArchived": false,
+      "tags": ["work"],
+      "isPinned": false
+    }
+  ]
+}
+```
+
+`blocks` is the [BlockNote](https://www.blocknotejs.org/) document. Entries that fail validation are counted as invalid and skipped.
+
+### Logseq
+
+**Import from Logseq** asks for your graph folder (the one containing `journals/` and `pages/`). Everything is converted in the browser; nothing is uploaded.
+
+| Logseq | WorkLedger |
+|--------|------------|
+| Journal `journals/2024_06_15.md` | Entry on June 15, 2024 |
+| Page `pages/Project X.md` | Entry on the file's last-modified day, titled "Project X" |
+| Nested bullets | Nested list items |
+| `TODO` / `DOING` / `LATER` / `NOW`, `DONE`, `CANCELED` | Checklist items (open, checked, checked and struck through) |
+| `[[Page]]`, `[label]([[Page]])`, `{{embed [[Page]]}}` | Entry links (plain text if the page has no file) |
+| `#tag`, `#[[multi word]]`, `tags::` | Entry tags |
+| `title::`, `alias::` | Entry title, extra names for links |
+| `((block-ref))`, `{{embed ((block-ref))}}` | The referenced block's text |
+| Other `{{macros}}` (queries, renderers) | Shown as inline code |
+| Other `key:: value` properties | Dropped |
+| Local images from `assets/` | Not imported (a note marks where they were) |
+
+Re-importing the same graph updates the entries it created earlier; entries you have edited in WorkLedger since then are kept. Journal file names must use Logseq's default `yyyy_MM_dd` format.
 
 ## Getting Started
 

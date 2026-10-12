@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef } from "react";
 import { AppShell } from "../components/layout/AppShell.tsx";
 import { ErrorBoundary } from "../components/ui/ErrorBoundary.tsx";
 import { Sidebar } from "../features/sidebar/index.ts";
@@ -8,6 +8,7 @@ import { EntryEditor } from "../features/editor/index.ts";
 import { SearchPanel, useSearch } from "../features/search/index.ts";
 import { useFocusModeContext } from "../features/focus-mode/index.ts";
 import { useAIContext } from "../features/ai/index.ts";
+import { LogseqImportInput } from "../features/logseq-import/index.ts";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts.ts";
 import { useIsMobile } from "../hooks/useIsMobile.ts";
 import { scrollToEntry } from "../utils/scroll.ts";
@@ -74,6 +75,9 @@ function AppContent() {
     [visibleEntriesByDay],
   );
 
+  const logseqInputRef = useRef<HTMLInputElement>(null);
+  const handleImportLogseq = useCallback(() => logseqInputRef.current?.click(), []);
+
   const handleReviewOpenAI = useCallback(() => {
     setAISidebarOpen(true);
   }, [setAISidebarOpen]);
@@ -114,8 +118,9 @@ function AppContent() {
       <Sidebar
         onDayClick={handleDayClick}
         onSearchOpen={openSearch}
-        settingsItems={<SettingsMenuItems />}
+        settingsItems={<SettingsMenuItems onImportLogseq={handleImportLogseq} />}
       />
+      <LogseqImportInput inputRef={logseqInputRef} />
 
       <AppShell sidebarOpen={sidebarOpen} aiSidebarOpen={aiSidebarOpen}>
         {reviewView ? (

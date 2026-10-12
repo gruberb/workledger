@@ -53,6 +53,17 @@ export async function importEntries(
     }
   }
 
+  return { ...(await saveImportedEntries(valid)), invalid };
+}
+
+/**
+ * Writes entries from any import source and keeps every derived index and sync
+ * in step. An existing entry is only replaced by a strictly newer version, so
+ * re-importing the same data is a no-op and local edits made after an import win.
+ */
+export async function saveImportedEntries(
+  valid: WorkLedgerEntry[],
+): Promise<{ imported: number; skipped: number }> {
   // Entries and their search rows commit together. Only IDB requests are awaited
   // inside, so the transaction stays open for the whole batch.
   const db = await getDB();
@@ -81,5 +92,5 @@ export async function importEntries(
     emit("entry-changed", { entryId: entry.id });
   }
 
-  return { imported: imported.length, skipped: valid.length - imported.length, invalid };
+  return { imported: imported.length, skipped: valid.length - imported.length };
 }

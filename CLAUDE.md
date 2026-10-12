@@ -35,6 +35,7 @@ src/
     sync/          # E2E encrypted sync (optional, SyncProvider)
     theme/         # Dark/light mode
     ai/            # OPTIONAL — AI sidebar, fully gated & removable
+    logseq-import/ # Logseq graph import (folder picker, conversion, loaded on demand)
 ```
 
 Each feature owns its `components/`, `context/`, `hooks/`, `storage/`, `types/`, `utils/` as needed.
@@ -106,6 +107,8 @@ Sidebar filtering uses three independent dimensions combined with AND logic:
 - **Backlinks index must be updated on import and sync merge**: `importEntries()` and `applyRemoteEntries()` must update backlinks alongside the search index. Missing this means wiki-links won't generate "Referenced by" panels (was a real bug for import, fixed; sync merge had the same bug)
 - **AI provider construction never throws** (`createProvider` returns null, `getProviderConfigError` explains why). `AIProvider` is wrapped in its own error boundary. A throw in render there once blanked the app on every reload because the bad URL was already saved
 - **AI conversation keys include the local day or ISO week** for day/week/standup actions; without that, "My Day" resumed the first summary ever generated. Only the latest stream may update state; streams abort on Back, action switch, target change and unmount
+- **All imports go through `saveImportedEntries`** (`entries/storage/import-export.ts`): it keeps the newer version, updates search and backlinks, and emits `entry-changed` so imported entries sync. A new import source must not write entries itself
+- **Logseq import** converts Logseq markdown to standard markdown (`logseq-import/utils/logseq-markdown.ts`), then parses it with a headless BlockNote editor using `workledgerSchema`. Page links pass through the parser as `https://logseq.invalid/page/<name>` placeholder links and are swapped for `entryLink` inline content afterwards; a custom URL scheme could be dropped by link validation. Entry ids are a SHA-256 of graph folder plus file path, so re-imports update instead of duplicating. The conversion takes the parser as a parameter so it is testable without a DOM
 - **Shiki uses `shiki/core` with explicit grammar imports** (`editor/utils/code-highlighter.ts`). The list must match `supportedLanguages` in `EditorProvider.tsx`. Importing the full `shiki` bundle emits ~300 language chunks that the service worker would precache
 - **Service worker precache skips optional chunks** (Mermaid-to-Excalidraw, Excalidraw locales) via the `markOptionalChunks` plugin in `vite.config.ts`. Excalidraw is imported only on demand; don't add a module-level `import()` or a `manualChunks` entry for it, both pull it into startup
 - **Lazy editor mounting (`useNearViewport`) must start `near = true`** — starting `false` renders short placeholders that break `scrollIntoView` positions. Starting `true` mounts all editors on first render, then IntersectionObserver unmounts far-away ones after the first frame

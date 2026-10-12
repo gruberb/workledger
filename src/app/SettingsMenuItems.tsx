@@ -12,8 +12,12 @@ import { THEME_PRESETS, FONT_OPTIONS, useThemeContext } from "../features/theme/
 import { StorageSubmenu, useSyncContext } from "../features/sync/index.ts";
 import { useAIContext } from "../features/ai/index.ts";
 
+interface SettingsMenuItemsProps {
+  onImportLogseq: () => void;
+}
+
 /** Cross-feature items for the sidebar settings menu, slotted in by App. */
-export function SettingsMenuItems() {
+export function SettingsMenuItems({ onImportLogseq }: SettingsMenuItemsProps) {
   const { themeId, fontFamily } = useThemeContext();
   const { config: syncConfig } = useSyncContext();
   const { settings: aiSettings, handleToggleAI } = useAIContext();
@@ -62,6 +66,15 @@ export function SettingsMenuItems() {
         detail={syncConfig.mode === "remote" ? "Remote" : "Local"}
         submenu={<StorageMenu />}
       />
+
+      <SettingsMenuDivider />
+
+      <SettingsMenuItem onClick={onImportLogseq}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+        </svg>
+        Import from Logseq
+      </SettingsMenuItem>
     </>
   );
 }
