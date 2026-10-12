@@ -10,19 +10,17 @@ interface SaveFilterButtonProps {
   onSave: (name: string) => void;
   savedFilters?: SavedFilter[];
   selectedTags?: string[];
-  textQuery?: string;
   selectedSignifiers?: EntrySignifier[];
-  variant?: "icon" | "text";
 }
 
-export function SaveFilterButton({ onSave, savedFilters, selectedTags = [], textQuery = "", selectedSignifiers = [], variant = "text" }: SaveFilterButtonProps) {
+export function SaveFilterButton({ onSave, savedFilters, selectedTags = [], selectedSignifiers = [] }: SaveFilterButtonProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const popoverRef = useRef<HTMLDivElement>(null);
 
   // Check if current filters match an existing saved filter
   const matchingFilter = savedFilters?.find((f) =>
-    savedFilterMatches(f, { tags: selectedTags, textQuery, signifiers: selectedSignifiers }),
+    savedFilterMatches(f, { tags: selectedTags, signifiers: selectedSignifiers }),
   );
 
   const closePopover = useCallback(() => { setOpen(false); setName(""); }, []);
@@ -38,11 +36,11 @@ export function SaveFilterButton({ onSave, savedFilters, selectedTags = [], text
 
   if (matchingFilter) {
     return (
-      <span className={`flex items-center gap-1 shrink-0 ${variant === "icon" ? "text-orange-400" : "text-xs text-orange-400"}`} title={`Saved as "${matchingFilter.name}"`}>
+      <span className="flex items-center gap-1 shrink-0 text-xs text-orange-400" title={`Saved as "${matchingFilter.name}"`}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
         </svg>
-        {variant === "text" && <span>{matchingFilter.name}</span>}
+        <span>{matchingFilter.name}</span>
       </span>
     );
   }
@@ -51,18 +49,14 @@ export function SaveFilterButton({ onSave, savedFilters, selectedTags = [], text
     <div className="relative" ref={popoverRef}>
       <button
         onClick={() => setOpen((p) => !p)}
-        className={`flex items-center gap-1 shrink-0 transition-colors ${
-          variant === "icon"
-            ? "p-0.5 text-gray-400 hover:text-orange-500"
-            : "text-xs text-gray-400 hover:text-orange-500"
-        }`}
+        className="flex items-center gap-1 shrink-0 transition-colors text-xs text-gray-400 hover:text-orange-500"
         title="Save current filter"
         aria-label="Save current filter"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
         </svg>
-        {variant === "text" && <span>Save filter</span>}
+        <span>Save filter</span>
       </button>
 
       {open && (
@@ -97,11 +91,10 @@ interface SavedFilterSectionProps {
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   selectedTags?: string[];
-  textQuery?: string;
   selectedSignifiers?: EntrySignifier[];
 }
 
-export function SavedFilterSection({ savedFilters, onApply, onDelete, collapsed, onToggleCollapse, selectedTags = [], textQuery = "", selectedSignifiers = [] }: SavedFilterSectionProps) {
+export function SavedFilterSection({ savedFilters, onApply, onDelete, collapsed, onToggleCollapse, selectedTags = [], selectedSignifiers = [] }: SavedFilterSectionProps) {
   if (savedFilters.length === 0) return null;
 
   const isExpanded = !collapsed;
@@ -112,7 +105,7 @@ export function SavedFilterSection({ savedFilters, onApply, onDelete, collapsed,
       {isExpanded && (
         <div className="flex flex-wrap gap-1.5 px-1 pt-1 mb-3">
           {savedFilters.map((filter) => {
-            const isActive = savedFilterMatches(filter, { tags: selectedTags, textQuery, signifiers: selectedSignifiers });
+            const isActive = savedFilterMatches(filter, { tags: selectedTags, signifiers: selectedSignifiers });
             return (
               <button
                 key={filter.id}
@@ -123,8 +116,7 @@ export function SavedFilterSection({ savedFilters, onApply, onDelete, collapsed,
                 title={[
                   ...filter.tags.map((t) => `#${t}`),
                   ...filter.signifiers.map((sig) => SIGNIFIER_CONFIG[sig].label),
-                  filter.textQuery ? `"${filter.textQuery}"` : "",
-                ].filter(Boolean).join(" + ")}
+                ].join(" + ")}
               >
                 {filter.name}
                 <span

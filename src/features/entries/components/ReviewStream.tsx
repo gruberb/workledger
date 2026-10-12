@@ -137,7 +137,7 @@ function WeekNav({ week, onPrev, onNext }: WeekNavProps) {
         <ChevronRightIcon size={18} className="rotate-180" />
       </button>
       <div className="flex-1 min-w-0 text-center">
-        <h2 className="text-lg font-semibold text-[var(--color-notebook-text)] truncate">{week.label}</h2>
+        <h2 className="font-display text-xl font-semibold tracking-[-0.03em] text-[var(--color-notebook-text)] truncate">{week.label}</h2>
         <p className="text-xs text-[var(--color-notebook-muted)]">
           {week.dateRange} · {week.entryCount} {week.entryCount === 1 ? "note" : "notes"}
         </p>
@@ -221,7 +221,7 @@ function ReviewEntryRow({ entry, onClick }: { entry: WorkLedgerEntry; onClick?: 
       className="w-full text-left px-1 py-3 hover:bg-[var(--color-notebook-surface-alt)] active:bg-[var(--color-notebook-surface-alt)] transition-colors"
     >
       <span className="flex items-baseline gap-3">
-        <span className="flex-1 min-w-0 truncate text-[15px] font-medium text-[var(--color-notebook-text)]">{extractTitle(entry)}</span>
+        <span className="flex-1 min-w-0 truncate font-display text-[15px] font-medium text-[var(--color-notebook-text)]">{extractTitle(entry)}</span>
         <span className="shrink-0 font-mono text-xs text-[var(--color-notebook-muted)]">{formatTime(entry.createdAt)}</span>
       </span>
       {hasMeta && (

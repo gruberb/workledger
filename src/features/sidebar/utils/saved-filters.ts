@@ -7,7 +7,6 @@ function sameSet<T>(a: readonly T[], b: readonly T[]): boolean {
 
 export function savedFilterMatches(filter: SavedFilter, current: FilterState): boolean {
   return (
-    filter.textQuery === current.textQuery &&
     sameSet(filter.tags, current.tags) &&
     sameSet(filter.signifiers, current.signifiers)
   );
@@ -20,6 +19,9 @@ function isSignifier(value: unknown): value is EntrySignifier {
 /**
  * Parses stored saved filters. Filters saved before signifiers were part of
  * a filter have no `signifiers` field; they load as "no signifier filter".
+ * Text filtering was removed (full-text search replaces it): a stored
+ * `textQuery` is ignored, and a filter that was text only is dropped because
+ * it would now match everything.
  */
 export function normalizeSavedFilters(raw: unknown): SavedFilter[] {
   if (!Array.isArray(raw)) return [];
@@ -29,7 +31,7 @@ export function normalizeSavedFilters(raw: unknown): SavedFilter[] {
       id: f.id as string,
       name: typeof f.name === "string" ? f.name : "",
       tags: Array.isArray(f.tags) ? f.tags.filter((t): t is string => typeof t === "string") : [],
-      textQuery: typeof f.textQuery === "string" ? f.textQuery : "",
       signifiers: Array.isArray(f.signifiers) ? f.signifiers.filter(isSignifier) : [],
-    }));
+    }))
+    .filter((f) => f.tags.length > 0 || f.signifiers.length > 0);
 }

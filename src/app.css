@@ -1,10 +1,12 @@
-@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Playfair+Display:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Playfair+Display:wght@500;600;700&display=swap");
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Notebook theme. Base values are Nord Aurora (Snow Storm surfaces, darkened Frost accent) */
 @theme {
+  /* Headlines (day headers, note headings, view titles). Archivo, as in Punktespiegel. */
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --color-notebook-bg: #eceff4;
   --color-notebook-text: #2e3440;
   --color-notebook-accent: #4a6b95;
@@ -287,22 +289,29 @@
   color: var(--color-notebook-accent);
 }
 
-/* Sidebar filter input — accent-aware focus ring */
-.sidebar-filter-input:focus {
-  border-color: color-mix(in srgb, var(--color-notebook-accent) 50%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-notebook-accent) 15%, transparent);
+/* iOS Safari zooms into any focused field under 16px and stays zoomed after
+   it blurs. 16px on small screens prevents that for every input at once; the
+   rule is unlayered, so it wins over Tailwind's text-* utilities. */
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
 }
 
-/* Day header handwriting font */
+/* Day headers ("Today", dates) */
 .day-header-font {
-  font-family: "Caveat", cursive;
-  font-size: 2rem;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 560;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
 }
 
 @media (max-width: 767px) {
   .day-header-font {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
   }
 }
 
@@ -505,6 +514,16 @@ body {
 .entry-link-highlight {
   animation: entry-link-pulse 1s ease-in-out 2;
   border-radius: 8px;
+}
+
+/* Note headings use the headline font; body text keeps the Note font setting. */
+[data-workledger-editor] [data-content-type="heading"] {
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
+}
+
+[data-workledger-editor] [data-content-type="heading"] .bn-inline-content {
+  font-weight: 600;
 }
 
 /* Scroll margin for heading targets when navigating via backlinks */

@@ -43,7 +43,7 @@ export function AppHeader({ title, showMenu, onMenu, onSearch, actions }: AppHea
             <MenuIcon size={18} />
           </HeaderButton>
         )}
-        <h1 className={`flex-1 min-w-0 truncate text-lg font-semibold text-[var(--color-notebook-text)] ${showMenu ? "text-center md:text-left md:pl-2" : "text-left"}`}>
+        <h1 className={`flex-1 min-w-0 truncate font-display text-lg font-semibold tracking-[-0.02em] text-[var(--color-notebook-text)] ${showMenu ? "text-center md:text-left md:pl-2" : "text-left"}`}>
           {title}
         </h1>
         <HeaderButton label="Search" title="Search (⌘K)" onClick={onSearch}>

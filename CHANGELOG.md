@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.10.0] - 2026-10-12
+
+### Changed
+
+- Headlines use Archivo, the typeface of Punktespiegel, in every theme: day headers ("Today", dates) replace the handwritten Caveat, and note headings, the top bar title, week titles and entry titles in lists use it too. Note body text keeps the Note font setting
+- The sidebar drops its Search row and the "Filter entries" field. Search lives in the top bar (and ⌘K). Tag and signifier filters and saved filters stay. Saved filters that only had a text query are removed, and the text part of mixed saved filters is ignored. The archive can no longer be filtered by text, because full-text search does not cover archived entries
+
+### Fixed
+
+- Search: the field is focused as soon as the panel opens, so the mobile keyboard shows up right away
+- Mobile: form fields use a 16px font, so iOS no longer zooms in when you type into one and stays zoomed afterwards
+
 ## [3.9.0] - 2026-10-12
 
 ### Changed

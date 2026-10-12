@@ -20,14 +20,7 @@ export const SearchPanel = memo(function SearchPanel({
   onClose,
   onResultClick,
 }: SearchPanelProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
-  }, [isOpen]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -84,8 +77,11 @@ export const SearchPanel = memo(function SearchPanel({
         <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-700">
           <SearchIcon size={18} className="text-gray-400 shrink-0" />
           <input
-            ref={inputRef}
-            type="text"
+            // Focus during the opening tap's commit: iOS only shows the keyboard
+            // for focus inside the user gesture, not after a timeout.
+            autoFocus
+            type="search"
+            enterKeyHint="search"
             value={query}
             onChange={(e) => onSearch(e.target.value)}
             placeholder="Search entries and tags..."
@@ -94,7 +90,7 @@ export const SearchPanel = memo(function SearchPanel({
             aria-label="Search query"
             data-1p-ignore
           />
-          <kbd className="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 rounded">
+          <kbd className="max-md:hidden text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 rounded">
             ESC
           </kbd>
         </div>
