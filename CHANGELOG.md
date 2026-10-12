@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.9.0] - 2026-10-12
+
+### Changed
+
+- Weekly review shows one week at a time. Step through calendar weeks with ‹ and › (› stops at this week), or jump to any week with notes from the week list in the sidebar. The week opens with its counts as chips (notes, signifiers such as RFD or Decision, and tags such as `meeting` from the Meeting Notes template). Tap a chip to list only those notes, for example last week's meetings. Each note shows its title and time on the first row and its signifier and tags on the second. Older weeks are loaded on demand, so weeks outside the recent window show their notes too
+
 ## [3.8.1] - 2026-10-12
 
 ### Fixed
