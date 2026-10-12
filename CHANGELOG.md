@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.8.0] - 2026-10-12
+
+### Added
+
+- High Contrast Light theme (black on white, blue accent, visible borders and focus outlines). The existing High Contrast theme is now labeled "High Contrast Dark".
+
 ## [3.7.0] - 2026-10-12
 
 ### Changed
