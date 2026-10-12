@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Punktespiegel theme (linen paper, aubergine ink, azure accent) and a High Contrast theme (black and white with a yellow accent and visible focus outlines).
+
+### Changed
+
+- The default themes are now Nord: "Nord Aurora" (light, Snow Storm surfaces) replaces Default Light and "Nord Polar Night" (dark) replaces Default Dark, which is lighter and bluer than before. Stored selections of the old defaults move to the new ones automatically.
+
 ## [3.5.0] - 2026-10-11
 
 ### Added
