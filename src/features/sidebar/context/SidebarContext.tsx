@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
-import { useEntriesData, useEntriesActions, searchEntries, extractTextFromBlocks } from "../../entries/index.ts";
+import { useEntriesData, useEntriesActions } from "../../entries/index.ts";
 import type { WorkLedgerEntry, EntrySignifier } from "../../entries/index.ts";
-import type { Block } from "@blocknote/core";
 import { filterEntries } from "../utils/filterEntries.ts";
 import type { SavedFilter } from "../types/saved-filter.ts";
 import { loadSavedFilters, persistSavedFilters } from "../storage/saved-filters.ts";
@@ -10,18 +9,6 @@ import { generateId } from "../../../utils/id.ts";
 import { useIsMobile } from "../../../hooks/useIsMobile.ts";
 import { todayKey } from "../../../utils/dates.ts";
 import { isoWeekKey } from "../../../utils/weeks.ts";
-
-// Filtering re-renders the whole entry stream, so it follows typing with a delay.
-const FILTER_DEBOUNCE_MS = 200;
-
-function useDebouncedValue<T>(value: T, delayMs: number): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), delayMs);
-    return () => clearTimeout(timer);
-  }, [value, delayMs]);
-  return debounced;
-}
 
 // --- Context value types ---
 
@@ -48,8 +35,6 @@ interface SidebarFilterValue {
   selectedTags: string[];
   toggleTag: (tag: string) => void;
   removeTag: (tag: string) => void;
-  textQuery: string;
-  setTextQuery: (query: string) => void;
   clearAllFilters: () => void;
   hasActiveFilters: boolean;
   selectedSignifiers: EntrySignifier[];
@@ -88,8 +73,6 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(() => !isMobile);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [textQuery, setTextQuery] = useState("");
-  const [filteredEntryIds, setFilteredEntryIds] = useState<Set<string> | null>(null);
   const [archiveView, setArchiveView] = useState(false);
   const [reviewView, setReviewView] = useState(false);
   const [reviewWeekKey, setReviewWeekKey] = useState(() => isoWeekKey(todayKey()));
@@ -116,7 +99,6 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     // The signifier filter UI is hidden in the archive, so it must not
     // silently carry over and filter archived entries.
     setSelectedTags([]);
-    setTextQuery("");
     setSelectedSignifiers([]);
     setReviewView(false);
   }, [archiveView, refreshArchive]);
@@ -161,11 +143,10 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
   const clearAllFilters = useCallback(() => {
     setSelectedTags([]);
-    setTextQuery("");
     setSelectedSignifiers([]);
   }, []);
 
-  const hasActiveFilters = selectedTags.length > 0 || textQuery.trim() !== "" || selectedSignifiers.length > 0;
+  const hasActiveFilters = selectedTags.length > 0 || selectedSignifiers.length > 0;
 
   // --- Saved filters ---
 
@@ -180,26 +161,23 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
       id: generateId(),
       name,
       tags: selectedTags,
-      textQuery,
       signifiers: selectedSignifiers,
     };
     const updated = [...savedFilters, filter];
     setSavedFilters(updated);
     await persistSavedFilters(updated);
-  }, [selectedTags, textQuery, selectedSignifiers, savedFilters]);
+  }, [selectedTags, selectedSignifiers, savedFilters]);
 
   const applySavedFilter = useCallback((filter: SavedFilter) => {
     // Toggle off if already active
-    if (savedFilterMatches(filter, { tags: selectedTags, textQuery, signifiers: selectedSignifiers })) {
+    if (savedFilterMatches(filter, { tags: selectedTags, signifiers: selectedSignifiers })) {
       setSelectedTags([]);
-      setTextQuery("");
-      setSelectedSignifiers([]);
+        setSelectedSignifiers([]);
       return;
     }
     setSelectedTags(filter.tags);
-    setTextQuery(filter.textQuery);
     setSelectedSignifiers(filter.signifiers);
-  }, [selectedTags, textQuery, selectedSignifiers]);
+  }, [selectedTags, selectedSignifiers]);
 
   const deleteSavedFilter = useCallback(async (id: string) => {
     const updated = savedFilters.filter((f) => f.id !== id);
@@ -209,48 +187,20 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
   // --- Computed data ---
 
-  // textQuery drives the input; filterQuery drives the (expensive) filtering.
-  const filterQuery = useDebouncedValue(textQuery, FILTER_DEBOUNCE_MS).trim();
-  const hasDisplayFilters = selectedTags.length > 0 || filterQuery !== "" || selectedSignifiers.length > 0;
-
-  // Re-run on entry changes too: autosave updates the search index before
-  // entriesByDay, so edited or new entries get their match state refreshed.
-  useEffect(() => {
-    if (!filterQuery) return;
-    let cancelled = false;
-    searchEntries(filterQuery).then((results) => {
-      if (!cancelled) setFilteredEntryIds(new Set(results.map((r) => r.entryId)));
-    });
-    return () => { cancelled = true; };
-  }, [filterQuery, entriesByDay]);
-
-  const displayEntriesByDay = useMemo(() => {
-    if (!hasDisplayFilters) return entriesByDay;
-    return filterEntries(entriesByDay, selectedTags, filterQuery, (e) => !!filteredEntryIds?.has(e.id), selectedSignifiers);
-  }, [entriesByDay, filteredEntryIds, selectedTags, filterQuery, selectedSignifiers, hasDisplayFilters]);
-
-  const sidebarDayKeys = useMemo(
-    () => (hasDisplayFilters ? [...displayEntriesByDay.keys()].sort((a, b) => b.localeCompare(a)) : dayKeys),
-    [hasDisplayFilters, displayEntriesByDay, dayKeys],
+  const displayEntriesByDay = useMemo(
+    () => (hasActiveFilters ? filterEntries(entriesByDay, selectedTags, selectedSignifiers) : entriesByDay),
+    [entriesByDay, selectedTags, selectedSignifiers, hasActiveFilters],
   );
 
-  // Archived entries are not in the search index, so their text is matched in
-  // memory. Extract it once per archive load, not once per keystroke.
-  const archivedText = useMemo(() => {
-    const text = new Map<string, string>();
-    for (const entries of archivedEntries.values()) {
-      for (const e of entries) {
-        text.set(e.id, e.blocks?.length ? extractTextFromBlocks(e.blocks as Block[]).toLowerCase() : "");
-      }
-    }
-    return text;
-  }, [archivedEntries]);
+  const sidebarDayKeys = useMemo(
+    () => (hasActiveFilters ? [...displayEntriesByDay.keys()].sort((a, b) => b.localeCompare(a)) : dayKeys),
+    [hasActiveFilters, displayEntriesByDay, dayKeys],
+  );
 
-  const displayArchivedEntriesByDay = useMemo(() => {
-    if (!hasDisplayFilters) return archivedEntries;
-    const textLower = filterQuery.toLowerCase();
-    return filterEntries(archivedEntries, selectedTags, filterQuery, (e) => !!archivedText.get(e.id)?.includes(textLower), selectedSignifiers);
-  }, [archivedEntries, archivedText, selectedTags, filterQuery, selectedSignifiers, hasDisplayFilters]);
+  const displayArchivedEntriesByDay = useMemo(
+    () => (hasActiveFilters ? filterEntries(archivedEntries, selectedTags, selectedSignifiers) : archivedEntries),
+    [archivedEntries, selectedTags, selectedSignifiers, hasActiveFilters],
+  );
 
   const archivedDayKeys = useMemo(
     () => [...displayArchivedEntriesByDay.keys()].sort((a, b) => b.localeCompare(a)),
@@ -307,8 +257,6 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     selectedTags,
     toggleTag,
     removeTag,
-    textQuery,
-    setTextQuery,
     clearAllFilters,
     hasActiveFilters,
     selectedSignifiers,
@@ -317,10 +265,10 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     saveCurrentFilter,
     applySavedFilter,
     deleteSavedFilter,
-  }), [selectedTags, toggleTag, removeTag, textQuery, clearAllFilters, hasActiveFilters, selectedSignifiers, toggleSignifier, savedFilters, saveCurrentFilter, applySavedFilter, deleteSavedFilter]);
+  }), [selectedTags, toggleTag, removeTag, clearAllFilters, hasActiveFilters, selectedSignifiers, toggleSignifier, savedFilters, saveCurrentFilter, applySavedFilter, deleteSavedFilter]);
 
   const dataValue: SidebarDataValue = useMemo(() => ({
-    isFiltering: hasDisplayFilters,
+    isFiltering: hasActiveFilters,
     displayEntriesByDay,
     displayArchivedEntriesByDay,
     sidebarDayKeys,
@@ -329,7 +277,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     allSignifiers,
     archivedCount,
     handleDeleteAll,
-  }), [hasDisplayFilters, displayEntriesByDay, displayArchivedEntriesByDay, sidebarDayKeys, archivedDayKeys, allTags, allSignifiers, archivedCount, handleDeleteAll]);
+  }), [hasActiveFilters, displayEntriesByDay, displayArchivedEntriesByDay, sidebarDayKeys, archivedDayKeys, allTags, allSignifiers, archivedCount, handleDeleteAll]);
 
   return (
     <SidebarUICtx.Provider value={uiValue}>

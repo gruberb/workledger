@@ -44,7 +44,7 @@ function AppContent() {
   const { loading, error } = useEntriesData();
   const { createEntry, saveEntryContent, updateEntryTags, archiveEntry, unarchiveEntry, deleteEntry, pinEntry, unpinEntry, updateEntrySignifier, setLoadAll } = useEntriesActions();
   const { isOpen: sidebarOpen, toggleSidebar, archiveView, reviewView, reviewWeekKey, setReviewWeekKey } = useSidebarUI();
-  const { textQuery, selectedTags, selectedSignifiers, hasActiveFilters, removeTag, clearAllFilters, saveCurrentFilter, savedFilters } = useSidebarFilter();
+  const { selectedTags, selectedSignifiers, hasActiveFilters, removeTag, clearAllFilters, saveCurrentFilter, savedFilters } = useSidebarFilter();
   const { isFiltering, displayEntriesByDay, displayArchivedEntriesByDay } = useSidebarData();
   const { focusedEntryId, handleFocusEntry, handleExitFocus } = useFocusModeContext();
   const { settings: aiSettings, sidebarOpen: aiSidebarOpen, handleOpenAI, handleToggleAISidebar, available: aiAvailable, setSidebarOpen: setAISidebarOpen } = useAIContext();
@@ -56,8 +56,6 @@ function AppContent() {
   const { revealEntry, handleDayClick } = useEntryNavigation(visibleDayKeys);
 
   // Filters only see in-memory entries; load all of them while filtering the main view.
-  // Follows the applied (debounced) filter, not the input: loading everything
-  // before the text filter applies would render the whole notebook unfiltered.
   useEffect(() => {
     setLoadAll(isFiltering && !archiveView);
   }, [isFiltering, archiveView, setLoadAll]);
@@ -132,7 +130,6 @@ function AppContent() {
     <FilterBanner
       selectedTags={selectedTags}
       selectedSignifiers={selectedSignifiers}
-      textQuery={textQuery}
       count={visibleCount}
       onRemoveTag={removeTag}
       onClearAll={clearAllFilters}
@@ -147,7 +144,6 @@ function AppContent() {
 
       <Sidebar
         onDayClick={handleDayClick}
-        onSearchOpen={openSearch}
         settingsItems={<SettingsMenuItems onImportLogseq={handleImportLogseq} />}
       />
       <LogseqImportInput inputRef={logseqInputRef} />

@@ -1,9 +1,8 @@
 import type { ReactNode } from "react";
-import { ArchiveIcon, CalendarIcon, JournalIcon, SearchIcon } from "../../../components/ui/Icons.tsx";
+import { ArchiveIcon, CalendarIcon, JournalIcon } from "../../../components/ui/Icons.tsx";
 import { useSidebarData, useSidebarUI, type SidebarView } from "../context/SidebarContext.tsx";
 
 interface SidebarNavProps {
-  onSearch: () => void;
   /** Called after any row is chosen (the mobile drawer closes itself here). */
   onSelect: () => void;
 }
@@ -40,20 +39,14 @@ const VIEWS: { view: SidebarView; label: string; icon: ReactNode }[] = [
   { view: "archive", label: "Archive", icon: <ArchiveIcon size={16} /> },
 ];
 
-/** Search plus the three views. Always visible, so no view hides in a menu. */
-export function SidebarNav({ onSearch, onSelect }: SidebarNavProps) {
+/** The three views. Always visible, so no view hides in a menu. */
+export function SidebarNav({ onSelect }: SidebarNavProps) {
   const { archiveView, reviewView, setView } = useSidebarUI();
   const { archivedCount } = useSidebarData();
   const current: SidebarView = archiveView ? "archive" : reviewView ? "review" : "journal";
 
   return (
     <nav className="mb-4 shrink-0 space-y-0.5" aria-label="Views">
-      <NavRow
-        icon={<SearchIcon size={16} />}
-        label="Search"
-        trailing={<kbd className="max-md:hidden px-1.5 py-0.5 bg-[var(--color-notebook-surface-alt)] rounded text-[10px] text-[var(--color-notebook-muted)]">⌘K</kbd>}
-        onClick={() => { onSearch(); onSelect(); }}
-      />
       {VIEWS.map(({ view, label, icon }) => (
         <NavRow
           key={view}

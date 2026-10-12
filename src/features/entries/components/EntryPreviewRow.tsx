@@ -24,7 +24,7 @@ export const EntryPreviewRow = memo(function EntryPreviewRow({ entry, onOpen }: 
     >
       <span className="flex items-center gap-1.5">
         {entry.isPinned && <PinIcon filled size={12} className="text-orange-400 shrink-0" />}
-        <span className="font-semibold text-[var(--color-notebook-text)] truncate">{extractTitle(entry)}</span>
+        <span className="font-display font-semibold tracking-[-0.01em] text-[var(--color-notebook-text)] truncate">{extractTitle(entry)}</span>
       </span>
       {preview && (
         <span className="mt-0.5 block text-sm text-[var(--color-notebook-muted)] line-clamp-2">{preview}</span>

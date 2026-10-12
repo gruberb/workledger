@@ -6,7 +6,6 @@ import type { EntrySignifier } from "../../features/entries/index.ts";
 interface FilterBannerProps {
   selectedTags: string[];
   selectedSignifiers: EntrySignifier[];
-  textQuery: string;
   count: number;
   onRemoveTag: (tag: string) => void;
   onClearAll: () => void;
@@ -14,7 +13,7 @@ interface FilterBannerProps {
   savedFilters?: SavedFilter[];
 }
 
-export function FilterBanner({ selectedTags, selectedSignifiers, textQuery, count, onRemoveTag, onClearAll, onSaveFilter, savedFilters }: FilterBannerProps) {
+export function FilterBanner({ selectedTags, selectedSignifiers, count, onRemoveTag, onClearAll, onSaveFilter, savedFilters }: FilterBannerProps) {
   return (
     <div className="flex items-center gap-3 pt-4 pb-3 px-1 sticky top-0 sticky-header">
       <div className="flex items-center gap-2 flex-wrap">
@@ -31,9 +30,6 @@ export function FilterBanner({ selectedTags, selectedSignifiers, textQuery, coun
             </button>
           </span>
         ))}
-        {textQuery.trim() && (
-          <span className="text-gray-800 dark:text-gray-200 font-medium text-sm">"{textQuery.trim()}"</span>
-        )}
       </div>
       <span className="text-xs text-gray-400 shrink-0">
         {count} {count === 1 ? "entry" : "entries"}
@@ -45,7 +41,6 @@ export function FilterBanner({ selectedTags, selectedSignifiers, textQuery, coun
             savedFilters={savedFilters}
             selectedTags={selectedTags}
             selectedSignifiers={selectedSignifiers}
-            textQuery={textQuery}
           />
         )}
         <button

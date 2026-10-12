@@ -81,13 +81,12 @@ State is categorized, not centralized:
 
 ### Filtering architecture
 
-Sidebar filtering uses three independent dimensions combined with AND logic:
+Sidebar filtering uses two independent dimensions combined with AND logic. Text lookup is the search panel (⌘K, header icon), not a filter:
 - `selectedTags: string[]`: exact tag match, toggled by clicking tags in the sidebar
-- `textQuery: string`: text search via search index + in-memory tag substring match, applied 200ms after typing stops
 - `selectedSignifiers: EntrySignifier[]`: signifier match
-- All managed in `SidebarContext`, all must pass for an entry to show. Saved filters store all three (older saved filters without `signifiers` load as `[]`)
+- Both managed in `SidebarContext`, both must pass for an entry to show. Saved filters store both (older saved filters without `signifiers` load as `[]`; the retired `textQuery` field is ignored and text-only filters are dropped on load)
 - Tag and signifier chips come from `storedTags`/`storedSignifiers` (collected by the full read in `buildActiveSnapshot`, so no extra scan) merged with loaded entries. Building them from loaded entries only hid tags used outside the recent window
-- Filters run over in-memory entries. Only the last 30 days are loaded normally, so `App.tsx` calls `setLoadAll(true)` while filters are applied in the main view (`isFiltering`, which follows the debounced text) and trims back when they clear
+- Filters run over in-memory entries. Only the last 30 days are loaded normally, so `App.tsx` calls `setLoadAll(true)` while filters are applied in the main view (`isFiltering`) and trims back when they clear
 
 ## Common gotchas
 
@@ -104,7 +103,8 @@ Sidebar filtering uses three independent dimensions combined with AND logic:
 - Excalidraw is wrapped in an error boundary (`ExcalidrawBlock.tsx`) — drawing errors must not crash the app. Add error boundaries around other risky integrations too
 - **Mobile (<768px, `useIsMobile`) is a different layout over the same state.** `EntryStream` gets `preview`: entries render as `EntryPreviewRow`s and open through focus mode (`actions.onFocus`), where `EntryDetailControls` (info panel, action sheet) replaces the toolbar and tags (`EntryCard bare`). Row ids stay `entry-<id>` so scroll/highlight navigation still works. `AppHeader` is sticky on every size; sticky section headers sit below it via `--app-header-h` (`AppShell` sets it to 0 when the header is hidden, as in the full-screen entry). Views switch through `useSidebarUI().setView`. Header controls from other features (new entry, AI toggle) go in `AppHeader`'s `actions` slot as `HeaderButton`s; don't add `fixed` corner buttons, they drift out of line with the header. Shrinking to mobile closes the sidebar; widening must not open it
 - **Weekly review shows one ISO week** (`reviewWeekKey` in `SidebarContext`, reset to the current week when the review opens). Week math uses local dates from `src/utils/weeks.ts`; `review-weeks.ts` only summarizes (`summarizeWeek`, `filterDays`). `ReviewStream` loads the selected week's days with `loadDay` (each day requested once), not `setLoadAll`, so stepping weeks never triggers a full scan
-- Debounce timings: auto-save 500ms, search 200ms, sidebar filter 200ms, sync push 2s. Don't change without testing UX
+- **Form fields are 16px on mobile** (`app.css`): iOS zooms into smaller focused fields and stays zoomed. Dialog inputs that must open the keyboard use `autoFocus` (focus inside the tap), not a `setTimeout` focus
+- Debounce timings: auto-save 500ms, search 200ms, sync push 2s. Don't change without testing UX
 - Vite config has specific `optimizeDeps` for Excalidraw and PNG chunk libraries — don't remove without testing
 - The landing page lives in a separate repo (`workledger-landing`), not in this repo
 - **AI feature is fully optional**: gated by `useAIFeatureGate` (one instance, in `AIContext`). All AI code is in `src/features/ai/`; the app shell touches it only in `App.tsx`, `AppProviders.tsx`, `SettingsMenuItems.tsx` and `useKeyboardShortcuts`. `AISidebar` is lazy-loaded through `features/ai/sidebar.ts`, not `index.ts`, so it stays out of the main bundle
