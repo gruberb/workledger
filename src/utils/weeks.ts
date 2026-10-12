@@ -51,3 +51,15 @@ export function previousIsoWeekKey(weekKey: string): string {
   monday.setDate(monday.getDate() - 7);
   return isoWeekKey(toDayKey(monday));
 }
+
+export function nextIsoWeekKey(weekKey: string): string {
+  const monday = mondayOfIsoWeek(weekKey);
+  monday.setDate(monday.getDate() + 7);
+  return isoWeekKey(toDayKey(monday));
+}
+
+/** Day keys (Monday first) of an ISO week. */
+export function isoWeekDayKeys(weekKey: string): string[] {
+  const monday = mondayOfIsoWeek(weekKey);
+  return Array.from({ length: 7 }, (_, i) => toDayKey(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i)));
+}

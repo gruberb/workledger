@@ -43,7 +43,7 @@ function AppContent() {
   const isMobile = useIsMobile();
   const { loading, error } = useEntriesData();
   const { createEntry, saveEntryContent, updateEntryTags, archiveEntry, unarchiveEntry, deleteEntry, pinEntry, unpinEntry, updateEntrySignifier, setLoadAll } = useEntriesActions();
-  const { isOpen: sidebarOpen, toggleSidebar, archiveView, reviewView } = useSidebarUI();
+  const { isOpen: sidebarOpen, toggleSidebar, archiveView, reviewView, reviewWeekKey, setReviewWeekKey } = useSidebarUI();
   const { textQuery, selectedTags, selectedSignifiers, hasActiveFilters, removeTag, clearAllFilters, saveCurrentFilter, savedFilters } = useSidebarFilter();
   const { isFiltering, displayEntriesByDay, displayArchivedEntriesByDay } = useSidebarData();
   const { focusedEntryId, handleFocusEntry, handleExitFocus } = useFocusModeContext();
@@ -178,6 +178,8 @@ function AppContent() {
         {reviewView ? (
           <ReviewStream
             entriesByDay={displayEntriesByDay}
+            weekKey={reviewWeekKey}
+            onWeekChange={setReviewWeekKey}
             onEntryClick={revealEntry}
             onOpenAI={aiActionsAvailable ? handleReviewOpenAI : undefined}
           />

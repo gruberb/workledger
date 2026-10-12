@@ -8,6 +8,8 @@ import { loadSavedFilters, persistSavedFilters } from "../storage/saved-filters.
 import { savedFilterMatches } from "../utils/saved-filters.ts";
 import { generateId } from "../../../utils/id.ts";
 import { useIsMobile } from "../../../hooks/useIsMobile.ts";
+import { todayKey } from "../../../utils/dates.ts";
+import { isoWeekKey } from "../../../utils/weeks.ts";
 
 // Filtering re-renders the whole entry stream, so it follows typing with a delay.
 const FILTER_DEBOUNCE_MS = 200;
@@ -33,6 +35,9 @@ interface SidebarUIValue {
   toggleArchiveView: () => void;
   reviewView: boolean;
   toggleReviewView: () => void;
+  /** ISO week shown by the weekly review; reset to the current week whenever the review opens. */
+  reviewWeekKey: string;
+  setReviewWeekKey: (weekKey: string) => void;
   /** Switches straight to a view; does nothing if it is already shown. */
   setView: (view: SidebarView) => void;
   activeDayKey: string | null;
@@ -87,6 +92,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const [filteredEntryIds, setFilteredEntryIds] = useState<Set<string> | null>(null);
   const [archiveView, setArchiveView] = useState(false);
   const [reviewView, setReviewView] = useState(false);
+  const [reviewWeekKey, setReviewWeekKey] = useState(() => isoWeekKey(todayKey()));
   const [activeDayKey, setActiveDayKey] = useState<string | null>(null);
   const [selectedSignifiers, setSelectedSignifiers] = useState<EntrySignifier[]>([]);
 
@@ -116,11 +122,12 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   }, [archiveView, refreshArchive]);
 
   const toggleReviewView = useCallback(() => {
+    if (!reviewView) setReviewWeekKey(isoWeekKey(todayKey()));
     setReviewView((prev) => !prev);
     if (archiveView) {
       setArchiveView(false);
     }
-  }, [archiveView]);
+  }, [archiveView, reviewView]);
 
   const setView = useCallback((view: SidebarView) => {
     if (view === "archive") {
@@ -289,10 +296,12 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     toggleArchiveView,
     reviewView,
     toggleReviewView,
+    reviewWeekKey,
+    setReviewWeekKey,
     setView,
     activeDayKey,
     setActiveDayKey,
-  }), [isOpen, toggleSidebar, setSidebarOpen, archiveView, toggleArchiveView, reviewView, toggleReviewView, setView, activeDayKey]);
+  }), [isOpen, toggleSidebar, setSidebarOpen, archiveView, toggleArchiveView, reviewView, toggleReviewView, reviewWeekKey, setView, activeDayKey]);
 
   const filterValue: SidebarFilterValue = useMemo(() => ({
     selectedTags,

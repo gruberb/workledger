@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isoWeekKey, mondayOfIsoWeek, previousIsoWeekKey, toDayKey, weekStartDayKey } from "../weeks.ts";
+import { isoWeekDayKeys, isoWeekKey, mondayOfIsoWeek, nextIsoWeekKey, previousIsoWeekKey, toDayKey, weekStartDayKey } from "../weeks.ts";
 
 describe("isoWeekKey", () => {
   it.each([
@@ -30,6 +30,21 @@ describe("mondayOfIsoWeek", () => {
 describe("previousIsoWeekKey", () => {
   it("steps back across a year boundary", () => {
     expect(previousIsoWeekKey("2025-W01")).toBe("2024-W52");
+  });
+});
+
+describe("nextIsoWeekKey", () => {
+  it("steps forward across a year boundary", () => {
+    expect(nextIsoWeekKey("2026-W53")).toBe("2027-W01");
+    expect(nextIsoWeekKey("2024-W52")).toBe("2025-W01");
+  });
+});
+
+describe("isoWeekDayKeys", () => {
+  it("lists Monday to Sunday, also across a month boundary", () => {
+    expect(isoWeekDayKeys("2026-W40")).toEqual([
+      "2026-09-28", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-02", "2026-10-03", "2026-10-04",
+    ]);
   });
 });
 
