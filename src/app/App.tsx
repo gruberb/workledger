@@ -15,7 +15,8 @@ import { scrollToEntry } from "../utils/scroll.ts";
 import { useEntryNavigation } from "./hooks/useEntryNavigation.ts";
 import { FilterBanner } from "./components/FilterBanner.tsx";
 import { StorageStatusBanner } from "./components/StorageStatusBanner.tsx";
-import { AppHeader } from "./components/AppHeader.tsx";
+import { AppHeader, HeaderButton } from "./components/AppHeader.tsx";
+import { AIIcon } from "../components/ui/Icons.tsx";
 
 const AISidebar = lazy(() => import("../features/ai/sidebar.ts").then((m) => ({ default: m.AISidebar })));
 import { AppProviders } from "./AppProviders.tsx";
@@ -46,7 +47,7 @@ function AppContent() {
   const { textQuery, selectedTags, selectedSignifiers, hasActiveFilters, removeTag, clearAllFilters, saveCurrentFilter, savedFilters } = useSidebarFilter();
   const { isFiltering, displayEntriesByDay, displayArchivedEntriesByDay } = useSidebarData();
   const { focusedEntryId, handleFocusEntry, handleExitFocus } = useFocusModeContext();
-  const { settings: aiSettings, sidebarOpen: aiSidebarOpen, handleOpenAI, available: aiAvailable, setSidebarOpen: setAISidebarOpen } = useAIContext();
+  const { settings: aiSettings, sidebarOpen: aiSidebarOpen, handleOpenAI, handleToggleAISidebar, available: aiAvailable, setSidebarOpen: setAISidebarOpen } = useAIContext();
   const { query, results, isOpen: searchOpen, search, open: openSearch, close: closeSearch } = useSearch();
   const { handleNewEntry } = useKeyboardShortcuts({ isOpen: searchOpen, open: openSearch, close: closeSearch });
 
@@ -158,12 +159,19 @@ function AppContent() {
           <AppHeader
             title={viewTitle}
             showMenu={isMobile || !sidebarOpen}
-            reserveRight={!isMobile && aiSettings.enabled && !aiSidebarOpen}
             onMenu={toggleSidebar}
             onSearch={openSearch}
-            action={isMobile && canCreate ? (
-              <NewEntryIconButton onClick={handleHeaderNewEntry} onCreateFromTemplate={handleNewEntryFromTemplate} />
-            ) : undefined}
+            actions={<>
+              {isMobile && canCreate && (
+                <NewEntryIconButton onClick={handleHeaderNewEntry} onCreateFromTemplate={handleNewEntryFromTemplate} />
+              )}
+              {/* The AI sidebar is desktop-only; its own header closes it. */}
+              {!isMobile && aiSettings.enabled && !aiSidebarOpen && (
+                <HeaderButton label="Open AI sidebar" title="Open AI sidebar (⌘⇧I)" onClick={handleToggleAISidebar}>
+                  <AIIcon size={18} />
+                </HeaderButton>
+              )}
+            </>}
           />
         ) : undefined}
       >

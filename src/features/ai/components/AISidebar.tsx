@@ -147,20 +147,6 @@ export function AISidebar() {
 
   return (
     <>
-      {/* Toggle button — only visible when sidebar is closed and AI is enabled */}
-      {!isOpen && settings.enabled && (
-        <button
-          onClick={onClose}
-          className="fixed top-4 right-4 z-50 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          title="Open AI sidebar (⌘⇧I)"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2a8 8 0 0 0-8 8c0 3.36 2.07 6.24 5 7.42V19a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1.58c2.93-1.18 5-4.06 5-7.42a8 8 0 0 0-8-8z" />
-            <line x1="9" y1="22" x2="15" y2="22" />
-          </svg>
-        </button>
-      )}
-
       {/* Sidebar panel */}
       <aside
         className={`

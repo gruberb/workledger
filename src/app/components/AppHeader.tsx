@@ -1,38 +1,55 @@
 import type { ReactNode } from "react";
 import { MenuIcon, SearchIcon } from "../../components/ui/Icons.tsx";
 
+interface HeaderButtonProps {
+  label: string;
+  onClick: () => void;
+  children: ReactNode;
+  title?: string;
+}
+
+/** Round icon button sized for the header; other controls in the header use it too. */
+export function HeaderButton({ label, onClick, children, title }: HeaderButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-9 h-9 rounded-full border border-[var(--color-notebook-border)] bg-[var(--color-notebook-surface)] text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] flex items-center justify-center shadow-sm transition-colors shrink-0"
+      title={title ?? label}
+      aria-label={label}
+    >
+      {children}
+    </button>
+  );
+}
+
 interface AppHeaderProps {
   /** Name of the current view. */
   title: string;
   /** The menu button opens the sidebar; hide it while the sidebar is docked open. */
   showMenu: boolean;
-  /** Keep clear of the fixed AI sidebar toggle in the top-right corner (desktop only). */
-  reserveRight?: boolean;
   onMenu: () => void;
   onSearch: () => void;
-  /** Extra control after search, e.g. the new-entry button. */
-  action?: ReactNode;
+  /** Extra controls after search, e.g. the new-entry and AI buttons. */
+  actions?: ReactNode;
 }
 
-const ROUND_BUTTON = "w-9 h-9 rounded-full border border-[var(--color-notebook-border)] bg-[var(--color-notebook-surface)] text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] flex items-center justify-center shadow-sm transition-colors shrink-0";
-
-/** Slim top bar for every screen size: menu, current view, search, primary action. */
-export function AppHeader({ title, showMenu, reserveRight, onMenu, onSearch, action }: AppHeaderProps) {
+/** Slim top bar for every screen size: menu, current view, search, extra actions. */
+export function AppHeader({ title, showMenu, onMenu, onSearch, actions }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-20 h-[var(--app-header-h)] bg-[var(--color-notebook-bg)] border-b border-[var(--color-notebook-border)]">
-      <div className={`h-full max-w-7xl mx-auto flex items-center gap-2 px-4 md:px-12 ${reserveRight ? "md:pr-16" : ""}`}>
+      <div className="h-full max-w-7xl mx-auto flex items-center gap-2 px-4 md:px-12">
         {showMenu && (
-          <button onClick={onMenu} className={ROUND_BUTTON} title="Menu (⌘\)" aria-label="Open menu">
+          <HeaderButton label="Open menu" title="Menu (⌘\)" onClick={onMenu}>
             <MenuIcon size={18} />
-          </button>
+          </HeaderButton>
         )}
-        <h1 className={`flex-1 min-w-0 truncate text-[15px] font-semibold text-[var(--color-notebook-text)] ${showMenu ? "text-center md:text-left md:pl-1" : "text-left"}`}>
+        <h1 className={`flex-1 min-w-0 truncate text-lg font-semibold text-[var(--color-notebook-text)] ${showMenu ? "text-center md:text-left md:pl-2" : "text-left"}`}>
           {title}
         </h1>
-        <button onClick={onSearch} className={ROUND_BUTTON} title="Search (⌘K)" aria-label="Search">
+        <HeaderButton label="Search" title="Search (⌘K)" onClick={onSearch}>
           <SearchIcon size={18} />
-        </button>
-        {action}
+        </HeaderButton>
+        {actions}
       </div>
     </header>
   );

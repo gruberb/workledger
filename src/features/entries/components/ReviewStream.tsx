@@ -44,7 +44,7 @@ export function ReviewStream({ entriesByDay, onEntryClick, onOpenAI }: ReviewStr
 
   return (
     <div className="entry-stream">
-      <div className="flex items-center gap-3 pt-8 pb-4 px-1 sticky top-0 sticky-header">
+      <div className="flex items-center gap-3 pt-4 pb-3 px-1 sticky top-0 sticky-header">
         <CalendarIcon size={20} className="text-[var(--color-notebook-muted)]" />
         <span className="text-lg font-semibold text-[var(--color-notebook-text)]">Weekly Review</span>
       </div>
