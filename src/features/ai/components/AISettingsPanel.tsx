@@ -50,9 +50,9 @@ export function AISettingsPanel({ settings, onUpdateSettings, status, configErro
   }, [flush]);
 
   useEffect(() => {
-    if (!provider?.listModels) return;
     let cancelled = false;
-    provider.listModels().then((m) => { if (!cancelled) setModels(m); });
+    // Clear the previous provider's list so a stale model list is never offered.
+    Promise.resolve(provider?.listModels?.() ?? []).then((m) => { if (!cancelled) setModels(m); });
     return () => { cancelled = true; };
   }, [provider]);
 
@@ -76,17 +76,30 @@ export function AISettingsPanel({ settings, onUpdateSettings, status, configErro
             className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-orange-300 bg-white dark:bg-[#1a1a1a] dark:text-gray-300"
           >
             <option value="ollama">Ollama (Local)</option>
+            <option value="anthropic">Anthropic</option>
+            <option value="openai">OpenAI</option>
+            <option value="openrouter">OpenRouter</option>
             <option value="huggingface">Hugging Face</option>
             <option value="custom">Custom Server</option>
           </select>
         </div>
 
-        <ProviderFields
-          provider={settings.provider}
-          values={draft}
-          onChange={handleDraftChange}
-          ollamaModels={settings.provider === "ollama" ? models : undefined}
-        />
+        <ProviderFields provider={settings.provider} values={draft} onChange={handleDraftChange} models={models} />
+
+        {provider?.supportsWebSearch && (
+          <label className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-300 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={settings.webSearch}
+              onChange={(e) => onUpdateSettings({ webSearch: e.target.checked })}
+              className="mt-0.5 accent-orange-500"
+            />
+            <span>
+              Web search for research actions
+              <span className="block text-[10px] text-gray-400">Billed by the provider per search. Results link their sources.</span>
+            </span>
+          </label>
+        )}
 
         <div className="border-t border-gray-100 dark:border-gray-800" />
 

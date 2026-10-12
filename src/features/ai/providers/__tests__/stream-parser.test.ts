@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createSSEDecoder, parseSSEStream } from "../stream-parser.ts";
+import { createSSEDecoder, parseChatCompletionEvent, parseSSEStream } from "../stream-parser.ts";
 
 function decodeAll(chunks: string[]): string[] {
   const d = createSSEDecoder();
@@ -57,5 +57,23 @@ describe("parseSSEStream", () => {
     let text = "";
     for await (const chunk of parseSSEStream(readerFrom([last]))) text += chunk.content;
     expect(text).toBe("tail");
+  });
+});
+
+describe("parseChatCompletionEvent", () => {
+  it("turns url_citation annotations into sources (OpenRouter nesting and flat form)", () => {
+    const nested = JSON.stringify({
+      choices: [{ delta: { content: "", annotations: [{ type: "url_citation", url_citation: { url: "https://a.dev/x", title: "A" } }] } }],
+    });
+    expect(parseChatCompletionEvent(nested)?.sources).toEqual([{ url: "https://a.dev/x", title: "A" }]);
+    const flat = JSON.stringify({ choices: [{ message: { annotations: [{ type: "url_citation", url: "https://b.dev" }] } }] });
+    expect(parseChatCompletionEvent(flat)?.sources).toEqual([{ url: "https://b.dev" }]);
+  });
+
+  it("drops non-http links so they can never become javascript: anchors", () => {
+    const data = JSON.stringify({
+      choices: [{ delta: { annotations: [{ type: "url_citation", url: "javascript:alert(1)" }, { type: "url_citation", url: "not a url" }] } }],
+    });
+    expect(parseChatCompletionEvent(data)?.sources).toBeUndefined();
   });
 });

@@ -1,8 +1,9 @@
-import type { LLMProvider, LLMMessage, LLMStreamChunk } from "./types.ts";
+import type { ChatOptions, LLMProvider, LLMMessage, LLMStreamChunk } from "./types.ts";
 import { parseSSEStream } from "./stream-parser.ts";
 import { normalizeBaseUrl, validateServerUrl } from "./url.ts";
 
 export class CustomServerProvider implements LLMProvider {
+  readonly supportsWebSearch = false;
   private baseUrl: string;
   private model: string;
   private apiKey: string | undefined;
@@ -17,7 +18,7 @@ export class CustomServerProvider implements LLMProvider {
 
   async *chat(
     messages: LLMMessage[],
-    options: { temperature: number; maxTokens: number; signal?: AbortSignal },
+    options: ChatOptions,
   ): AsyncGenerator<LLMStreamChunk> {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",

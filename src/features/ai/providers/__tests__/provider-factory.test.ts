@@ -41,4 +41,11 @@ describe("createProvider", () => {
     expect(createProvider({ ...DEFAULT_AI_SETTINGS, provider: "huggingface", hfApiKey: "" })).toBeNull();
     expect(createProvider({ ...DEFAULT_AI_SETTINGS, provider: "custom", customUrl: "https://x.dev", customModel: "" })).toBeNull();
   });
+
+  it.each(["anthropic", "openai", "openrouter"] as const)("requires an API key for %s and works with the default model", (provider) => {
+    expect(createProvider({ ...DEFAULT_AI_SETTINGS, provider })).toBeNull();
+    expect(getProviderConfigError({ ...DEFAULT_AI_SETTINGS, provider })).toBe("API key is required");
+    const configured = createProvider({ ...DEFAULT_AI_SETTINGS, provider, [`${provider}ApiKey`]: " key " });
+    expect(configured?.supportsWebSearch).toBe(true);
+  });
 });

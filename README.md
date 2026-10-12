@@ -67,26 +67,30 @@
 
 ### Optional: AI Notebook Companion
 
-An optional AI sidebar with 12 concrete engineer actions. Off by default, zero impact on the core app when disabled. Easy to remove if unwanted — fork and delete `src/features/ai/` without affecting anything else.
+An optional AI sidebar with 16 concrete engineer actions, including web research with cited sources. Off by default, zero impact on the core app when disabled. Easy to remove if unwanted — fork and delete `src/features/ai/` without affecting anything else.
 
 **Quick start:**
 
 1. Click the **gear icon** in the left sidebar and select **Enable AI**
 2. **Configure a provider** — choose one:
    - **Ollama (local):** Install [Ollama](https://ollama.com/), run `ollama pull mistral`, done
+   - **Anthropic, OpenAI or OpenRouter (bring your own key):** Paste an API key. The default models are `claude-opus-5-5`, `gpt-5` and `openrouter/auto`. These three support web search
    - **Hugging Face (remote):** Paste a free [API token](https://huggingface.co/settings/tokens) and pick a model
    - **Custom server:** Point to any OpenAI-compatible endpoint
+
+   Keys are stored unencrypted in this browser's IndexedDB, and requests go straight from the browser to the provider.
 3. Hover over a note and click the **lightbulb icon**
-4. **Pick an action** from 4 categories:
+4. **Pick an action** from 5 categories:
 
 | Category | Actions |
 |----------|---------|
+| **Research** | Ask / Research (free-form, uses web search), Research an Unknown (the open questions of an RFD) |
 | **Summarize** | My Day, My Week, A Topic |
-| **Generate** | Standup Update, PR Description, ADR from Notes, Draft Message |
-| **Think** | Rubber Duck, Challenge My Thinking, Explore Tradeoffs |
+| **Generate** | Standup Update, PR Description, ADR from Notes, Draft RFD from Notes, Draft Message |
+| **Think** | Rubber Duck, Challenge My Thinking, Critique this RFD, Explore Tradeoffs |
 | **Remember** | What Did I Decide About...?, When Did I Last Work On...? |
 
-Actions support multi-entry context (day, week, or topic scope) and topic search.
+Actions support multi-entry context (day, week, or topic scope) and topic search. With web search enabled (AI settings), research answers list their sources; the provider bills each search.
 
 <p align="center">
   <img src="docs/images/ai/ai_in_action.png" alt="AI notebook companion" width="720">

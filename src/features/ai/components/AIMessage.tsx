@@ -2,6 +2,7 @@ import { memo, useDeferredValue, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { AIMessage as AIMessageType } from "../types/ai.ts";
+import type { AISource } from "../providers/types.ts";
 
 const REMARK_PLUGINS = [remarkGfm];
 
@@ -47,6 +48,7 @@ export const AIMessage = memo(function AIMessage({ message, stepName }: AIMessag
             </ReactMarkdown>
           </div>
         )}
+        {message.sources && message.sources.length > 0 && <SourceList sources={message.sources} />}
         <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-gray-100/50 dark:border-gray-700/50">
           <span className="text-[10px] text-gray-300">
             {new Date(message.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
@@ -64,6 +66,28 @@ export const AIMessage = memo(function AIMessage({ message, stepName }: AIMessag
     </div>
   );
 });
+
+interface SourceListProps {
+  sources: AISource[];
+}
+
+function SourceList({ sources }: SourceListProps) {
+  return (
+    <div className="mt-3">
+      <div className="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-1">Sources</div>
+      <ol className="text-xs space-y-0.5 list-decimal list-inside text-gray-500">
+        {sources.map((source) => (
+          <li key={source.url} className="truncate">
+            {/* URLs are http(s)-only (toSource); noopener keeps the page from reaching back into the app. */}
+            <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-orange-600 dark:text-orange-400 hover:underline" title={source.url}>
+              {source.title ?? new URL(source.url).hostname}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
 
 interface StreamingMessageProps {
   content: string;

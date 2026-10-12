@@ -103,7 +103,7 @@ export function AISidebar() {
       setActiveAction(action);
       setActiveQuery(undefined);
 
-      if (action.scope === "topic") {
+      if (action.scope === "topic" || action.scope === "ask") {
         setTopicQuery("");
         setUserMode("topic-prompt");
         return;
@@ -249,7 +249,7 @@ export function AISidebar() {
                 value={topicQuery}
                 onChange={(e) => setTopicQuery(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") handleTopicSubmit(); }}
-                placeholder="Enter a topic to search..."
+                placeholder={activeAction.scope === "ask" ? (targetEntry ? "Ask about this entry, or anything..." : "Ask anything...") : "Enter a topic to search..."}
                 className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 outline-none focus:border-orange-300 focus:ring-1 focus:ring-orange-100 dark:focus:ring-orange-900 bg-white dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-300 placeholder:text-gray-400"
                 autoFocus
               />
@@ -258,7 +258,7 @@ export function AISidebar() {
                 disabled={!topicQuery.trim()}
                 className="mt-3 w-full py-2 text-sm bg-orange-500 text-white rounded-xl hover:bg-orange-400 disabled:opacity-40 transition-colors"
               >
-                Search & Analyze
+                {activeAction.scope === "ask" ? "Ask" : "Search & Analyze"}
               </button>
             </div>
           )}

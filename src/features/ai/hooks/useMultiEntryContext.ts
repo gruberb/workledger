@@ -26,6 +26,13 @@ export function useMultiEntryContext() {
       return entryToText(fresh ?? targetEntry);
     }
 
+    if (scope === "ask") {
+      const question = topicQuery ?? "";
+      if (!targetEntry) return question;
+      const fresh = await getEntry(targetEntry.id);
+      return `${question}\n\nContext from my notebook entry:\n\n${entryToText(fresh ?? targetEntry)}`;
+    }
+
     const allEntries = await getAllEntries();
     const active = allEntries.filter((e) => !e.isArchived);
 

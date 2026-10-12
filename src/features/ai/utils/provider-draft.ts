@@ -1,13 +1,21 @@
 import type { AISettings } from "../types/ai.ts";
 
-export type ProviderDraft = Pick<
-  AISettings,
-  "ollamaUrl" | "ollamaModel" | "hfApiKey" | "hfModel" | "customUrl" | "customApiKey" | "customModel"
->;
+/** Connection fields: changing one creates a new provider and re-pings it. */
+const DRAFT_FIELDS = [
+  "ollamaUrl", "ollamaModel",
+  "hfApiKey", "hfModel",
+  "customUrl", "customApiKey", "customModel",
+  "anthropicApiKey", "anthropicModel",
+  "openaiApiKey", "openaiModel",
+  "openrouterApiKey", "openrouterModel",
+] as const satisfies readonly (keyof AISettings)[];
+
+export type ProviderDraft = Pick<AISettings, (typeof DRAFT_FIELDS)[number]>;
 
 export function pickProviderDraft(settings: AISettings): ProviderDraft {
-  const { ollamaUrl, ollamaModel, hfApiKey, hfModel, customUrl, customApiKey, customModel } = settings;
-  return { ollamaUrl, ollamaModel, hfApiKey, hfModel, customUrl, customApiKey, customModel };
+  const draft = {} as ProviderDraft;
+  for (const field of DRAFT_FIELDS) draft[field] = settings[field];
+  return draft;
 }
 
 const URL_FIELDS = ["ollamaUrl", "customUrl"] as const;

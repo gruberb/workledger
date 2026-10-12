@@ -1,4 +1,6 @@
-export type AIProviderType = "ollama" | "huggingface" | "custom";
+import type { AISource } from "../providers/types.ts";
+
+export type AIProviderType = "ollama" | "huggingface" | "custom" | "anthropic" | "openai" | "openrouter";
 
 export interface AISettings {
   enabled: boolean;
@@ -13,6 +15,15 @@ export interface AISettings {
   customUrl: string;
   customApiKey: string;
   customModel: string;
+  // Hosted providers, bring your own key
+  anthropicApiKey: string;
+  anthropicModel: string;
+  openaiApiKey: string;
+  openaiModel: string;
+  openrouterApiKey: string;
+  openrouterModel: string;
+  /** Allow web search for research actions, on providers that support it. */
+  webSearch: boolean;
   // Generation
   temperature: number;
   maxTokens: number;
@@ -28,6 +39,13 @@ export const DEFAULT_AI_SETTINGS: AISettings = {
   customUrl: "",
   customApiKey: "",
   customModel: "",
+  anthropicApiKey: "",
+  anthropicModel: "claude-opus-5-5",
+  openaiApiKey: "",
+  openaiModel: "gpt-5",
+  openrouterApiKey: "",
+  openrouterModel: "openrouter/auto",
+  webSearch: true,
   temperature: 0.7,
   maxTokens: 2048,
 };
@@ -38,6 +56,8 @@ export interface AIMessage {
   content: string;
   timestamp: number;
   actionId?: string;
+  /** Web pages the answer searched or cited. */
+  sources?: AISource[];
 }
 
 export interface AIConversation {

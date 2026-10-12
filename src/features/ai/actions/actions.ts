@@ -1,15 +1,41 @@
 import type { AIAction, ActionCategory } from "./types.ts";
 
 export const CATEGORY_LABELS: Record<ActionCategory, string> = {
+  research: "Research",
   summarize: "Summarize",
   generate: "Generate",
   think: "Think",
   remember: "Remember",
 };
 
-export const CATEGORY_ORDER: ActionCategory[] = ["summarize", "generate", "think", "remember"];
+export const CATEGORY_ORDER: ActionCategory[] = ["research", "summarize", "generate", "think", "remember"];
+
+const SOURCES_RULE = "When you use web search, cite the pages you rely on. Keep what the sources say separate from your own inference, and say when the evidence is thin or conflicting.";
 
 export const AI_ACTIONS: AIAction[] = [
+  // ── Research ──
+  {
+    id: "research-ask",
+    name: "Ask / Research",
+    description: "Any question, with web search when enabled. Uses the selected entry as context",
+    category: "research",
+    scope: "ask",
+    webSearch: true,
+    systemPrompt: `You are a research assistant for an engineer's notebook. Answer the question directly first, then give the supporting detail. Prefer primary sources (official docs, specs, source code, papers). ${SOURCES_RULE}`,
+    userPromptTemplate: "{{noteContent}}",
+    followUpSuggestions: ["What are the alternatives?", "What would change your answer?", "Summarize this as notes for my entry"],
+  },
+  {
+    id: "research-unknowns",
+    name: "Research an Unknown",
+    description: "Investigate the open questions in this RFD or note",
+    category: "research",
+    scope: "entry",
+    webSearch: true,
+    systemPrompt: `You are a research assistant helping with an RFD (Request for Discussion). Find the open questions and unknowns in the note: an "Unknowns" table, items marked open, or claims marked as assumptions or hypotheses. For each one: (1) restate the question, (2) what the evidence says, with sources, (3) how this affects the decision in the note, (4) the smallest next check that would settle it. If the note has no explicit unknowns, identify the two or three questions most likely to change the approach. ${SOURCES_RULE}`,
+    userPromptTemplate: "Here is my note:\n\n{{noteContent}}\n\nPlease research its open questions.",
+    followUpSuggestions: ["Which unknown matters most?", "Write the findings as rows for my Unknowns table", "What experiment would settle this?"],
+  },
   // ── Summarize ──
   {
     id: "summarize-day",
@@ -84,7 +110,28 @@ export const AI_ACTIONS: AIAction[] = [
     followUpSuggestions: ["Make it more formal", "Shorten it", "Add an explicit ask at the end"],
   },
 
+  {
+    id: "generate-rfd",
+    name: "Draft RFD from Notes",
+    description: "Rough notes turned into an RFD with explicit unknowns",
+    category: "generate",
+    scope: "entry",
+    systemPrompt: "You are an engineering assistant. Turn the user's rough notes into an RFD (Request for Discussion) in Markdown with these sections: Summary (status, current direction, next action); Intent (Problem, Outcome, Boundary, Uncertainty, Next check); 1. Problem and outcome (goals, non-goals); 2. Current system and boundaries (a table of statements marked observed / constraint / assumption / hypothesis, with evidence); 3. Unknowns (a table: question, hypothesis, decision affected, resolving evidence, state); 4. Options and decision; 5. Acceptance cases; 6. Implementation slices. Use only what the notes support. Where the notes are silent, write \"Unknown\" and add the gap to the Unknowns table instead of inventing details. Omit sections the notes give nothing for.",
+    userPromptTemplate: "Here are my notes:\n\n{{noteContent}}\n\nPlease draft an RFD from these.",
+    followUpSuggestions: ["Make it a brief RFD (five lines only)", "What's missing before review?", "Tighten the problem statement"],
+  },
+
   // ── Think ──
+  {
+    id: "think-critique-rfd",
+    name: "Critique this RFD",
+    description: "Review goals, boundaries, evidence and failure cases",
+    category: "think",
+    scope: "entry",
+    systemPrompt: "You are a senior engineer reviewing an RFD (Request for Discussion). Check: (1) Is the problem concrete, with an observable outcome? (2) Are goals evaluable and non-goals explicit? (3) Which statements are presented as fact but are really assumptions? (4) Which unknown could invalidate the approach, and is there a check for it? (5) Are failure modes, compatibility and rollback covered? (6) Could someone implement a slice from this without guessing? List the most important issues first, each with a concrete fix. Say what is already good in one line at the end.",
+    userPromptTemplate: "Here is my RFD:\n\n{{noteContent}}\n\nPlease review it.",
+    followUpSuggestions: ["What's the riskiest assumption?", "Write acceptance cases for this", "Is the scope too large?"],
+  },
   {
     id: "think-rubber-duck",
     name: "Rubber Duck",

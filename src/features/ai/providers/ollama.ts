@@ -1,7 +1,8 @@
-import type { LLMProvider, LLMMessage, LLMStreamChunk } from "./types.ts";
+import type { ChatOptions, LLMProvider, LLMMessage, LLMStreamChunk } from "./types.ts";
 import { normalizeBaseUrl, validateServerUrl } from "./url.ts";
 
 export class OllamaProvider implements LLMProvider {
+  readonly supportsWebSearch = false;
   private baseUrl: string;
   private model: string;
 
@@ -14,7 +15,7 @@ export class OllamaProvider implements LLMProvider {
 
   async *chat(
     messages: LLMMessage[],
-    options: { temperature: number; maxTokens: number; signal?: AbortSignal },
+    options: ChatOptions,
   ): AsyncGenerator<LLMStreamChunk> {
     const response = await fetch(`${this.baseUrl}/api/chat`, {
       method: "POST",

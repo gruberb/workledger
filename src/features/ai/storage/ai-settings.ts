@@ -7,29 +7,16 @@ export async function loadAISettings(): Promise<AISettings> {
   const db = await getDB();
   const settings = { ...DEFAULT_AI_SETTINGS };
 
-  const keys: (keyof AISettings)[] = [
-    "enabled", "provider",
-    "ollamaUrl", "ollamaModel",
-    "hfApiKey", "hfModel",
-    "customUrl", "customApiKey", "customModel",
-    "temperature", "maxTokens",
-  ];
-
-  for (const key of keys) {
+  // Values are stored as strings; the default's type says how to read each one back,
+  // so a new setting only needs a default.
+  const values = settings as unknown as Record<string, string | number | boolean>;
+  for (const key of Object.keys(DEFAULT_AI_SETTINGS)) {
     const row = await db.get("settings", PREFIX + key);
-    if (row) {
-      const val = row.value;
-      if (key === "enabled") {
-        settings[key] = val === "true";
-      } else if (key === "temperature" || key === "maxTokens") {
-        settings[key] = Number(val);
-      } else if (key === "provider") {
-        settings[key] = val as AISettings["provider"];
-      } else {
-        const k = key as keyof Pick<AISettings, "ollamaUrl" | "ollamaModel" | "hfApiKey" | "hfModel" | "customUrl" | "customApiKey" | "customModel">;
-        settings[k] = val;
-      }
-    }
+    if (!row) continue;
+    const fallback = values[key];
+    if (typeof fallback === "boolean") values[key] = row.value === "true";
+    else if (typeof fallback === "number") values[key] = Number(row.value);
+    else values[key] = row.value;
   }
 
   return settings;
