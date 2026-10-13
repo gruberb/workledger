@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.12.0] - 2026-10-13
+
 ### Added
 
-- Dictation: type `/dictate` in a note, pick "Dictate", and speak; finished phrases are typed at the cursor until you press Stop. It uses the browser's built-in speech recognition, so it is missing where the browser has none (Firefox). Chrome and Edge send the audio to their speech service to transcribe it, Safari recognizes on the device; WorkLedger itself uploads nothing. If the microphone is blocked or the speech service is unavailable, a message says so
+- Dictation: type `/dictate` in a note, pick "Dictate", and speak; finished phrases are typed at the cursor until you press Stop. It uses the browser's built-in speech recognition, so the item only shows where the browser has it (Chrome, Edge and Safari today; Firefox only in preview builds so far). Where the audio is processed is up to the browser: Chrome sends it to a web service, so dictation needs a connection there. WorkLedger itself uploads nothing. If the microphone is blocked or the speech service is unavailable, a message says so
 
 ### Added
 
