@@ -78,6 +78,37 @@ export function buildActiveSnapshot(entries: WorkLedgerEntry[], options: Snapsho
   };
 }
 
+/** Returns `prev` when both lists hold the same items in the same order, so React skips the update. */
+export function keepIfSame<T>(prev: T[], next: T[]): T[] {
+  return prev.length === next.length && prev.every((item, i) => item === next[i]) ? prev : next;
+}
+
+/**
+ * Keeps the previous entry objects (and day arrays, and the map itself) when a
+ * reload read the same versions back. Every content or metadata write bumps
+ * `updatedAt`, so an equal timestamp means equal content. Without this, a
+ * reload gives every entry a new `blocks` reference, and each mounted editor
+ * then serializes its whole document to find out nothing changed.
+ */
+export function reuseUnchanged(prev: EntriesByDay, next: EntriesByDay): EntriesByDay {
+  const prevById = new Map<string, WorkLedgerEntry>();
+  for (const entries of prev.values()) for (const e of entries) prevById.set(e.id, e);
+
+  let allSame = prev.size === next.size;
+  const merged: EntriesByDay = new Map();
+  for (const [dayKey, entries] of next) {
+    const reused = entries.map((e) => {
+      const old = prevById.get(e.id);
+      return old && old.updatedAt === e.updatedAt ? old : e;
+    });
+    const before = prev.get(dayKey);
+    const sameDay = !!before && before.length === reused.length && before.every((e, i) => e === reused[i]);
+    if (!sameDay) allSame = false;
+    merged.set(dayKey, sameDay ? before : reused);
+  }
+  return allSame ? prev : merged;
+}
+
 export function findEntry(map: EntriesByDay, id: string): WorkLedgerEntry | undefined {
   for (const entries of map.values()) {
     const found = entries.find((e) => e.id === id);

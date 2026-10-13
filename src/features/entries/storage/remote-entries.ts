@@ -41,12 +41,20 @@ export async function applyRemoteEntries(remote: RemoteEntry[]): Promise<number>
   const upserted: WorkLedgerEntry[] = [];
   const deleted: string[] = [];
 
+  // Issue every lookup at once: awaiting them one by one costs a round trip
+  // per entry. `locals` follows our own writes, so a page that repeats an id
+  // compares against the version it just stored.
+  const locals = new Map(
+    await Promise.all(incoming.map(async ({ id }) => [id, await entries.get(id)] as const)),
+  );
+
   for (const { id, entry } of incoming) {
-    const local = await entries.get(id);
+    const local = locals.get(id);
     if (!entry) {
       if (local) {
         await entries.delete(id);
         await searchIndex.delete(id);
+        locals.delete(id);
         deleted.push(id);
       }
       continue;
@@ -54,6 +62,7 @@ export async function applyRemoteEntries(remote: RemoteEntry[]): Promise<number>
     if (local && entry.updatedAt <= local.updatedAt) continue;
 
     await entries.put(entry);
+    locals.set(id, entry);
     // Archived entries are kept out of search, matching archiveEntry().
     if (entry.isArchived) {
       await searchIndex.delete(id);

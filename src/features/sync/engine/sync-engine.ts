@@ -35,6 +35,8 @@ export interface SyncEngineDeps {
   storage: SyncStorage;
   entries: {
     getAllEntries: () => Promise<WorkLedgerEntry[]>;
+    /** Entries with updatedAt strictly after `since`. */
+    getEntriesUpdatedSince: (since: number) => Promise<WorkLedgerEntry[]>;
     getEntry: (id: string) => Promise<WorkLedgerEntry | undefined>;
     applyRemoteEntries: (entries: RemoteEntry[]) => Promise<number>;
   };
@@ -331,14 +333,19 @@ export class SyncEngine {
   // --- Push ---
 
   private async collectEntries(forceAll: boolean, scan: boolean, dirty: Map<string, number>, since: number | null) {
-    const { getAllEntries, getEntry } = this.deps.entries;
-    if (forceAll || scan || dirty.size > this.options.bulkReadThreshold) {
+    const { getAllEntries, getEntriesUpdatedSince, getEntry } = this.deps.entries;
+    if (forceAll || dirty.size > this.options.bulkReadThreshold || (scan && since === null)) {
       const all = await getAllEntries();
       if (forceAll) return all;
       return all.filter((e) => dirty.has(e.id) || (scan && (since === null || e.updatedAt > since)));
     }
-    const found = await Promise.all([...dirty.keys()].map((id) => getEntry(id)));
-    return found.filter((e): e is WorkLedgerEntry => !!e);
+    // The recovery scan reads only entries edited since the last push; dirty
+    // ids are looked up on top, since an entry can be dirty without a newer updatedAt.
+    const changed = scan && since !== null ? await getEntriesUpdatedSince(since) : [];
+    const known = new Set(changed.map((e) => e.id));
+    const dirtyOnly = [...dirty.keys()].filter((id) => !known.has(id));
+    const found = await Promise.all(dirtyOnly.map((id) => getEntry(id)));
+    return [...changed, ...found.filter((e): e is WorkLedgerEntry => !!e)];
   }
 
   private async runPush(requestedForceAll: boolean): Promise<boolean> {

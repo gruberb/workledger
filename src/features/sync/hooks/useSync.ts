@@ -3,13 +3,13 @@ import { SyncEngine } from "../engine/sync-engine.ts";
 import { idbSyncStorage } from "../storage/sync-settings.ts";
 import { httpSyncApi } from "../utils/sync-api.ts";
 import { onEntryChanged, onEntryDeleted } from "../utils/sync-events.ts";
-import { applyRemoteEntries, getAllEntries, getEntry, useEntriesActions } from "../../entries/index.ts";
+import { applyRemoteEntries, getAllEntries, getEntriesUpdatedSince, getEntry, useEntriesActions } from "../../entries/index.ts";
 
 function createEngine(): SyncEngine {
   return new SyncEngine({
     api: httpSyncApi,
     storage: idbSyncStorage,
-    entries: { getAllEntries, getEntry, applyRemoteEntries },
+    entries: { getAllEntries, getEntriesUpdatedSince, getEntry, applyRemoteEntries },
     isVisible: () => document.visibilityState === "visible",
   });
 }

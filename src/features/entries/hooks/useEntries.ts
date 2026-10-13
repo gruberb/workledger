@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { Block, PartialBlock } from "@blocknote/core";
+import type { PartialBlock } from "@blocknote/core";
 import type { EntrySignifier, NewEntryOptions, WorkLedgerEntry } from "../types/entry.ts";
 import {
   putEntry,
@@ -11,11 +11,13 @@ import {
   getAllEntryIds,
   type EntryPatch,
 } from "../storage/entries.ts";
-import { deleteSearchIndex, reindexEntry, updateSearchIndex } from "../storage/search-index.ts";
+import { deleteSearchIndex, reindexEntry } from "../storage/search-index.ts";
 import { removeFromBacklinks, updateBacklinks } from "../storage/backlinks.ts";
 import {
   addDayKey,
+  keepIfSame,
   removeFromMap,
+  reuseUnchanged,
   setDayInMap,
   updateInMap,
   upsertInMap,
@@ -70,12 +72,13 @@ export function useEntries() {
         all: loadAllRef.current,
         withArchive: archiveLoadedRef.current,
       });
-      setEntriesByDay(snapshot.entriesByDay);
-      setDayKeys(snapshot.dayKeys);
+      setEntriesByDay((prev) => reuseUnchanged(prev, snapshot.entriesByDay));
+      setDayKeys((prev) => keepIfSame(prev, snapshot.dayKeys));
       setArchivedCount(snapshot.archivedCount);
-      setStoredTags(snapshot.allTags);
-      setStoredSignifiers(snapshot.allSignifiers);
-      if (snapshot.archivedEntriesByDay) setArchivedEntries(snapshot.archivedEntriesByDay);
+      setStoredTags((prev) => keepIfSame(prev, snapshot.allTags));
+      setStoredSignifiers((prev) => keepIfSame(prev, snapshot.allSignifiers));
+      const archived = snapshot.archivedEntriesByDay;
+      if (archived) setArchivedEntries((prev) => reuseUnchanged(prev, archived));
       setError(null);
     } catch (err) {
       console.error("[entries] load failed", err);
@@ -165,7 +168,7 @@ export function useEntries() {
     setArchivedEntries((prev) => updateInMap(prev, id, () => updated));
     if (!updated.isArchived) {
       await updateIndexes("search index", () =>
-        updateSearchIndex(id, updated.dayKey, blocks as Block[], updated.tags, updated.updatedAt),
+        reindexEntry(updated),
       );
     }
     // Before emitting: BacklinksPanel listeners read the index on entry-changed.

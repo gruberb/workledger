@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { SIGNIFIER_CONFIG, type EntrySignifier } from "../../entries/index.ts";
 import { CollapsibleSectionHeader } from "./CollapsibleSectionHeader.tsx";
 
@@ -9,7 +10,7 @@ interface SignifierFilterProps {
   onToggleCollapse?: () => void;
 }
 
-export function SignifierFilter({ allSignifiers, selectedSignifiers, onToggle, collapsed, onToggleCollapse }: SignifierFilterProps) {
+export const SignifierFilter = memo(function SignifierFilter({ allSignifiers, selectedSignifiers, onToggle, collapsed, onToggleCollapse }: SignifierFilterProps) {
   if (allSignifiers.length === 0) return null;
 
   const isExpanded = !collapsed;
@@ -42,4 +43,4 @@ export function SignifierFilter({ allSignifiers, selectedSignifiers, onToggle, c
       )}
     </div>
   );
-}
+});

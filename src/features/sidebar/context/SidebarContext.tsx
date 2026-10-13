@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
 import { useEntriesData, useEntriesActions } from "../../entries/index.ts";
 import type { WorkLedgerEntry, EntrySignifier } from "../../entries/index.ts";
-import { filterEntries } from "../utils/filterEntries.ts";
+import { filterEntries, type DayFilterCache } from "../utils/filterEntries.ts";
 import type { SavedFilter } from "../types/saved-filter.ts";
 import { loadSavedFilters, persistSavedFilters } from "../storage/saved-filters.ts";
 import { savedFilterMatches } from "../utils/saved-filters.ts";
@@ -29,8 +29,6 @@ interface SidebarUIValue {
   view: SidebarView;
   /** Switches straight to a view; does nothing if it is already shown. */
   setView: (view: SidebarView) => void;
-  activeDayKey: string | null;
-  setActiveDayKey: (key: string | null) => void;
 }
 
 interface SidebarFilterValue {
@@ -65,8 +63,24 @@ interface SidebarDataValue {
 const SidebarUICtx = createContext<SidebarUIValue | null>(null);
 const SidebarFilterCtx = createContext<SidebarFilterValue | null>(null);
 const SidebarDataCtx = createContext<SidebarDataValue | null>(null);
+// The active day changes at every day boundary while scrolling. Kept out of
+// SidebarUI so that only the day list re-renders, not the app shell. The setter
+// has its own context because it never changes.
+const ActiveDayKeyCtx = createContext<string | null>(null);
+const SetActiveDayKeyCtx = createContext<((key: string | null) => void) | null>(null);
 
 // --- Provider ---
+
+/** Returns the previous array while the new one holds the same items in the same order. */
+function useStableList<T>(next: T[]): T[] {
+  const [kept, setKept] = useState(next);
+  if (kept !== next && !(kept.length === next.length && kept.every((item, i) => item === next[i]))) {
+    // Adjusting state during render is the documented way to derive from a prop change.
+    setKept(next);
+    return next;
+  }
+  return kept;
+}
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
   const { entriesByDay, dayKeys, archivedEntries, archivedCount, storedTags, storedSignifiers } = useEntriesData();
@@ -189,9 +203,14 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
   // --- Computed data ---
 
+  // One cache per filter selection: results are only valid for the selection
+  // that produced them, and a new selection starts empty.
+  const dayFilterCache = useMemo<DayFilterCache>(() => new WeakMap(), [selectedTags, selectedSignifiers]); // eslint-disable-line react-hooks/exhaustive-deps
+  const archivedDayFilterCache = useMemo<DayFilterCache>(() => new WeakMap(), [selectedTags, selectedSignifiers]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const displayEntriesByDay = useMemo(
-    () => (hasActiveFilters ? filterEntries(entriesByDay, selectedTags, selectedSignifiers) : entriesByDay),
-    [entriesByDay, selectedTags, selectedSignifiers, hasActiveFilters],
+    () => (hasActiveFilters ? filterEntries(entriesByDay, selectedTags, selectedSignifiers, dayFilterCache) : entriesByDay),
+    [entriesByDay, selectedTags, selectedSignifiers, hasActiveFilters, dayFilterCache],
   );
 
   const sidebarDayKeys = useMemo(
@@ -200,8 +219,8 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   );
 
   const displayArchivedEntriesByDay = useMemo(
-    () => (hasActiveFilters ? filterEntries(archivedEntries, selectedTags, selectedSignifiers) : archivedEntries),
-    [archivedEntries, selectedTags, selectedSignifiers, hasActiveFilters],
+    () => (hasActiveFilters ? filterEntries(archivedEntries, selectedTags, selectedSignifiers, archivedDayFilterCache) : archivedEntries),
+    [archivedEntries, selectedTags, selectedSignifiers, hasActiveFilters, archivedDayFilterCache],
   );
 
   const archivedDayKeys = useMemo(
@@ -211,7 +230,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
   // Only recent days are in memory, so start from the tags of every stored entry
   // (collected by the last full read) and add edits made since.
-  const allTags = useMemo(() => {
+  const computedTags = useMemo(() => {
     const tagSet = new Set<string>(storedTags);
     for (const entries of entriesByDay.values()) {
       for (const entry of entries) {
@@ -223,7 +242,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     return [...tagSet].sort((a, b) => a.localeCompare(b));
   }, [entriesByDay, storedTags]);
 
-  const allSignifiers = useMemo(() => {
+  const computedSignifiers = useMemo(() => {
     const set = new Set<string>(storedSignifiers);
     for (const entries of entriesByDay.values()) {
       for (const entry of entries) {
@@ -232,6 +251,11 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     }
     return [...set];
   }, [entriesByDay, storedSignifiers]);
+
+  // A content save rebuilds both lists but almost never changes them. Handing
+  // the same arrays back keeps the tag and signifier chips from re-rendering.
+  const allTags = useStableList(computedTags);
+  const allSignifiers = useStableList(computedSignifiers);
 
   const handleDeleteAll = useCallback(async () => {
     await deleteAllEntries();
@@ -252,9 +276,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     setReviewWeekKey,
     view: archiveView ? "archive" : reviewView ? "review" : "journal",
     setView,
-    activeDayKey,
-    setActiveDayKey,
-  }), [isOpen, toggleSidebar, setSidebarOpen, archiveView, toggleArchiveView, reviewView, toggleReviewView, reviewWeekKey, setView, activeDayKey]);
+  }), [isOpen, toggleSidebar, setSidebarOpen, archiveView, toggleArchiveView, reviewView, toggleReviewView, reviewWeekKey, setView]);
 
   const filterValue: SidebarFilterValue = useMemo(() => ({
     selectedTags,
@@ -286,7 +308,11 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     <SidebarUICtx.Provider value={uiValue}>
       <SidebarFilterCtx.Provider value={filterValue}>
         <SidebarDataCtx.Provider value={dataValue}>
-          {children}
+          <SetActiveDayKeyCtx.Provider value={setActiveDayKey}>
+            <ActiveDayKeyCtx.Provider value={activeDayKey}>
+              {children}
+            </ActiveDayKeyCtx.Provider>
+          </SetActiveDayKeyCtx.Provider>
         </SidebarDataCtx.Provider>
       </SidebarFilterCtx.Provider>
     </SidebarUICtx.Provider>
@@ -313,5 +339,19 @@ export function useSidebarFilter(): SidebarFilterValue {
 export function useSidebarData(): SidebarDataValue {
   const ctx = useContext(SidebarDataCtx);
   if (!ctx) throw new Error("useSidebarData must be used within SidebarProvider");
+  return ctx;
+}
+
+/** The day highlighted in the sidebar. Re-renders its consumer at each day boundary. */
+// eslint-disable-next-line react-refresh/only-export-components
+export function useActiveDayKey(): string | null {
+  return useContext(ActiveDayKeyCtx);
+}
+
+/** Stable setter for the active day; using it never causes a re-render. */
+// eslint-disable-next-line react-refresh/only-export-components
+export function useSetActiveDayKey(): (key: string | null) => void {
+  const ctx = useContext(SetActiveDayKeyCtx);
+  if (!ctx) throw new Error("useSetActiveDayKey must be used within SidebarProvider");
   return ctx;
 }

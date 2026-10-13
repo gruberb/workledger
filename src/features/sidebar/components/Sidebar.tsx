@@ -21,7 +21,7 @@ interface SidebarProps {
 
 export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
   const isMobile = useIsMobile();
-  const { isOpen, toggleSidebar, archiveView, reviewView, activeDayKey, reviewWeekKey, setReviewWeekKey } = useSidebarUI();
+  const { isOpen, toggleSidebar, archiveView, reviewView, reviewWeekKey, setReviewWeekKey } = useSidebarUI();
   const { selectedTags, toggleTag, selectedSignifiers, toggleSignifier, savedFilters, applySavedFilter, deleteSavedFilter } = useSidebarFilter();
   const {
     displayEntriesByDay,
@@ -157,7 +157,6 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
             dayKeys={dayKeys}
             entriesByDay={entriesByDay}
             isArchiveView={archiveView}
-            activeDayKey={activeDayKey}
             onDayClick={handleDayClick}
           />
         )}

@@ -63,11 +63,17 @@ export async function saveImportedEntries(
   const entryStore = tx.objectStore("entries");
   const searchStore = tx.objectStore("searchIndex");
   const imported: WorkLedgerEntry[] = [];
+  // Lookups run at once; `existing` follows our own writes so a file that
+  // repeats an id compares against the version just stored.
+  const existingById = new Map(
+    await Promise.all(valid.map(async ({ id }) => [id, await entryStore.get(id)] as const)),
+  );
   for (const entry of valid) {
-    const existing = await entryStore.get(entry.id);
+    const existing = existingById.get(entry.id);
     // Same rule as sync merge: never replace a local version that is as new or newer.
     if (existing && existing.updatedAt >= entry.updatedAt) continue;
     await entryStore.put(entry);
+    existingById.set(entry.id, entry);
     if (entry.isArchived) {
       await searchStore.delete(entry.id);
     } else {

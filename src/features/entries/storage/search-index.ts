@@ -1,6 +1,7 @@
 import type { Block } from "@blocknote/core";
 import type { SearchIndexEntry, WorkLedgerEntry } from "../types/entry.ts";
 import { getDB } from "../../../storage/db.ts";
+import { extractTitle } from "../utils/extract-title.ts";
 
 export function extractTextFromBlocks(blocks: Block[]): string {
   const parts: string[] = [];
@@ -33,30 +34,14 @@ export function toSearchRow(entry: WorkLedgerEntry): SearchIndexEntry {
     entryId: entry.id,
     dayKey: entry.dayKey,
     plainText: extractTextFromBlocks(entry.blocks as Block[]).toLowerCase(),
+    // Lets the wiki-link menu list titles without reading every entry.
+    title: extractTitle(entry),
+    createdAt: entry.createdAt,
     // The entry's own timestamp, so re-indexing (import, unarchive) does not
     // reorder "recent" wiki-link suggestions.
     updatedAt: entry.updatedAt,
     tags: entry.tags ?? [],
   };
-}
-
-export async function updateSearchIndex(
-  entryId: string,
-  dayKey: string,
-  blocks: Block[],
-  tags: string[] = [],
-  updatedAt: number = Date.now(),
-): Promise<void> {
-  const db = await getDB();
-  const plainText = extractTextFromBlocks(blocks).toLowerCase();
-  const entry: SearchIndexEntry = {
-    entryId,
-    dayKey,
-    plainText,
-    updatedAt,
-    tags,
-  };
-  await db.put("searchIndex", entry);
 }
 
 /** Keeps the search row in line with the entry: archived entries are not searchable. */
@@ -89,6 +74,12 @@ export async function getRecentSearchEntries(
   const db = await getDB();
   const all = (await db.getAll("searchIndex")) as SearchIndexEntry[];
   return all.sort((a, b) => b.updatedAt - a.updatedAt).slice(0, limit);
+}
+
+/** One search row, a small read compared with the whole entry. */
+export async function getSearchRow(entryId: string): Promise<SearchIndexEntry | undefined> {
+  const db = await getDB();
+  return (await db.get("searchIndex", entryId)) as SearchIndexEntry | undefined;
 }
 
 export async function deleteSearchIndex(entryId: string): Promise<void> {

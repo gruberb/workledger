@@ -65,7 +65,13 @@ function ExcalidrawRenderer({
 
   const defaultHeight = window.matchMedia("(max-width: 767px)").matches ? CANVAS_HEIGHT_MOBILE : CANVAS_HEIGHT;
 
-  const drawing = useMemo(() => parseDrawingData(block.props.drawingData), [block.props.drawingData]);
+  // Every stroke batch rewrites drawingData, and a drawing with embedded images
+  // is several MB of JSON. While editing, Excalidraw owns the scene: it reads
+  // initialData only on mount and storedKey only matters outside edit mode.
+  // So re-parse when editing starts or stops, not on each save in between.
+  const parseKey = isEditing ? null : block.props.drawingData;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const drawing = useMemo(() => parseDrawingData(block.props.drawingData), [parseKey]);
   const storedKey = drawing.ok && drawing.snapshot ? sceneKey(drawing.snapshot) : null;
   // Read once: the persist hook tracks the saved version itself after mount.
   const [initialKey] = useState(storedKey);
@@ -129,10 +135,16 @@ function ExcalidrawRenderer({
     return { elements, appState: { viewBackgroundColor }, files: files ?? undefined };
   }, [drawing]);
 
+  // Sanitizing parses the whole SVG, and resizing re-renders on every mousemove.
+  const safePreviewSvg = useMemo(
+    () => (block.props.previewSvg ? sanitizeSvg(block.props.previewSvg) : ""),
+    [block.props.previewSvg],
+  );
+
   // Non-editable mode
   if (!editor.isEditable) {
     if (block.props.previewSvg) {
-      return <div className="excalidraw-preview rounded-lg overflow-hidden my-2" dangerouslySetInnerHTML={{ __html: sanitizeSvg(block.props.previewSvg) }} />;
+      return <div className="excalidraw-preview rounded-lg overflow-hidden my-2" dangerouslySetInnerHTML={{ __html: safePreviewSvg }} />;
     }
     return <div className="text-stone-400 italic py-4 text-center">[Drawing]</div>;
   }
@@ -146,7 +158,7 @@ function ExcalidrawRenderer({
           className="excalidraw-preview cursor-pointer rounded-lg overflow-hidden hover:ring-2 hover:ring-orange-300 transition-all"
           style={{ height: `${previewHeight}px` }}
           onClick={() => setIsEditing(true)}
-          dangerouslySetInnerHTML={{ __html: sanitizeSvg(block.props.previewSvg) }}
+          dangerouslySetInnerHTML={{ __html: safePreviewSvg }}
         />
         <ExcalidrawResizeHandle axis="height" {...heightResize} />
         <ExcalidrawResizeHandle axis="width" {...widthResize} />

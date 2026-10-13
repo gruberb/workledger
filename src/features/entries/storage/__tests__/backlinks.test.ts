@@ -2,14 +2,16 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Minimal in-memory stand-in for the settings store. vi.hoisted because
 // vi.mock factories run before module-level code.
-const { settings, clearHooks, fakeDb } = vi.hoisted(() => {
+const { settings, writes, clearHooks, fakeDb } = vi.hoisted(() => {
   const settings = new Map<string, { key: string; value: string }>();
+  const writes = { count: 0 };
   const store = {
     get: async (key: string) => settings.get(key),
-    put: async (row: { key: string; value: string }) => { settings.set(row.key, row); },
+    put: async (row: { key: string; value: string }) => { writes.count++; settings.set(row.key, row); },
   };
   return {
     settings,
+    writes,
     clearHooks: [] as (() => void)[],
     fakeDb: {
       get: vi.fn(async (_store: string, key: string) => settings.get(key)),
@@ -31,6 +33,7 @@ function linkTo(...ids: string[]) {
 
 beforeEach(() => {
   settings.clear();
+  writes.count = 0;
   clearHooks.forEach((hook) => hook());
   vi.clearAllMocks();
 });
@@ -64,5 +67,31 @@ describe("backlinks cache", () => {
     clearHooks.forEach((hook) => hook());
     expect(await getBacklinks("t")).toEqual([]);
     expect(fakeDb.get).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("updateBacklinks write skipping", () => {
+  it("skips the write when the links did not change", async () => {
+    await updateBacklinks("a", linkTo("t1", "t2"));
+    expect(writes.count).toBe(1);
+    await updateBacklinks("a", linkTo("t2", "t1"));
+    await updateBacklinks("a", linkTo("a", "t1", "t2")); // self-link is ignored
+    expect(writes.count).toBe(1);
+  });
+
+  it("skips the write for an entry without links", async () => {
+    await updateBacklinks("a", []);
+    expect(writes.count).toBe(1); // cold cache: first save loads and writes
+    await updateBacklinks("a", []);
+    expect(writes.count).toBe(1);
+  });
+
+  it("writes when a link is added or removed", async () => {
+    await updateBacklinks("a", linkTo("t1"));
+    await updateBacklinks("a", linkTo("t1", "t2"));
+    expect(await getBacklinks("t2")).toEqual(["a"]);
+    await updateBacklinks("a", linkTo("t2"));
+    expect(await getBacklinks("t1")).toEqual([]);
+    expect(writes.count).toBe(3);
   });
 });

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { getTagColor } from "../../../utils/tag-colors.ts";
 import { CollapsibleSectionHeader } from "./CollapsibleSectionHeader.tsx";
 
@@ -9,7 +10,7 @@ interface SidebarTagCloudProps {
   onToggleCollapse?: () => void;
 }
 
-export function SidebarTagCloud({ allTags, selectedTags, onToggleTag, collapsed, onToggleCollapse }: SidebarTagCloudProps) {
+export const SidebarTagCloud = memo(function SidebarTagCloud({ allTags, selectedTags, onToggleTag, collapsed, onToggleCollapse }: SidebarTagCloudProps) {
   if (allTags.length === 0) return null;
 
   const isExpanded = !collapsed;
@@ -37,4 +38,4 @@ export function SidebarTagCloud({ allTags, selectedTags, onToggleTag, collapsed,
       )}
     </div>
   );
-}
+});

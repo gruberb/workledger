@@ -82,7 +82,9 @@ export async function pushEntries(params: PushParams): Promise<PushResult> {
       reject(entry.id);
       return;
     }
-    const size = JSON.stringify(entry).length + 1;
+    // Everything but the payload is small; measuring it separately avoids
+    // serializing a payload of up to 700,000 chars a second time.
+    const size = JSON.stringify({ ...entry, encryptedPayload: "" }).length + entry.encryptedPayload.length + 1;
     if (batch.length > 0 && (batch.length >= limits.maxEntries || batchBytes + size > limits.maxBytes)) {
       await flush();
     }
@@ -94,7 +96,12 @@ export async function pushEntries(params: PushParams): Promise<PushResult> {
   // against the entry's own last edit and leave the entry alive there.
   const now = Date.now();
   for (const id of tombstoneIds) await add(await encryptTombstone(key, id, now));
-  for (const entry of entries) await add(await encryptEntry(key, entry));
+  // Encrypt a batch's worth at once (WebCrypto runs off the main thread), then
+  // add in order so batch filling is unchanged. Memory stays at one batch.
+  for (let i = 0; i < entries.length; i += limits.maxEntries) {
+    const encrypted = await Promise.all(entries.slice(i, i + limits.maxEntries).map((e) => encryptEntry(key, e)));
+    for (const entry of encrypted) await add(entry);
+  }
   await flush();
   return result;
 }
