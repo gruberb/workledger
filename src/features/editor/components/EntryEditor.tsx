@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { filterSuggestionItems, SuggestionMenu } from "@blocknote/core/extensions";
-import { useCreateBlockNote } from "@blocknote/react";
+import { ExperimentalMobileFormattingToolbarController, useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import { SuggestionMenuController } from "@blocknote/react";
 import "@blocknote/mantine/style.css";
@@ -12,6 +12,7 @@ import { runPreSave } from "../utils/pre-save.ts";
 import type { EntryEditorProps } from "../../entries/index.ts";
 import { useAutoSave } from "../../entries/index.ts";
 import { useThemeMode } from "../../theme/index.ts";
+import { useIsMobile } from "../../../hooks/useIsMobile.ts";
 
 export function EntryEditor({
   entry,
@@ -20,6 +21,7 @@ export function EntryEditor({
   autoFocus = false,
 }: EntryEditorProps) {
   const themeMode = useThemeMode();
+  const isMobile = useIsMobile();
   const initialContent = useMemo(
     () => (entry.blocks.length > 0 ? entry.blocks : undefined),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -181,8 +183,12 @@ export function EntryEditor({
         theme={themeMode}
         onChange={onChange}
         slashMenu={false}
+        // The floating toolbar sits where the iOS/Android selection popup opens, so
+        // on touch screens the formatting toolbar docks above the keyboard instead.
+        formattingToolbar={!isMobile}
         data-workledger-editor
       >
+        {isMobile && <ExperimentalMobileFormattingToolbarController />}
         <SuggestionMenuController
           triggerCharacter="/"
           getItems={slashMenuItems}
