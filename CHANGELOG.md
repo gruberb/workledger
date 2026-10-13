@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.11.0] - 2026-10-13
+
+### Changed
+
+- The top bar title is centered and larger, with a ▾ menu to switch between Journal, Weekly review and Archive without opening the sidebar. Collapsing the sidebar no longer shifts the title
+- The AI sidebar button stays in the top bar while the AI sidebar is open (shown as pressed, click again to close), so the search button no longer jumps when it opens or closes
+
+### Fixed
+
+- High Contrast themes: no focus ring around the whole note while editing; the caret shows focus. Other controls keep their ring
+
 ## [3.10.0] - 2026-10-12
 
 ### Changed
