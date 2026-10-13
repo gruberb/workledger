@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- Mobile: the text formatting toolbar no longer opens under the iOS/Android selection popup. On touch screens it docks above the keyboard while text is selected, so bold, italic, links and the other styles are reachable
+
 ## [3.11.1] - 2026-10-13
 
 ### Fixed
