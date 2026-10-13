@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { getTagColor } from "../../../utils/tag-colors.ts";
+import { TagInput } from "./TagInput.tsx";
 
 interface TagEditorProps {
   tags: string[];
@@ -8,37 +9,17 @@ interface TagEditorProps {
 
 export function TagEditor({ tags, onChange }: TagEditorProps) {
   const [isAdding, setIsAdding] = useState(false);
-  const [inputValue, setInputValue] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (isAdding) {
-      inputRef.current?.focus();
-    }
-  }, [isAdding]);
 
   const addTag = (value: string) => {
     const tag = value.trim().toLowerCase();
     if (tag && !tags.includes(tag)) {
       onChange([...tags, tag]);
     }
-    setInputValue("");
     setIsAdding(false);
   };
 
   const removeTag = (tag: string) => {
     onChange(tags.filter((t) => t !== tag));
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addTag(inputValue);
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      setInputValue("");
-      setIsAdding(false);
-    }
   };
 
   return (
@@ -65,24 +46,7 @@ export function TagEditor({ tags, onChange }: TagEditorProps) {
       ))}
 
       {isAdding ? (
-        <input
-          ref={inputRef}
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={() => {
-            if (inputValue.trim()) {
-              addTag(inputValue);
-            } else {
-              setIsAdding(false);
-            }
-          }}
-          placeholder="tag name"
-          className="text-xs bg-transparent outline-none border-b border-stone-300 dark:border-stone-600 px-1 py-0.5 w-20 text-stone-600 dark:text-stone-300 placeholder:text-stone-300 dark:placeholder:text-stone-600"
-          autoComplete="off"
-          data-1p-ignore
-        />
+        <TagInput existing={tags} onAdd={addTag} onCancel={() => setIsAdding(false)} />
       ) : (
         <button
           onClick={() => setIsAdding(true)}

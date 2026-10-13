@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Tag auto-complete: "+ tag" now lists your existing tags and narrows them as you type (names starting with your text first). Pick one with the mouse, or with ↑ ↓ and Enter or Tab; Enter on plain text still creates a new tag. Tags the note already has are not offered
+
 ### Fixed
 
 - Mobile: the text formatting toolbar no longer opens under the iOS/Android selection popup. On touch screens it docks above the keyboard while text is selected, so bold, italic, links and the other styles are reachable
