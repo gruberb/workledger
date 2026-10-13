@@ -8,6 +8,8 @@ import {
 export function getWorkLedgerSlashMenuItems(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   editor: BlockNoteEditor<any, any, any>,
+  /** Starts dictation into this note; omit where the browser has no speech recognition. */
+  onDictate?: () => void,
 ): DefaultReactSuggestionItem[] {
   const defaults = getDefaultReactSlashMenuItems(editor);
 
@@ -26,7 +28,17 @@ export function getWorkLedgerSlashMenuItems(
   };
 
   // Sort by group so all "Media" items are contiguous (avoids duplicate key warning)
-  const items = [...defaults, drawItem];
+  const dictateItem: DefaultReactSuggestionItem | null = onDictate
+    ? {
+        title: "Dictate",
+        onItemClick: onDictate,
+        subtext: "Speech to text. Your browser may send the audio to its speech service",
+        aliases: ["dictation", "speech", "voice", "microphone", "mic", "speak"],
+        group: "Media",
+      }
+    : null;
+
+  const items = [...defaults, drawItem, ...(dictateItem ? [dictateItem] : [])];
   items.sort((a, b) => (a.group ?? "").localeCompare(b.group ?? ""));
   return items;
 }

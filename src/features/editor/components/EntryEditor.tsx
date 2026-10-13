@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { filterSuggestionItems, SuggestionMenu } from "@blocknote/core/extensions";
 import { ExperimentalMobileFormattingToolbarController, useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
@@ -9,6 +9,8 @@ import { workledgerSchema } from "./EditorProvider.tsx";
 import { getWorkLedgerSlashMenuItems } from "./SlashMenuItems.tsx";
 import { getWikiLinkMenuItems } from "./WikiLinkMenuItems.ts";
 import { runPreSave } from "../utils/pre-save.ts";
+import { getRecognitionFactory, startDictation, type Dictation } from "../utils/dictation.ts";
+import { DictationPill } from "./DictationPill.tsx";
 import type { EntryEditorProps } from "../../entries/index.ts";
 import { useAutoSave } from "../../entries/index.ts";
 import { useThemeMode } from "../../theme/index.ts";
@@ -141,12 +143,48 @@ export function EntryEditor({
     handleChange(editor);
   }, [handleChange, editor]);
 
+  // "listening", or the reason a session ended on its own (shown until dismissed).
+  const [dictation, setDictation] = useState<"off" | "listening" | { error: string }>("off");
+  const dictationRef = useRef<Dictation | null>(null);
+  const recognitionFactory = useMemo(() => getRecognitionFactory(), []);
+
+  const handleDictate = useCallback(() => {
+    if (!recognitionFactory || !editable) return;
+    const mine: { session?: Dictation; ended?: boolean } = {};
+    const session = startDictation({
+      factory: recognitionFactory,
+      lang: navigator.language || "en-US",
+      onText: (text) => (editor as never as { insertInlineContent: (content: unknown[]) => void }).insertInlineContent([`${text} `]),
+      onEnd: (reason) => {
+        mine.ended = true;
+        // The browser ends a stopped session late; by then a newer one may have replaced it.
+        if (mine.session && dictationRef.current !== mine.session) return;
+        dictationRef.current = null;
+        setDictation(reason ? { error: reason } : "off");
+      },
+    });
+    mine.session = session;
+    // A session that failed to start has already reported its error.
+    if (!mine.ended) {
+      dictationRef.current = session;
+      setDictation("listening");
+    }
+  }, [recognitionFactory, editable, editor]);
+
+  const handleStopDictation = useCallback(() => {
+    dictationRef.current?.stop();
+    setDictation("off");
+  }, []);
+
+  // The microphone must not stay on after the note is gone.
+  useEffect(() => () => dictationRef.current?.stop(), []);
+
   const slashMenuItems = useMemo(
     () => async (query: string) => {
-      const items = getWorkLedgerSlashMenuItems(editor as never);
+      const items = getWorkLedgerSlashMenuItems(editor as never, recognitionFactory && editable ? handleDictate : undefined);
       return filterSuggestionItems(items, query);
     },
-    [editor],
+    [editor, recognitionFactory, editable, handleDictate],
   );
 
   const wikiLinkItems = useCallback(
@@ -199,6 +237,9 @@ export function EntryEditor({
           onItemClick={handleWikiLinkSelect}
         />
       </BlockNoteView>
+      {dictation !== "off" && (
+        <DictationPill error={dictation === "listening" ? undefined : dictation.error} onStop={handleStopDictation} />
+      )}
     </div>
   );
 }
