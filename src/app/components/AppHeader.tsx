@@ -6,16 +6,23 @@ interface HeaderButtonProps {
   onClick: () => void;
   children: ReactNode;
   title?: string;
+  /** Set for toggles (e.g. a panel): shows the pressed state instead of hiding the button. */
+  pressed?: boolean;
 }
 
 /** Round icon button sized for the header; other controls in the header use it too. */
-export function HeaderButton({ label, onClick, children, title }: HeaderButtonProps) {
+export function HeaderButton({ label, onClick, children, title, pressed }: HeaderButtonProps) {
   return (
     <button
       onClick={onClick}
-      className="w-9 h-9 rounded-full border border-[var(--color-notebook-border)] bg-[var(--color-notebook-surface)] text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] flex items-center justify-center shadow-sm transition-colors shrink-0"
+      className={`w-9 h-9 rounded-full border flex items-center justify-center shadow-sm transition-colors shrink-0 hover:text-[var(--color-notebook-text)] ${
+        pressed
+          ? "border-[var(--color-notebook-accent)] bg-[var(--color-notebook-surface-alt)] text-[var(--color-notebook-accent)]"
+          : "border-[var(--color-notebook-border)] bg-[var(--color-notebook-surface)] text-[var(--color-notebook-muted)]"
+      }`}
       title={title ?? label}
       aria-label={label}
+      aria-pressed={pressed}
     >
       {children}
     </button>
@@ -23,8 +30,8 @@ export function HeaderButton({ label, onClick, children, title }: HeaderButtonPr
 }
 
 interface AppHeaderProps {
-  /** Name of the current view. */
-  title: string;
+  /** Centered title, e.g. the view menu. Stays centered whether or not the menu button shows. */
+  title: ReactNode;
   /** The menu button opens the sidebar; hide it while the sidebar is docked open. */
   showMenu: boolean;
   onMenu: () => void;
@@ -37,19 +44,23 @@ interface AppHeaderProps {
 export function AppHeader({ title, showMenu, onMenu, onSearch, actions }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-20 h-[var(--app-header-h)] bg-[var(--color-notebook-bg)] border-b border-[var(--color-notebook-border)]">
-      <div className="h-full max-w-7xl mx-auto flex items-center gap-2 px-4 md:px-12">
-        {showMenu && (
-          <HeaderButton label="Open menu" title="Menu (⌘\)" onClick={onMenu}>
-            <MenuIcon size={18} />
+      {/* Equal side columns keep the title centered, so collapsing the sidebar (which
+          adds the menu button) does not shift it. */}
+      <div className="h-full max-w-7xl mx-auto grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 md:px-12">
+        <div className="flex items-center">
+          {showMenu && (
+            <HeaderButton label="Open menu" title="Menu (⌘\)" onClick={onMenu}>
+              <MenuIcon size={18} />
+            </HeaderButton>
+          )}
+        </div>
+        <div className="min-w-0">{title}</div>
+        <div className="flex items-center justify-end gap-2">
+          <HeaderButton label="Search" title="Search (⌘K)" onClick={onSearch}>
+            <SearchIcon size={18} />
           </HeaderButton>
-        )}
-        <h1 className={`flex-1 min-w-0 truncate font-display text-lg font-semibold tracking-[-0.02em] text-[var(--color-notebook-text)] ${showMenu ? "text-center md:text-left md:pl-2" : "text-left"}`}>
-          {title}
-        </h1>
-        <HeaderButton label="Search" title="Search (⌘K)" onClick={onSearch}>
-          <SearchIcon size={18} />
-        </HeaderButton>
-        {actions}
+          {actions}
+        </div>
       </div>
     </header>
   );

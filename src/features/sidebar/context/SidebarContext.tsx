@@ -25,6 +25,8 @@ interface SidebarUIValue {
   /** ISO week shown by the weekly review; reset to the current week whenever the review opens. */
   reviewWeekKey: string;
   setReviewWeekKey: (weekKey: string) => void;
+  /** The view currently shown, derived from archiveView/reviewView. */
+  view: SidebarView;
   /** Switches straight to a view; does nothing if it is already shown. */
   setView: (view: SidebarView) => void;
   activeDayKey: string | null;
@@ -248,6 +250,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     toggleReviewView,
     reviewWeekKey,
     setReviewWeekKey,
+    view: archiveView ? "archive" : reviewView ? "review" : "journal",
     setView,
     activeDayKey,
     setActiveDayKey,
