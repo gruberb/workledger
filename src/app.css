@@ -71,6 +71,13 @@
   outline-offset: 2px;
 }
 
+/* The note editor is a large contenteditable: the caret already shows focus,
+   and a ring around the whole note while typing is noise. */
+[data-theme="high-contrast"] [contenteditable]:focus-visible,
+[data-theme="high-contrast-light"] [contenteditable]:focus-visible {
+  outline: none;
+}
+
 /* High Contrast Light: black on white text (21:1), blue accent, visible borders */
 [data-theme="high-contrast-light"] {
   --color-notebook-bg: #ffffff;

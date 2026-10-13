@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { ArchiveIcon, CalendarIcon, JournalIcon } from "../../../components/ui/Icons.tsx";
-import { useSidebarData, useSidebarUI, type SidebarView } from "../context/SidebarContext.tsx";
+import { useSidebarData, useSidebarUI } from "../context/SidebarContext.tsx";
+import { SIDEBAR_VIEWS } from "../utils/views.tsx";
 
 interface SidebarNavProps {
   /** Called after any row is chosen (the mobile drawer closes itself here). */
@@ -33,21 +33,15 @@ function NavRow({ icon, label, active, trailing, onClick }: NavRowProps) {
   );
 }
 
-const VIEWS: { view: SidebarView; label: string; icon: ReactNode }[] = [
-  { view: "journal", label: "Journal", icon: <JournalIcon size={16} /> },
-  { view: "review", label: "Weekly review", icon: <CalendarIcon size={16} /> },
-  { view: "archive", label: "Archive", icon: <ArchiveIcon size={16} /> },
-];
 
 /** The three views. Always visible, so no view hides in a menu. */
 export function SidebarNav({ onSelect }: SidebarNavProps) {
-  const { archiveView, reviewView, setView } = useSidebarUI();
+  const { view: current, setView } = useSidebarUI();
   const { archivedCount } = useSidebarData();
-  const current: SidebarView = archiveView ? "archive" : reviewView ? "review" : "journal";
 
   return (
     <nav className="mb-4 shrink-0 space-y-0.5" aria-label="Views">
-      {VIEWS.map(({ view, label, icon }) => (
+      {SIDEBAR_VIEWS.map(({ view, label, icon }) => (
         <NavRow
           key={view}
           icon={icon}

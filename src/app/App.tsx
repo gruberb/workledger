@@ -16,6 +16,7 @@ import { useEntryNavigation } from "./hooks/useEntryNavigation.ts";
 import { FilterBanner } from "./components/FilterBanner.tsx";
 import { StorageStatusBanner } from "./components/StorageStatusBanner.tsx";
 import { AppHeader, HeaderButton } from "./components/AppHeader.tsx";
+import { ViewMenu } from "./components/ViewMenu.tsx";
 import { AIIcon } from "../components/ui/Icons.tsx";
 
 const AISidebar = lazy(() => import("../features/ai/sidebar.ts").then((m) => ({ default: m.AISidebar })));
@@ -121,7 +122,6 @@ function AppContent() {
     );
   }
 
-  const viewTitle = reviewView ? "Weekly review" : archiveView ? "Archive" : "Journal";
   // The full-screen entry has its own header (back, info, actions).
   const showHeader = !(isMobile && focusedEntryId);
   const canCreate = !archiveView && !reviewView;
@@ -153,7 +153,7 @@ function AppContent() {
         aiSidebarOpen={aiSidebarOpen}
         header={showHeader ? (
           <AppHeader
-            title={viewTitle}
+            title={<ViewMenu />}
             showMenu={isMobile || !sidebarOpen}
             onMenu={toggleSidebar}
             onSearch={openSearch}
@@ -161,9 +161,15 @@ function AppContent() {
               {isMobile && canCreate && (
                 <NewEntryIconButton onClick={handleHeaderNewEntry} onCreateFromTemplate={handleNewEntryFromTemplate} />
               )}
-              {/* The AI sidebar is desktop-only; its own header closes it. */}
-              {!isMobile && aiSettings.enabled && !aiSidebarOpen && (
-                <HeaderButton label="Open AI sidebar" title="Open AI sidebar (⌘⇧I)" onClick={handleToggleAISidebar}>
+              {/* The AI sidebar is desktop-only. The button stays while it is open
+                  (pressed), so the header buttons never jump. */}
+              {!isMobile && aiSettings.enabled && (
+                <HeaderButton
+                  label={aiSidebarOpen ? "Close AI sidebar" : "Open AI sidebar"}
+                  title={`${aiSidebarOpen ? "Close" : "Open"} AI sidebar (⌘⇧I)`}
+                  pressed={aiSidebarOpen}
+                  onClick={handleToggleAISidebar}
+                >
                   <AIIcon size={18} />
                 </HeaderButton>
               )}
