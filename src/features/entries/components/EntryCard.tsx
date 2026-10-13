@@ -1,4 +1,4 @@
-import { useRef, memo } from "react";
+import { useRef, memo, Suspense } from "react";
 import type { EntryActions, EntryEditorComponent, WorkLedgerEntry } from "../types/entry.ts";
 import { TagEditor } from "./TagEditor.tsx";
 import { EntryToolbar } from "./EntryToolbar.tsx";
@@ -69,12 +69,15 @@ export const EntryCard = memo(function EntryCard({ entry, isLatest, actions, Edi
               <button className="text-[var(--color-notebook-accent)] hover:underline" onClick={() => window.location.reload()}>Reload</button>
             </div>
           }>
-            <Editor
-              entry={entry}
-              editable={!isArchiveView}
-              onSave={actions.onSave}
-              autoFocus={isLatest && !isOld && !isArchiveView}
-            />
+            {/* A lazy Editor may still be loading: keep the card's height and text meanwhile. */}
+            <Suspense fallback={<EntryPlaceholder entry={entry} height={lastHeight} />}>
+              <Editor
+                entry={entry}
+                editable={!isArchiveView}
+                onSave={actions.onSave}
+                autoFocus={isLatest && !isOld && !isArchiveView}
+              />
+            </Suspense>
           </ErrorBoundary>
         ) : (
           <EntryPlaceholder entry={entry} height={lastHeight} />

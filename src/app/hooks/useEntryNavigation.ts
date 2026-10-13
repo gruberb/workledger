@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useRef } from "react";
 import { useEntriesData, useEntriesActions } from "../../features/entries/index.ts";
-import { useSidebarUI } from "../../features/sidebar/index.ts";
+import { useSidebarUI, useSetActiveDayKey } from "../../features/sidebar/index.ts";
 import { useFocusModeContext } from "../../features/focus-mode/index.ts";
 import { on } from "../../utils/events.ts";
 import { waitForElement } from "../../utils/scroll.ts";
@@ -17,8 +17,16 @@ const SCROLL_SETTLE_MS = 800;
 export function useEntryNavigation(visibleDayKeys: string) {
   const { entriesByDay, loading } = useEntriesData();
   const { loadEntryById, loadDay } = useEntriesActions();
-  const { setActiveDayKey, archiveView, toggleArchiveView, reviewView, toggleReviewView } = useSidebarUI();
+  const { archiveView, toggleArchiveView, reviewView, toggleReviewView } = useSidebarUI();
+  const setActiveDayKey = useSetActiveDayKey();
   const { focusedEntryId, handleExitFocus } = useFocusModeContext();
+  // Callbacks read the latest map through a ref: depending on it would hand the
+  // sidebar and search new callbacks (and re-subscribe the listeners below) on
+  // every save, since the map is replaced each time.
+  const entriesByDayRef = useRef(entriesByDay);
+  useEffect(() => {
+    entriesByDayRef.current = entriesByDay;
+  }, [entriesByDay]);
   const isManualScroll = useRef(false);
 
   const suppressObserver = useCallback(() => {
@@ -31,7 +39,7 @@ export function useEntryNavigation(visibleDayKeys: string) {
       history.replaceState(null, "", `#entry-${entryId}`);
 
       let dayKey: string | undefined;
-      for (const [key, entries] of entriesByDay) {
+      for (const [key, entries] of entriesByDayRef.current) {
         if (entries.some((e) => e.id === entryId)) {
           dayKey = key;
           break;
@@ -57,7 +65,7 @@ export function useEntryNavigation(visibleDayKeys: string) {
       el.classList.add("entry-link-highlight");
       setTimeout(() => el.classList.remove("entry-link-highlight"), 2000);
     },
-    [entriesByDay, loadEntryById, setActiveDayKey, suppressObserver],
+    [loadEntryById, setActiveDayKey, suppressObserver],
   );
 
   /**
@@ -79,7 +87,7 @@ export function useEntryNavigation(visibleDayKeys: string) {
     suppressObserver();
     setActiveDayKey(dayKey);
     // Sidebar lists every day, but only recent days are loaded.
-    if (!archiveView && !entriesByDay.has(dayKey)) {
+    if (!archiveView && !entriesByDayRef.current.has(dayKey)) {
       await loadDay(dayKey);
     }
     const el = await waitForElement(`day-${dayKey}`, 300);
@@ -89,11 +97,11 @@ export function useEntryNavigation(visibleDayKeys: string) {
     }
     // No day section renders when all its entries are pinned (they live in the
     // Pinned section). Fall back to the first pinned entry's card for that day.
-    const pinnedForDay = entriesByDay.get(dayKey)?.find((e) => e.isPinned);
+    const pinnedForDay = entriesByDayRef.current.get(dayKey)?.find((e) => e.isPinned);
     if (pinnedForDay) {
       document.getElementById(`entry-${pinnedForDay.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }, [archiveView, entriesByDay, loadDay, setActiveDayKey, suppressObserver]);
+  }, [archiveView, loadDay, setActiveDayKey, suppressObserver]);
 
   // Wiki link and backlink navigation
   useEffect(() => {

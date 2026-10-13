@@ -71,6 +71,7 @@ class FakeStorage implements SyncStorage {
 class FakeEntries {
   map = new Map<string, WorkLedgerEntry>();
   getAllEntries = async () => [...this.map.values()];
+  getEntriesUpdatedSince = async (since: number) => [...this.map.values()].filter((e) => e.updatedAt > since);
   getEntry = async (id: string) => this.map.get(id);
   applyRemoteEntries = async (remote: RemoteEntry[]) => {
     let changed = 0;
@@ -173,6 +174,15 @@ describe("push", () => {
     entries.put("old-unsynced", 500);
     entries.put("already-synced", 50);
     await startConnected(connectedConfig({ lastSyncAt: 100 }));
+    expect(server.pushedIds()).toEqual(["old-unsynced"]);
+  });
+
+  it("reads only entries newer than lastSyncAt during the recovery scan", async () => {
+    entries.put("old-unsynced", 500);
+    entries.put("already-synced", 50);
+    const readAll = vi.spyOn(entries, "getAllEntries");
+    await startConnected(connectedConfig({ lastSyncAt: 100 }));
+    expect(readAll).not.toHaveBeenCalled();
     expect(server.pushedIds()).toEqual(["old-unsynced"]);
   });
 

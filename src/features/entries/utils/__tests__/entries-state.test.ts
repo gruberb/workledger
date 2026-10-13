@@ -2,8 +2,10 @@ import { describe, it, expect } from "vitest";
 import type { WorkLedgerEntry } from "../../types/entry.ts";
 import {
   addDayKey,
+  keepIfSame,
   buildActiveSnapshot,
   removeFromMap,
+  reuseUnchanged,
   updateInMap,
   upsertInMap,
 } from "../entries-state.ts";
@@ -92,5 +94,44 @@ describe("map helpers", () => {
     expect(addDayKey(["2026-01-03", "2026-01-01"], "2026-01-02")).toEqual(["2026-01-03", "2026-01-02", "2026-01-01"]);
     const keys = ["2026-01-03"];
     expect(addDayKey(keys, "2026-01-03")).toBe(keys);
+  });
+});
+
+describe("reuseUnchanged", () => {
+  const a = entry("a", "2026-01-02", 200);
+  const b = entry("b", "2026-01-01", 100);
+  const prev = new Map([["2026-01-02", [a]], ["2026-01-01", [b]]]);
+
+  it("returns the previous map when the reload read the same versions", () => {
+    const next = new Map([["2026-01-02", [{ ...a }]], ["2026-01-01", [{ ...b }]]]);
+    expect(reuseUnchanged(prev, next)).toBe(prev);
+  });
+
+  it("keeps unchanged entries and days, and takes the changed entry", () => {
+    const edited = { ...b, updatedAt: 150 };
+    const next = new Map([["2026-01-02", [{ ...a }]], ["2026-01-01", [edited]]]);
+    const merged = reuseUnchanged(prev, next);
+    expect(merged).not.toBe(prev);
+    expect(merged.get("2026-01-02")).toBe(prev.get("2026-01-02"));
+    expect(merged.get("2026-01-01")![0]).toBe(edited);
+  });
+
+  it("picks up new entries, new days and removals", () => {
+    const added = entry("c", "2026-01-02", 250);
+    const withNew = reuseUnchanged(prev, new Map([["2026-01-02", [added, { ...a }]], ["2026-01-01", [{ ...b }]]]));
+    expect(withNew.get("2026-01-02")!.map((e) => e.id)).toEqual(["c", "a"]);
+    expect(withNew.get("2026-01-02")![1]).toBe(a);
+
+    const removed = reuseUnchanged(prev, new Map([["2026-01-02", [{ ...a }]]]));
+    expect(removed.has("2026-01-01")).toBe(false);
+  });
+});
+
+describe("keepIfSame", () => {
+  it("keeps the previous array only when the items match in order", () => {
+    const prev = ["a", "b"];
+    expect(keepIfSame(prev, ["a", "b"])).toBe(prev);
+    const next = ["b", "a"];
+    expect(keepIfSame(prev, next)).toBe(next);
   });
 });

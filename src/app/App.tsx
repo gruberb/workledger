@@ -4,8 +4,7 @@ import { ErrorBoundary } from "../components/ui/ErrorBoundary.tsx";
 import { Sidebar } from "../features/sidebar/index.ts";
 import { useSidebarUI, useSidebarFilter, useSidebarData } from "../features/sidebar/index.ts";
 import { EntryStream, ReviewStream, NewEntryButton, NewEntryIconButton, useEntriesData, useEntriesActions, type EntryActions, type EntryTemplate, type WorkLedgerEntry } from "../features/entries/index.ts";
-import { EntryEditor } from "../features/editor/index.ts";
-import { SearchPanel, useSearch } from "../features/search/index.ts";
+import { SearchDialog } from "../features/search/index.ts";
 import { useFocusModeContext } from "../features/focus-mode/index.ts";
 import { useAIContext } from "../features/ai/index.ts";
 import { LogseqImportInput } from "../features/logseq-import/index.ts";
@@ -18,6 +17,15 @@ import { StorageStatusBanner } from "./components/StorageStatusBanner.tsx";
 import { AppHeader, HeaderButton } from "./components/AppHeader.tsx";
 import { ViewMenu } from "./components/ViewMenu.tsx";
 import { AIIcon } from "../components/ui/Icons.tsx";
+
+// BlockNote, ProseMirror and Mantine are over 1.5 MB. The editor loads on its
+// own chunk so the shell can paint first; mobile previews never need it until a
+// note is opened full-screen.
+const loadEditor = () => import("../features/editor/index.ts").then((m) => ({ default: m.EntryEditor }));
+const EntryEditor = lazy(loadEditor);
+// Desktop shows editors right away, so fetch the chunk in parallel with the
+// entries load instead of after the first card renders.
+if (!window.matchMedia("(max-width: 767px)").matches) void loadEditor();
 
 const AISidebar = lazy(() => import("../features/ai/sidebar.ts").then((m) => ({ default: m.AISidebar })));
 import { AppProviders } from "./AppProviders.tsx";
@@ -49,7 +57,9 @@ function AppContent() {
   const { isFiltering, displayEntriesByDay, displayArchivedEntriesByDay } = useSidebarData();
   const { focusedEntryId, handleFocusEntry, handleExitFocus } = useFocusModeContext();
   const { settings: aiSettings, sidebarOpen: aiSidebarOpen, handleOpenAI, handleToggleAISidebar, available: aiAvailable, setSidebarOpen: setAISidebarOpen } = useAIContext();
-  const { query, results, isOpen: searchOpen, search, open: openSearch, close: closeSearch } = useSearch();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const openSearch = useCallback(() => setSearchOpen(true), []);
+  const closeSearch = useCallback(() => setSearchOpen(false), []);
   const { handleNewEntry } = useKeyboardShortcuts({ isOpen: searchOpen, open: openSearch, close: closeSearch });
 
   const visibleEntriesByDay = archiveView ? displayArchivedEntriesByDay : displayEntriesByDay;
@@ -202,14 +212,7 @@ function AppContent() {
 
       {!isMobile && canCreate && !focusedEntryId && <NewEntryButton onClick={handleNewEntry} onCreateFromTemplate={handleNewEntryFromTemplate} aiSidebarOpen={aiSidebarOpen} />}
 
-      <SearchPanel
-        isOpen={searchOpen}
-        query={query}
-        results={results}
-        onSearch={search}
-        onClose={closeSearch}
-        onResultClick={revealEntry}
-      />
+      <SearchDialog isOpen={searchOpen} onClose={closeSearch} onResultClick={revealEntry} />
 
       {aiSettings.enabled && (
         <ErrorBoundary fallback={

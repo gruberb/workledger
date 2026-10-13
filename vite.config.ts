@@ -100,17 +100,10 @@ export default defineConfig({
   ],
   build: {
     chunkSizeWarningLimit: 2000,
-    rollupOptions: {
-      output: {
-        // Excalidraw is deliberately not listed: it is only reached through
-        // dynamic import(), so Rollup keeps it (and its own lazy chunks) out
-        // of the startup bundle. Listing it, in either manualChunks form,
-        // pulled it, or shared dependencies, into what loads at startup.
-        manualChunks(id) {
-          if (id.includes("/node_modules/@blocknote/")) return "blocknote";
-        },
-      },
-    },
+    // No manualChunks: a vendor chunk for BlockNote pulled react-dom and its
+    // other shared dependencies into it, and the entry chunk then loaded all of
+    // it at startup. Rollup's own split follows the dynamic imports (editor,
+    // Excalidraw, AI) and keeps the startup chunk to what the first paint needs.
   },
   optimizeDeps: {
     include: [

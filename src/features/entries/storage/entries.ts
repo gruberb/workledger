@@ -94,6 +94,13 @@ export async function getAllEntries(): Promise<WorkLedgerEntry[]> {
   return (await db.getAll("entries")).map(normalizeEntry);
 }
 
+/** Entries edited strictly after `since` (epoch ms), read through the updatedAt index. */
+export async function getEntriesUpdatedSince(since: number): Promise<WorkLedgerEntry[]> {
+  const db = await getDB();
+  const rows = await db.getAllFromIndex("entries", "by-updatedAt", IDBKeyRange.lowerBound(since, true));
+  return rows.map(normalizeEntry);
+}
+
 export async function getAllEntryIds(): Promise<string[]> {
   const db = await getDB();
   return (await db.getAllKeys("entries")) as string[];

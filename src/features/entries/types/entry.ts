@@ -76,6 +76,9 @@ export interface SearchIndexEntry {
   entryId: string;
   dayKey: string;
   plainText: string;
+  /** `title` and `createdAt` are absent on rows indexed before they were stored; they gain one on the next save. */
+  title?: string;
+  createdAt?: number;
   updatedAt: number;
   tags: string[];
 }

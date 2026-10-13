@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { createReactInlineContentSpec } from "@blocknote/react";
-import { getEntry, extractTitle } from "../../entries/index.ts";
+import { getEntry, getSearchRow, extractTitle } from "../../entries/index.ts";
 import { emit } from "../../../utils/events.ts";
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -14,15 +14,18 @@ function EntryLinkRenderer(props: {
 
   useEffect(() => {
     let cancelled = false;
-    getEntry(entryId).then((entry) => {
+    // The search row is a small read that carries the title. Archived entries
+    // have no row, so a miss falls back to the entry before calling it deleted.
+    async function resolve() {
+      const row = await getSearchRow(entryId);
+      if (row?.title !== undefined) return { title: row.title };
+      const entry = await getEntry(entryId);
+      return entry ? { title: extractTitle(entry) } : null;
+    }
+    resolve().then((found) => {
       if (cancelled) return;
-      if (!entry) {
-        setIsDeleted(true);
-        setResolvedTitle(displayText || "Untitled entry");
-      } else {
-        setIsDeleted(false);
-        setResolvedTitle(extractTitle(entry));
-      }
+      setIsDeleted(!found);
+      setResolvedTitle(found ? found.title : displayText || "Untitled entry");
     });
     return () => { cancelled = true; };
   }, [entryId, displayText]);

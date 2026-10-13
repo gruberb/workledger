@@ -62,16 +62,32 @@ function removeSource(index: BacklinksIndex, sourceEntryId: string): void {
   }
 }
 
+/** Link targets of a source, without self-links. */
+function outgoingTargets(sourceEntryId: string, blocks: PartialBlock[]): string[] {
+  return extractEntryLinks(blocks).filter((targetId) => targetId !== sourceEntryId);
+}
+
 /** Replaces the outgoing links of `sourceEntryId` in place. */
 export function setSourceLinks(index: BacklinksIndex, sourceEntryId: string, blocks: PartialBlock[]): void {
   removeSource(index, sourceEntryId);
-  for (const targetId of extractEntryLinks(blocks)) {
-    if (targetId === sourceEntryId) continue; // skip self-links
+  for (const targetId of outgoingTargets(sourceEntryId, blocks)) {
     if (!index[targetId]) index[targetId] = [];
     if (!index[targetId].includes(sourceEntryId)) {
       index[targetId].push(sourceEntryId);
     }
   }
+}
+
+/** True when the index already holds exactly these outgoing links for the source. */
+function hasSourceLinks(index: BacklinksIndex, sourceEntryId: string, targets: string[]): boolean {
+  const expected = new Set(targets);
+  let found = 0;
+  for (const [targetId, sources] of Object.entries(index)) {
+    if (!sources.includes(sourceEntryId)) continue;
+    if (!expected.has(targetId)) return false;
+    found++;
+  }
+  return found === expected.size;
 }
 
 /** Removes an entry both as a link target and as a source, in place. */
@@ -90,8 +106,15 @@ async function mutateIndex(mutate: (index: BacklinksIndex) => void): Promise<voi
   cache = index;
 }
 
-/** Update backlinks index after an entry is saved */
+/**
+ * Update backlinks index after an entry is saved. Most saves leave the links
+ * alone, and rewriting the whole row (up to ~1 MB) for those would dominate
+ * the save, so a warm cache that already matches skips the transaction.
+ */
 export function updateBacklinks(sourceEntryId: string, blocks: PartialBlock[]): Promise<void> {
+  if (cache && hasSourceLinks(cache, sourceEntryId, outgoingTargets(sourceEntryId, blocks))) {
+    return Promise.resolve();
+  }
   return mutateIndex((index) => setSourceLinks(index, sourceEntryId, blocks));
 }
 

@@ -2,7 +2,7 @@ import { openDB, type IDBPDatabase } from "idb";
 import { emit } from "../utils/events.ts";
 
 const DB_NAME = "workledger";
-const DB_VERSION = 5;
+const DB_VERSION = 6;
 
 type StoredEntry = WorkLedgerDB["entries"]["value"];
 
@@ -24,6 +24,7 @@ export interface WorkLedgerDB {
       "by-dayKey": string;
       "by-createdAt": number;
       "by-tags": string;
+      "by-updatedAt": number;
     };
   };
   searchIndex: {
@@ -32,6 +33,8 @@ export interface WorkLedgerDB {
       entryId: string;
       dayKey: string;
       plainText: string;
+      title?: string;
+      createdAt?: number;
       updatedAt: number;
       tags: string[];
     };
@@ -117,6 +120,15 @@ export function getDB(): Promise<IDBPDatabase<WorkLedgerDB>> {
               if (upgraded) entryStore.put(upgraded);
             }
           });
+        }
+
+        // Lets sync's recovery scan read only entries edited since the last push.
+        // Guarded so a re-run over a store that already has it cannot throw.
+        if (oldVersion < 6) {
+          const entryStore = transaction.objectStore("entries");
+          if (!entryStore.indexNames.contains("by-updatedAt")) {
+            entryStore.createIndex("by-updatedAt", "updatedAt");
+          }
         }
       },
       blocked() {
