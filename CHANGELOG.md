@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.11.1] - 2026-10-13
+
+### Fixed
+
+- Switching between Journal and Archive or Weekly review no longer shifts the page sideways. The space for the scrollbar is now always reserved, so the long Journal (with a scrollbar) and the shorter views (without one) have the same width
+
 ## [3.11.0] - 2026-10-13
 
 ### Changed
