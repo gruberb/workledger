@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.13.0] - 2026-10-13
+
+### Changed
+
+- Faster start: the editor (BlockNote, ProseMirror, Mantine) now loads as its own chunk, so the page loads about 444 KB of JavaScript (132 KB gzipped) before first paint instead of about 1.9 MB (about 560 KB gzipped). Notes show their title and preview until the editor is ready; on mobile it loads when you open a note
+- Typing `[[` to link a note is lighter: the menu waits for a pause in typing before searching, and lists titles from the search index instead of reading every matching note. Notes saved before this version gain their title in the index on the next edit (until then the menu reads them as before)
+- Saving a note no longer rewrites the backlinks index when its links did not change, which is almost every save
+- Sidebar and search: a save no longer re-renders every day in the sidebar, scrolling past a day boundary no longer re-renders the app around it, the search panel keeps its text in itself, and filtering by tag or signifier only re-filters the day you edited
+- A sync pull or filter change that brings back unchanged notes no longer makes open editors compare their whole document
+- Sync: the startup recovery scan reads only notes edited since the last push (through a new `updatedAt` index, added by a database upgrade to version 6), and pushes encrypt a batch at a time. Merges and imports look up existing notes in one go
+- Drawings: the preview is sanitized once per change instead of on every render (including while resizing), and a drawing is no longer re-parsed after every stroke batch while you draw
+
+### Notes
+
+- The database upgrade to version 6 is applied on first open. Another WorkLedger tab running an older version closes its connection and needs a reload
+
 ## [3.12.0] - 2026-10-13
 
 ### Added
