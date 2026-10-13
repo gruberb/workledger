@@ -1,7 +1,9 @@
 // Speech to text through the browser's Web Speech API (SpeechRecognition).
-// Chrome and Edge send the audio to the browser vendor's speech service, Safari
-// recognizes on the device, Firefox has no support. Nothing here uploads
-// anything itself; the UI says so before the user starts.
+// Where the audio is processed is up to the browser: Chrome sends it to a web
+// service (MDN: "won't work offline"), so the menu item warns about that. Nothing
+// here uploads anything itself. Support varies: Chrome 33+ (prefixed) and 139+,
+// Safari 14.1+ (prefixed), Firefox in preview builds only. Both constructor names
+// are tried, so a browser that ships it later works without a change.
 
 interface RecognitionResult {
   isFinal: boolean;
@@ -26,7 +28,7 @@ export interface RecognitionLike {
 
 export type RecognitionFactory = () => RecognitionLike;
 
-/** The browser's recognizer, or null where there is none (e.g. Firefox). */
+/** The browser's recognizer, or null where there is none (e.g. Firefox release builds). */
 export function getRecognitionFactory(scope: object = window): RecognitionFactory | null {
   const w = scope as { SpeechRecognition?: new () => RecognitionLike; webkitSpeechRecognition?: new () => RecognitionLike };
   const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
