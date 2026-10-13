@@ -492,6 +492,13 @@
   background: var(--color-notebook-scrollbar-hover);
 }
 
+/* Always reserve the scrollbar's width. Otherwise the long Journal gets a
+   scrollbar and the short Archive and Weekly review do not, and every centered
+   element shifts by half its width when switching views. */
+html {
+  scrollbar-gutter: stable;
+}
+
 /* Body base styles */
 body {
   background-color: var(--color-notebook-bg);
