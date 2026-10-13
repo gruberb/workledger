@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Dictation: type `/dictate` in a note, pick "Dictate", and speak; finished phrases are typed at the cursor until you press Stop. It uses the browser's built-in speech recognition, so it is missing where the browser has none (Firefox). Chrome and Edge send the audio to their speech service to transcribe it, Safari recognizes on the device; WorkLedger itself uploads nothing. If the microphone is blocked or the speech service is unavailable, a message says so
+
+### Added
+
 - Tag auto-complete: "+ tag" now lists your existing tags and narrows them as you type (names starting with your text first). Pick one with the mouse, or with ↑ ↓ and Enter or Tab; Enter on plain text still creates a new tag. Tags the note already has are not offered
 
 ### Fixed
