@@ -92,14 +92,14 @@ export function useEntryNavigation(visibleDayKeys: string) {
     }
     const el = await waitForElement(`day-${dayKey}`, 300);
     if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+      el.scrollIntoView({ behavior: "instant", block: "start" });
       return;
     }
     // No day section renders when all its entries are pinned (they live in the
     // Pinned section). Fall back to the first pinned entry's card for that day.
     const pinnedForDay = entriesByDayRef.current.get(dayKey)?.find((e) => e.isPinned);
     if (pinnedForDay) {
-      document.getElementById(`entry-${pinnedForDay.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById(`entry-${pinnedForDay.id}`)?.scrollIntoView({ behavior: "instant", block: "start" });
     }
   }, [archiveView, loadDay, setActiveDayKey, suppressObserver]);
 

@@ -7,6 +7,7 @@ import { ProviderFields } from "./ProviderFields.tsx";
 interface AISetupGuideProps {
   settings: AISettings;
   onUpdateSettings: (updates: Partial<AISettings>) => Promise<void>;
+  onConnectionSuccess: () => void;
 }
 
 const TABS: { id: AIProviderType; label: string }[] = [
@@ -40,7 +41,8 @@ const INSTRUCTIONS: Record<AIProviderType, ReactNode> = {
       <ol className="text-xs text-gray-500 space-y-1.5 list-decimal list-inside">
         <li>Install Ollama from <span className="text-orange-600 font-medium">ollama.com</span></li>
         <li>Run <code className={codeClass}>ollama pull mistral</code> in terminal</li>
-        <li>Ollama starts automatically on localhost:11434</li>
+        <li>Start Ollama, then check that <code className={codeClass}>http://localhost:11434/api/tags</code> responds</li>
+        <li>For a hosted WorkLedger origin, add that origin to Ollama&apos;s <code className={codeClass}>OLLAMA_ORIGINS</code> setting</li>
       </ol>
     </>
   ),
@@ -68,7 +70,7 @@ const INSTRUCTIONS: Record<AIProviderType, ReactNode> = {
   ),
 };
 
-export function AISetupGuide({ settings, onUpdateSettings }: AISetupGuideProps) {
+export function AISetupGuide({ settings, onUpdateSettings, onConnectionSuccess }: AISetupGuideProps) {
   const [activeTab, setActiveTab] = useState<AIProviderType>(settings.provider);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
@@ -91,6 +93,9 @@ export function AISetupGuide({ settings, onUpdateSettings }: AISetupGuideProps) 
     setTesting(true);
     setTestResult(null);
     const ok = await provider.ping();
+    if (ok && activeTab === settings.provider && JSON.stringify(draft) === JSON.stringify(pickProviderDraft(settings))) {
+      onConnectionSuccess();
+    }
     setTestResult(ok ? "success" : "error");
     setTesting(false);
   };

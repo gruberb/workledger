@@ -24,6 +24,12 @@ describe("normalizeBaseUrl", () => {
 });
 
 describe("createProvider", () => {
+  it("does not select Ollama when AI is enabled without provider setup", () => {
+    const settings = { ...DEFAULT_AI_SETTINGS, enabled: true };
+    expect(createProvider(settings)).toBeNull();
+    expect(getProviderConfigError(settings)).toBeTruthy();
+  });
+
   it("returns null instead of throwing for partial URLs typed into settings", () => {
     for (const url of ["h", "http://", "localhost:11434"]) {
       expect(() => createProvider(ollama(url))).not.toThrow();

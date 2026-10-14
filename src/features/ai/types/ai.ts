@@ -32,7 +32,7 @@ export interface AISettings {
 export const DEFAULT_AI_SETTINGS: AISettings = {
   enabled: false,
   provider: "ollama",
-  ollamaUrl: "http://localhost:11434",
+  ollamaUrl: "",
   ollamaModel: "mistral",
   hfApiKey: "",
   hfModel: "Qwen/Qwen2.5-7B-Instruct",

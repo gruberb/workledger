@@ -73,7 +73,7 @@ An optional AI sidebar with 16 concrete engineer actions, including web research
 
 1. Click the **gear icon** in the left sidebar and select **Enable AI**
 2. **Configure a provider** — choose one:
-   - **Ollama (local):** Install [Ollama](https://ollama.com/), run `ollama pull mistral`, done
+   - **Ollama (local):** Install [Ollama](https://ollama.com/), start its server, then run `ollama pull mistral`. Check `http://localhost:11434/api/tags` if the app says disconnected. If WorkLedger is served from another origin, allow that origin with Ollama's `OLLAMA_ORIGINS` setting
    - **Anthropic, OpenAI or OpenRouter (bring your own key):** Paste an API key. The default models are `claude-opus-5-5`, `gpt-5` and `openrouter/auto`. These three support web search
    - **Hugging Face (remote):** Paste a free [API token](https://huggingface.co/settings/tokens) and pick a model
    - **Custom server:** Point to any OpenAI-compatible endpoint

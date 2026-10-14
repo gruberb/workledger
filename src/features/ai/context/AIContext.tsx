@@ -13,6 +13,7 @@ interface AIContextValue {
   provider: LLMProvider | null;
   status: AIConnectionStatus;
   configError: string | null;
+  recheckConnection: () => void;
   sidebarOpen: boolean;
   targetEntry: WorkLedgerEntry | null;
   handleToggleAI: () => void;
@@ -32,6 +33,7 @@ const DISABLED_AI: AIContextValue = {
   provider: null,
   status: "disabled",
   configError: null,
+  recheckConnection: noop,
   sidebarOpen: false,
   targetEntry: null,
   handleToggleAI: noop,
@@ -60,7 +62,7 @@ export function AIProvider({ children, onCollapseSidebar }: AIProviderProps) {
 
 function AIProviderInner({ children, onCollapseSidebar }: AIProviderProps) {
   const { settings, updateSettings } = useAISettings();
-  const { available, provider, status, configError } = useAIFeatureGate(settings);
+  const { available, provider, status, configError, recheck: recheckConnection } = useAIFeatureGate(settings);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [targetEntry, setTargetEntry] = useState<WorkLedgerEntry | null>(null);
 
@@ -102,13 +104,14 @@ function AIProviderInner({ children, onCollapseSidebar }: AIProviderProps) {
     provider,
     status,
     configError,
+    recheckConnection,
     sidebarOpen,
     targetEntry,
     handleToggleAI,
     handleOpenAI,
     handleToggleAISidebar,
     setSidebarOpen,
-  }), [settings, updateSettings, available, provider, status, configError, sidebarOpen, targetEntry, handleToggleAI, handleOpenAI, handleToggleAISidebar]);
+  }), [settings, updateSettings, available, provider, status, configError, recheckConnection, sidebarOpen, targetEntry, handleToggleAI, handleOpenAI, handleToggleAISidebar]);
 
   return <AICtx.Provider value={value}>{children}</AICtx.Provider>;
 }

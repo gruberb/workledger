@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 
 /**
  * Returns whether the element is within ~2000px of the visible area,
- * plus the last measured height so placeholders can preserve layout.
+ * plus the last measured content height so placeholders can preserve layout.
  * Starts near=true so editors mount with correct layout heights on first render.
  * IntersectionObserver then unmounts far-away editors after the initial frame.
  *

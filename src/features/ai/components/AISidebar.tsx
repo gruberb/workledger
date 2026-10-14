@@ -22,6 +22,7 @@ export function AISidebar() {
     provider,
     status,
     configError,
+    recheckConnection,
     sidebarOpen: isOpen,
     targetEntry,
     handleToggleAISidebar: onClose,
@@ -212,6 +213,7 @@ export function AISidebar() {
             <AISetupGuide
               settings={settings}
               onUpdateSettings={onUpdateSettings}
+              onConnectionSuccess={recheckConnection}
             />
           )}
 

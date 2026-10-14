@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AISettings } from "../types/ai.ts";
 import type { LLMProvider } from "../providers/types.ts";
 import { createProvider, getProviderConfigError } from "../providers/provider-factory.ts";
@@ -9,11 +9,9 @@ export type AIConnectionStatus = "disabled" | "unconfigured" | "checking" | "con
 interface GateOptions {
   /** Wait this long after a settings change before pinging. */
   debounceMs?: number;
-  /** Re-ping this often while the provider is unreachable (e.g. Ollama not started yet). */
-  retryMs?: number;
 }
 
-export function useAIFeatureGate(settings: AISettings, { debounceMs = 300, retryMs = 30_000 }: GateOptions = {}) {
+export function useAIFeatureGate(settings: AISettings, { debounceMs = 300 }: GateOptions = {}) {
   const { enabled, provider: providerType } = settings;
   const connectionKey = JSON.stringify(pickProviderDraft(settings));
 
@@ -27,23 +25,45 @@ export function useAIFeatureGate(settings: AISettings, { debounceMs = 300, retry
   }, [enabled, providerType, connectionKey]);
 
   const [pingResult, setPingResult] = useState<{ provider: LLMProvider; ok: boolean } | null>(null);
+  const pingResultRef = useRef(pingResult);
+  pingResultRef.current = pingResult;
+  const [checkKey, setCheckKey] = useState(0);
+  const recheck = useCallback(() => {
+    pingResultRef.current = null;
+    setPingResult(null);
+    setCheckKey((key) => key + 1);
+  }, []);
 
   useEffect(() => {
     if (!provider) return;
     let cancelled = false;
-    let timer: ReturnType<typeof setTimeout>;
-    const check = async () => {
+    const timer = setTimeout(async () => {
       const ok = await provider.ping();
       if (cancelled) return;
       setPingResult({ provider, ok });
-      if (!ok) timer = setTimeout(check, retryMs);
-    };
-    timer = setTimeout(check, debounceMs);
+    }, debounceMs);
     return () => {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [provider, debounceMs, retryMs]);
+  }, [provider, debounceMs, checkKey]);
+
+  // Local servers may start later; check when the user returns without polling
+  // an offline service while the page is idle.
+  useEffect(() => {
+    if (!provider) return;
+    const retryIfDisconnected = () => {
+      if (document.visibilityState === "visible" && pingResultRef.current?.provider === provider && !pingResultRef.current.ok) {
+        recheck();
+      }
+    };
+    window.addEventListener("focus", retryIfDisconnected);
+    document.addEventListener("visibilitychange", retryIfDisconnected);
+    return () => {
+      window.removeEventListener("focus", retryIfDisconnected);
+      document.removeEventListener("visibilitychange", retryIfDisconnected);
+    };
+  }, [provider, recheck]);
 
   let status: AIConnectionStatus;
   if (!enabled) status = "disabled";
@@ -51,5 +71,5 @@ export function useAIFeatureGate(settings: AISettings, { debounceMs = 300, retry
   else if (pingResult?.provider !== provider) status = "checking";
   else status = pingResult.ok ? "connected" : "disconnected";
 
-  return { provider, status, configError, available: status === "connected" };
+  return { provider, status, configError, available: status === "connected", recheck };
 }

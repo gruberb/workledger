@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.13.5] - 2026-10-14
+
+### Fixed
+
+- Enabling AI without configuring a provider no longer checks the default Ollama URL
+- A disconnected AI provider checks again when the tab regains focus or a connection test succeeds, instead of polling every 30 seconds
+- Day navigation jumps directly to the selected day, avoiding editor mounts along a long smooth scroll
+- Off-screen note placeholders preserve the editor content height without adding the toolbar and footer height twice
+- Ollama setup now explains how to check the local server and allow a hosted app origin
+
 ## [3.13.4] - 2026-10-14
 
 ### Fixed

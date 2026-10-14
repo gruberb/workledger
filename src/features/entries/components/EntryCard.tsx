@@ -35,12 +35,12 @@ function EntryPlaceholder({ entry, height }: { entry: WorkLedgerEntry; height?: 
 // and `actions` / `Editor` are stable references from the app.
 export const EntryCard = memo(function EntryCard({ entry, isLatest, actions, Editor, isArchiveView, bare }: EntryCardProps) {
   const isOld = entry.dayKey < useTodayKey();
-  const cardRef = useRef<HTMLDivElement>(null);
-  const { near: nearViewport, lastHeight } = useNearViewport(cardRef);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const { near: nearViewport, lastHeight } = useNearViewport(contentRef);
   const { onTagsChange } = actions;
 
   return (
-    <div ref={cardRef} className="entry-card group scroll-mt-[172px]" id={`entry-${entry.id}`}>
+    <div className="entry-card group scroll-mt-[172px]" id={`entry-${entry.id}`}>
       {!bare && <EntryToolbar entry={entry} actions={actions} isArchiveView={isArchiveView} />}
       {!bare && onTagsChange && !isArchiveView && (
         <div className="mb-2">
@@ -61,7 +61,7 @@ export const EntryCard = memo(function EntryCard({ entry, isLatest, actions, Edi
           </div>
         </div>
       )}
-      <div className={`rounded-xl transition-all duration-200 ${isArchiveView ? "opacity-80" : ""}`}>
+      <div ref={contentRef} className={`rounded-xl transition-all duration-200 ${isArchiveView ? "opacity-80" : ""}`}>
         {nearViewport ? (
           <ErrorBoundary fallback={
             <div className="text-center py-8 text-sm text-[var(--color-notebook-muted)]">
