@@ -25,10 +25,6 @@
   <img src="docs/images/product.png" alt="WorkLedger in the Paper theme" width="720">
 </p>
 
-<p align="center">
-  <img src="docs/images/product-ink.png" alt="WorkLedger in the Ink theme" width="720">
-</p>
-
 ## Features
 
 ### Customize your workspace

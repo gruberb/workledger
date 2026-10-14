@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- Refreshed README screenshots for the v4.0.0 redesign (Paper, Ink, weekly review)
+- Refreshed README screenshots for the v4.0.0 redesign (Paper theme, weekly review, AI companion)
 
 ## [4.0.0] - 2026-10-14
 
