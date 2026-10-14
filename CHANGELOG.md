@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.13.4] - 2026-10-14
+
+### Fixed
+
+- Mobile: the BlockNote formatting toolbar appears above the on-screen keyboard while editing. Updated BlockNote to 0.55.0, which supports this layout, and added the viewport and iOS scroll settings recommended by BlockNote
+
 ## [3.13.3] - 2026-10-13
 
 ### Fixed
