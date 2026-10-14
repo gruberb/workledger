@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.13.3] - 2026-10-13
+
+### Fixed
+
+- Mobile and narrow windows: the formatting toolbar opens at the selected text again, like on wide screens. The toolbar docked above the keyboard (3.13.1, 3.13.2) was pinned to the bottom, hidden or off-screen depending on window size
+
 ## [3.13.2] - 2026-10-13
 
 ### Fixed

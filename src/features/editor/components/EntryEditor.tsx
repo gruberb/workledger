@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { filterSuggestionItems, FormattingToolbarExtension, SuggestionMenu } from "@blocknote/core/extensions";
-import { FormattingToolbar, useCreateBlockNote, useExtensionState } from "@blocknote/react";
+import { filterSuggestionItems, SuggestionMenu } from "@blocknote/core/extensions";
+import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import { SuggestionMenuController } from "@blocknote/react";
 import "@blocknote/mantine/style.css";
@@ -14,51 +14,6 @@ import { DictationPill } from "./DictationPill.tsx";
 import type { EntryEditorProps } from "../../entries/index.ts";
 import { useAutoSave } from "../../entries/index.ts";
 import { useThemeMode } from "../../theme/index.ts";
-import { useIsMobile } from "../../../hooks/useIsMobile.ts";
-
-// Bar docked above the on-screen keyboard while text is selected. BlockNote's
-// ExperimentalMobileFormattingToolbarController is not usable here: it renders
-// regardless of selection, and offsets itself by (visual viewport height - body
-// height). The document scrolls, so in a long stream that offset is hugely negative
-// and the bar ends up off-screen.
-function MobileFormattingToolbar() {
-  const show = useExtensionState(FormattingToolbarExtension);
-  const [bottom, setBottom] = useState(0);
-
-  useEffect(() => {
-    const viewport = window.visualViewport;
-    if (!viewport) return;
-    // iOS keeps the layout viewport at full height when the keyboard opens, so the
-    // keyboard height is what the visual viewport lost at the bottom.
-    const update = () =>
-      setBottom(Math.max(0, document.documentElement.clientHeight - viewport.height - viewport.offsetTop));
-    update();
-    viewport.addEventListener("resize", update);
-    viewport.addEventListener("scroll", update);
-    return () => {
-      viewport.removeEventListener("resize", update);
-      viewport.removeEventListener("scroll", update);
-    };
-  }, []);
-
-  if (!show) return null;
-  return (
-    <div
-      style={{
-        position: "fixed",
-        left: 0,
-        right: 0,
-        bottom,
-        display: "flex",
-        overflowX: "auto",
-        padding: 4,
-        zIndex: "calc(var(--bn-ui-base-z-index) + 40)",
-      }}
-    >
-      <FormattingToolbar />
-    </div>
-  );
-}
 
 export function EntryEditor({
   entry,
@@ -67,7 +22,6 @@ export function EntryEditor({
   autoFocus = false,
 }: EntryEditorProps) {
   const themeMode = useThemeMode();
-  const isMobile = useIsMobile();
   const initialContent = useMemo(
     () => (entry.blocks.length > 0 ? entry.blocks : undefined),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -265,12 +219,8 @@ export function EntryEditor({
         theme={themeMode}
         onChange={onChange}
         slashMenu={false}
-        // The floating toolbar sits where the iOS/Android selection popup opens, so
-        // on touch screens the formatting toolbar docks above the keyboard instead.
-        formattingToolbar={!isMobile}
         data-workledger-editor
       >
-        {isMobile && <MobileFormattingToolbar />}
         <SuggestionMenuController
           triggerCharacter="/"
           getItems={slashMenuItems}
