@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.13.1] - 2026-10-13
+
+### Fixed
+
+- Mobile: the formatting toolbar above the keyboard shows only while text is selected. It stayed pinned to the bottom of the first note and selecting text did nothing
+
 ## [3.13.0] - 2026-10-13
 
 ### Changed
