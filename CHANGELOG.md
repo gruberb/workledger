@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.13.2] - 2026-10-13
+
+### Fixed
+
+- Mobile: the formatting toolbar now appears above the keyboard when you select text in a long list of notes. Its position was computed from the height of the whole page, which put it off-screen
+
 ## [3.13.1] - 2026-10-13
 
 ### Fixed
