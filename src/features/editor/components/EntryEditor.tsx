@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { filterSuggestionItems, FormattingToolbarExtension, SuggestionMenu } from "@blocknote/core/extensions";
-import { ExperimentalMobileFormattingToolbarController, useCreateBlockNote, useExtensionState } from "@blocknote/react";
+import { FormattingToolbar, useCreateBlockNote, useExtensionState } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import { SuggestionMenuController } from "@blocknote/react";
 import "@blocknote/mantine/style.css";
@@ -16,12 +16,48 @@ import { useAutoSave } from "../../entries/index.ts";
 import { useThemeMode } from "../../theme/index.ts";
 import { useIsMobile } from "../../../hooks/useIsMobile.ts";
 
-// The upstream mobile controller ignores the toolbar state: it renders a fixed bar
-// whether or not text is selected, and one per mounted editor. Mount it only while
-// the selection wants a toolbar.
+// Bar docked above the on-screen keyboard while text is selected. BlockNote's
+// ExperimentalMobileFormattingToolbarController is not usable here: it renders
+// regardless of selection, and offsets itself by (visual viewport height - body
+// height). The document scrolls, so in a long stream that offset is hugely negative
+// and the bar ends up off-screen.
 function MobileFormattingToolbar() {
   const show = useExtensionState(FormattingToolbarExtension);
-  return show ? <ExperimentalMobileFormattingToolbarController /> : null;
+  const [bottom, setBottom] = useState(0);
+
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    // iOS keeps the layout viewport at full height when the keyboard opens, so the
+    // keyboard height is what the visual viewport lost at the bottom.
+    const update = () =>
+      setBottom(Math.max(0, document.documentElement.clientHeight - viewport.height - viewport.offsetTop));
+    update();
+    viewport.addEventListener("resize", update);
+    viewport.addEventListener("scroll", update);
+    return () => {
+      viewport.removeEventListener("resize", update);
+      viewport.removeEventListener("scroll", update);
+    };
+  }, []);
+
+  if (!show) return null;
+  return (
+    <div
+      style={{
+        position: "fixed",
+        left: 0,
+        right: 0,
+        bottom,
+        display: "flex",
+        overflowX: "auto",
+        padding: 4,
+        zIndex: "calc(var(--bn-ui-base-z-index) + 40)",
+      }}
+    >
+      <FormattingToolbar />
+    </div>
+  );
 }
 
 export function EntryEditor({
