@@ -15,7 +15,7 @@ const noop = () => {};
 
 export const ThemeContext = createContext<ThemeContextValue>({
   isDark: false,
-  themeId: "nord-light",
+  themeId: "paper",
   fontFamily: "figtree",
   setTheme: noop,
   setFont: noop,

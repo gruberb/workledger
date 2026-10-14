@@ -71,8 +71,8 @@ export default defineConfig({
         name: "WorkLedger",
         short_name: "WorkLedger",
         description: "Local-first engineering notebook",
-        theme_color: "#f97316",
-        background_color: "#fafafa",
+        theme_color: "#3046c5",
+        background_color: "#f7f4ec",
         display: "standalone",
         start_url: "/",
         icons: [

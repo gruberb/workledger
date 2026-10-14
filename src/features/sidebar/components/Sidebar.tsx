@@ -22,7 +22,7 @@ interface SidebarProps {
 export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
   const isMobile = useIsMobile();
   const { isOpen, toggleSidebar, archiveView, reviewView, reviewWeekKey, setReviewWeekKey } = useSidebarUI();
-  const { selectedTags, toggleTag, selectedSignifiers, toggleSignifier, savedFilters, applySavedFilter, deleteSavedFilter } = useSidebarFilter();
+  const { selectedTags, toggleTag, selectedSignifiers, toggleSignifier, savedFilters, saveCurrentFilter, applySavedFilter, deleteSavedFilter } = useSidebarFilter();
   const {
     displayEntriesByDay,
     displayArchivedEntriesByDay,
@@ -42,7 +42,7 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
   const [bottomHeight, setBottomHeight] = useState(160);
   const [filtersCollapsed, setFiltersCollapsed] = useState(false);
   const [signifiersCollapsed, setSignifiersCollapsed] = useState(false);
-  const [tagsCollapsed, setTagsCollapsed] = useState(true);
+  const [tagsCollapsed, setTagsCollapsed] = useState(false);
   const dragRef = useRef<{ startY: number; startHeight: number } | null>(null);
   const handleDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -111,8 +111,9 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
 
       {/* Sidebar panel */}
       <aside
+        inert={!isOpen}
         className={`
-          fixed top-0 left-0 h-full ${isMobile ? "z-40" : "z-0"}
+          notebook-sidebar fixed top-0 left-0 h-dvh ${isMobile ? "z-40" : "z-0"}
           bg-[var(--color-notebook-surface)] border-r border-[var(--color-notebook-border)]
           shadow-[1px_0_12px_rgba(0,0,0,0.03)] dark:shadow-[1px_0_12px_rgba(0,0,0,0.3)]
           transition-transform duration-300 ease-in-out
@@ -126,7 +127,7 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
           <a href="https://about.workledger.org" target="_blank" rel="noopener" className="flex items-center gap-3 flex-1 min-w-0">
             <img src="/logo.svg" alt="WorkLedger" className="w-9 h-9 shrink-0" />
             <div className="flex-1 min-w-0">
-              <h1 className="text-3xl text-[var(--color-notebook-text)] sidebar-title-font leading-tight">WorkLedger</h1>
+              <h1 className="text-2xl text-[var(--color-notebook-text)] sidebar-title-font leading-tight">WorkLedger</h1>
               <p className="text-xs text-[var(--color-notebook-muted)] -mt-0.5">Engineering Notebook</p>
             </div>
           </a>
@@ -142,6 +143,7 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
           </button>
         </div>
 
+        <div className="flex-1 min-h-0 flex flex-col overflow-y-auto px-1 -mx-1">
         <SidebarNav onSelect={closeOnMobile} />
 
         {/* Day list or Week list */}
@@ -162,7 +164,7 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
         )}
 
         {/* Bottom panel: Saved Filters + Tags */}
-        {!archiveView && (allTags.length > 0 || savedFilters.length > 0 || allSignifiers.length > 0) && (
+        {!archiveView && (
           <div className="shrink-0 mt-1">
             {/* Drag handle */}
             <div
@@ -172,10 +174,11 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
               <div className="w-8 h-0.5 rounded-full bg-gray-200 dark:bg-gray-700 group-hover:bg-gray-400 dark:group-hover:bg-gray-500 transition-colors" />
             </div>
             <div
-              className="border-t border-gray-100 dark:border-gray-800 pt-2 overflow-y-auto"
-              style={{ maxHeight: bottomHeight }}
+              className="border-t border-[var(--color-notebook-border)] pt-2 overflow-y-auto"
+              style={{ maxHeight: `min(${bottomHeight}px, 35dvh)` }}
             >
               <SavedFilterSection
+                onSave={saveCurrentFilter}
                 savedFilters={savedFilters}
                 onApply={handleApplyFilter}
                 onDelete={deleteSavedFilter}
@@ -202,7 +205,9 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
           </div>
         )}
 
-        <div className="shrink-0 pt-3 flex justify-end">
+        </div>
+
+        <div className="shrink-0 pt-3 flex justify-start border-t border-[var(--color-notebook-border)] mt-3">
           <SidebarSettings fileInputRef={fileInputRef}>{settingsItems}</SidebarSettings>
         </div>
 

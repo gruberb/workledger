@@ -49,7 +49,10 @@ export const SidebarDayList = memo(function SidebarDayList({ dayKeys, entriesByD
   const today = todayKey();
 
   return (
-    <nav className="flex-1 overflow-y-auto -mx-2 min-h-0">
+    <nav className="flex-1 overflow-y-auto -mx-2 min-h-24" aria-label={isArchiveView ? "Archived pages" : "Recent pages"}>
+      <h2 className="px-3 pt-2 pb-3 text-xs font-semibold uppercase tracking-widest text-[var(--color-notebook-muted)]">
+        {isArchiveView ? "Archived pages" : "Recent pages"}
+      </h2>
       {dayKeys.length === 0 ? (
         <p className="text-sm text-gray-400 px-2">
           {isArchiveView ? "No archived entries" : "No entries yet"}

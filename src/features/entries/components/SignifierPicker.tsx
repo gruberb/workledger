@@ -22,21 +22,22 @@ export function SignifierPicker({ value, onChange }: SignifierPickerProps) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((p) => !p)}
-        className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] transition-colors ${
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs transition-colors ${
           config
-            ? `${config.color} hover:bg-gray-100 dark:hover:bg-gray-800`
-            : "text-gray-300 dark:text-gray-600 hover:text-gray-400 dark:hover:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+            ? `${config.color} ${config.chip}`
+            : "text-[var(--color-notebook-muted)] hover:bg-[var(--color-notebook-surface-alt)]"
         }`}
         title={config ? `Signifier: ${config.label}` : "Add signifier"}
         aria-label={config ? `Signifier: ${config.label}` : "Add signifier"}
+        aria-expanded={open}
       >
         {config ? (
           <>
-            <span className={`w-2 h-2 rounded-full bg-current`} />
+            <span aria-hidden="true">{value === "small-win" ? "✧" : value === "decision" ? "↗" : value === "question" ? "?" : value === "idea" ? "✦" : value === "milestone" ? "⚑" : "§"}</span>
             <span className="font-medium">{config.label}</span>
           </>
         ) : (
-          <span className="w-2 h-2 rounded-full border border-current" />
+          <><span className="w-2 h-2 rounded-full border border-current" /><span>Signifier</span></>
         )}
       </button>
 

@@ -1,5 +1,4 @@
 import { memo } from "react";
-import { getTagColor } from "../../../utils/tag-colors.ts";
 import { CollapsibleSectionHeader } from "./CollapsibleSectionHeader.tsx";
 
 interface SidebarTagCloudProps {
@@ -24,14 +23,14 @@ export const SidebarTagCloud = memo(function SidebarTagCloud({ allTags, selected
             <button
               key={tag}
               onClick={() => onToggleTag(tag)}
-              className={`
-                px-2 py-0.5 rounded-full text-[11px] font-medium
-                transition-opacity hover:opacity-80
-                ${getTagColor(tag)}
-                ${selectedTags.includes(tag) ? "ring-2 ring-offset-1 ring-gray-400 dark:ring-gray-500" : ""}
-              `}
+              aria-pressed={selectedTags.includes(tag)}
+              className={`px-2.5 py-1.5 rounded border text-sm transition-colors ${
+                selectedTags.includes(tag)
+                  ? "border-[var(--color-notebook-accent)] text-[var(--color-notebook-accent)] bg-[var(--color-notebook-surface-alt)]"
+                  : "border-[var(--color-notebook-border)] text-[var(--color-notebook-muted)] hover:border-[var(--color-notebook-accent)]"
+              }`}
             >
-              {tag}
+              #{tag}
             </button>
           ))}
         </div>

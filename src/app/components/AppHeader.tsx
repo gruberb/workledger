@@ -15,7 +15,7 @@ export function HeaderButton({ label, onClick, children, title, pressed }: Heade
   return (
     <button
       onClick={onClick}
-      className={`w-9 h-9 rounded-full border flex items-center justify-center shadow-sm transition-colors shrink-0 hover:text-[var(--color-notebook-text)] ${
+      className={`min-w-9 h-9 px-2 rounded-md border flex items-center justify-center transition-colors shrink-0 hover:text-[var(--color-notebook-text)] ${
         pressed
           ? "border-[var(--color-notebook-accent)] bg-[var(--color-notebook-surface-alt)] text-[var(--color-notebook-accent)]"
           : "border-[var(--color-notebook-border)] bg-[var(--color-notebook-surface)] text-[var(--color-notebook-muted)]"
@@ -25,6 +25,7 @@ export function HeaderButton({ label, onClick, children, title, pressed }: Heade
       aria-pressed={pressed}
     >
       {children}
+      {label === "Search" && <span className="hidden lg:inline ml-2 text-sm">Search</span>}
     </button>
   );
 }
@@ -46,7 +47,7 @@ export function AppHeader({ title, showMenu, onMenu, onSearch, actions }: AppHea
     <header className="sticky top-0 z-20 h-[var(--app-header-h)] bg-[var(--color-notebook-bg)] border-b border-[var(--color-notebook-border)]">
       {/* Equal side columns keep the title centered, so collapsing the sidebar (which
           adds the menu button) does not shift it. */}
-      <div className="h-full max-w-7xl mx-auto grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 md:px-12">
+      <div className="h-full w-full mx-auto grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 md:px-12">
         <div className="flex items-center">
           {showMenu && (
             <HeaderButton label="Open menu" title="Menu (⌘\)" onClick={onMenu}>

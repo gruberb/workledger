@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-10-14
+
+### Changed
+
+- Redesigned the app around a wide, open writing canvas with Paper and Ink themes, Figtree interface typography, colorful navigation, and an updated notebook logo and app icons
+- Self-hosted Figtree, Source Serif 4, and JetBrains Mono with offline caching; retained all seven note font choices
+- Replaced hover-only entry controls with visible Focus, Think with AI, and Entry actions controls; kept pinning, Markdown download, links, archive, restore, and deletion
+- Moved outlined tags below entries and styled signifiers as filled badges
+- Updated the sidebar with outlined tags, readable saved-filter rows, an explicit Save current filter action, collapsible sections, and anchored Settings; hidden scrollbar tracks retain scrolling
+- Replaced AI setup provider tabs with a labeled dropdown
+- Retired Solarized Light and Punktespiegel (migrate to Paper), and Dracula and Catppuccin Mocha (migrate to Ink)
+- Removed redundant focus and line-clamp styles while retaining saved-theme compatibility
+
+### Added
+
+- Small win entry signifier, including storage, filtering, and weekly review support
+
+### Fixed
+
+- Entry action menu alignment and keyboard navigation
+- Search focus styling now outlines the search container instead of the inner input
+- Saved filters report persistence errors without closing the naming form or presenting an unsaved filter as saved
+
+### Compatibility
+
+- Update all synced devices before using the Small win signifier. Older clients do not recognize it and can discard it when editing an entry.
+- Existing entries, templates, drawings, backlinks, saved filters, imports, exports, and encrypted sync retain their storage formats.
+
 ## [3.13.5] - 2026-10-14
 
 ### Fixed

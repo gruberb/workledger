@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { getTagColor } from "../../../utils/tag-colors.ts";
 import { TagInput } from "./TagInput.tsx";
 
 interface TagEditorProps {
@@ -28,13 +27,14 @@ export function TagEditor({ tags, onChange }: TagEditorProps) {
         <span
           key={tag}
           className={`
-            inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium
-            ${getTagColor(tag)}
+            inline-flex items-center gap-1 px-2 py-0.5 rounded border border-current/15 text-xs font-medium
+            bg-[var(--color-notebook-surface)] text-[var(--color-notebook-muted)]
           `}
         >
-          {tag}
+          #{tag}
           <button
             onClick={() => removeTag(tag)}
+            aria-label={`Remove tag ${tag}`}
             className="hover:opacity-70 transition-opacity ml-0.5"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -50,7 +50,7 @@ export function TagEditor({ tags, onChange }: TagEditorProps) {
       ) : (
         <button
           onClick={() => setIsAdding(true)}
-          className="text-xs text-stone-400 dark:text-stone-500 hover:text-stone-600 dark:hover:text-stone-300 transition-colors px-1.5 py-0.5 rounded hover:bg-stone-100 dark:hover:bg-stone-800"
+          className="text-xs text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] transition-colors px-1.5 py-0.5 rounded hover:bg-stone-100 dark:hover:bg-stone-800"
         >
           + tag
         </button>

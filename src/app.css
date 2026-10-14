@@ -1,12 +1,14 @@
-@import url("https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Playfair+Display:wght@500;600;700&display=swap");
+@import url("/fonts/fonts.css");
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Notebook theme. Base values are Nord Aurora (Snow Storm surfaces, darkened Frost accent) */
 @theme {
-  /* Headlines (day headers, note headings, view titles). Archivo, as in Punktespiegel. */
-  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  /* One interface family keeps navigation, dates and note headings consistent. */
+  --font-display: "Figtree", system-ui, sans-serif;
+  --font-sans: "Figtree", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
   --color-notebook-bg: #eceff4;
   --color-notebook-text: #2e3440;
   --color-notebook-accent: #4a6b95;
@@ -35,21 +37,6 @@
   --color-notebook-scrollbar-hover: #626f89;
 }
 
-/* Punktespiegel: linen paper, aubergine ink, azure accent (palette from fun-ui) */
-[data-theme="punktespiegel"] {
-  --color-notebook-bg: #f3ecdc;
-  --color-notebook-text: #2a1f33;
-  --color-notebook-accent: #206080;
-  --color-notebook-ruling: #e2d8c4;
-  --color-notebook-surface: #fdfaf2;
-  --color-notebook-surface-alt: #f8f3e7;
-  --color-notebook-muted: #786060;
-  --color-notebook-border: #e2d8c4;
-  --color-notebook-code-bg: #e8dfca;
-  --color-notebook-scrollbar: #c9b597;
-  --color-notebook-scrollbar-hover: #b09b7c;
-}
-
 /* High Contrast: white on black text (21:1), yellow accent, visible borders */
 [data-theme="high-contrast"] {
   --color-notebook-bg: #000000;
@@ -65,19 +52,6 @@
   --color-notebook-scrollbar-hover: #ffffff;
 }
 
-[data-theme="high-contrast"] :focus-visible,
-[data-theme="high-contrast-light"] :focus-visible {
-  outline: 2px solid var(--color-notebook-accent);
-  outline-offset: 2px;
-}
-
-/* The note editor is a large contenteditable: the caret already shows focus,
-   and a ring around the whole note while typing is noise. */
-[data-theme="high-contrast"] [contenteditable]:focus-visible,
-[data-theme="high-contrast-light"] [contenteditable]:focus-visible {
-  outline: none;
-}
-
 /* High Contrast Light: black on white text (21:1), blue accent, visible borders */
 [data-theme="high-contrast-light"] {
   --color-notebook-bg: #ffffff;
@@ -91,51 +65,6 @@
   --color-notebook-code-bg: #ebebeb;
   --color-notebook-scrollbar: #6b6b6b;
   --color-notebook-scrollbar-hover: #000000;
-}
-
-/* Dracula theme */
-[data-theme="dracula"] {
-  --color-notebook-bg: #282a36;
-  --color-notebook-text: #f8f8f2;
-  --color-notebook-accent: #bd93f9;
-  --color-notebook-ruling: #44475a;
-  --color-notebook-surface: #2c2e3a;
-  --color-notebook-surface-alt: #252732;
-  --color-notebook-muted: #9ca0b0;
-  --color-notebook-border: #44475a;
-  --color-notebook-code-bg: #21222c;
-  --color-notebook-scrollbar: #44475a;
-  --color-notebook-scrollbar-hover: #6272a4;
-}
-
-/* Catppuccin Mocha theme */
-[data-theme="catppuccin-mocha"] {
-  --color-notebook-bg: #1e1e2e;
-  --color-notebook-text: #cdd6f4;
-  --color-notebook-accent: #f5a97f;
-  --color-notebook-ruling: #313244;
-  --color-notebook-surface: #24243a;
-  --color-notebook-surface-alt: #1e1e30;
-  --color-notebook-muted: #a6adc8;
-  --color-notebook-border: #313244;
-  --color-notebook-code-bg: #181825;
-  --color-notebook-scrollbar: #45475a;
-  --color-notebook-scrollbar-hover: #585b70;
-}
-
-/* Solarized Light theme */
-[data-theme="solarized-light"] {
-  --color-notebook-bg: #fdf6e3;
-  --color-notebook-text: #002b36;
-  --color-notebook-accent: #859900;
-  --color-notebook-ruling: #e6dfcb;
-  --color-notebook-surface: #fefbf2;
-  --color-notebook-surface-alt: #f5eed9;
-  --color-notebook-muted: #4d6269;
-  --color-notebook-border: #e0d8c2;
-  --color-notebook-code-bg: #eee8d5;
-  --color-notebook-scrollbar: #d0cbb7;
-  --color-notebook-scrollbar-hover: #b8b29e;
 }
 
 /* Editor body font — set dynamically by useTheme */
@@ -173,21 +102,6 @@
   --shiki-token-link: #88c0d0;
 }
 
-/* Shiki — Punktespiegel overrides */
-[data-theme="punktespiegel"] {
-  --shiki-foreground: #2a1f33;
-  --shiki-background: transparent;
-  --shiki-token-constant: #206080;
-  --shiki-token-string: #4f6a26;
-  --shiki-token-comment: #786060;
-  --shiki-token-keyword: #843c24;
-  --shiki-token-parameter: #2a1f33;
-  --shiki-token-function: #503050;
-  --shiki-token-string-expression: #9a6a08;
-  --shiki-token-punctuation: #4e3f4c;
-  --shiki-token-link: #206080;
-}
-
 /* Shiki — High Contrast overrides */
 [data-theme="high-contrast"] {
   --shiki-foreground: #ffffff;
@@ -218,61 +132,16 @@
   --shiki-token-link: #0033cc;
 }
 
-/* Shiki — Dracula overrides */
-[data-theme="dracula"] {
-  --shiki-foreground: #f8f8f2;
-  --shiki-background: transparent;
-  --shiki-token-constant: #bd93f9;
-  --shiki-token-string: #f1fa8c;
-  --shiki-token-comment: #6272a4;
-  --shiki-token-keyword: #ff79c6;
-  --shiki-token-parameter: #f8f8f2;
-  --shiki-token-function: #50fa7b;
-  --shiki-token-string-expression: #f1fa8c;
-  --shiki-token-punctuation: #f8f8f2;
-  --shiki-token-link: #8be9fd;
-}
-
-/* Shiki — Catppuccin Mocha overrides */
-[data-theme="catppuccin-mocha"] {
-  --shiki-foreground: #cdd6f4;
-  --shiki-background: transparent;
-  --shiki-token-constant: #fab387;
-  --shiki-token-string: #a6e3a1;
-  --shiki-token-comment: #6c7086;
-  --shiki-token-keyword: #cba6f7;
-  --shiki-token-parameter: #cdd6f4;
-  --shiki-token-function: #89b4fa;
-  --shiki-token-string-expression: #a6e3a1;
-  --shiki-token-punctuation: #9399b2;
-  --shiki-token-link: #89b4fa;
-}
-
-/* Shiki — Solarized Light overrides */
-[data-theme="solarized-light"] {
-  --shiki-foreground: #586e75;
-  --shiki-background: transparent;
-  --shiki-token-constant: #2aa198;
-  --shiki-token-string: #2aa198;
-  --shiki-token-comment: #93a1a1;
-  --shiki-token-keyword: #859900;
-  --shiki-token-parameter: #586e75;
-  --shiki-token-function: #268bd2;
-  --shiki-token-string-expression: #cb4b16;
-  --shiki-token-punctuation: #586e75;
-  --shiki-token-link: #268bd2;
-}
-
 /* Sidebar title font */
 .sidebar-title-font {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
 :root {
   /* Height of the app header; sticky section headers stick below it. */
-  --app-header-h: 52px;
+  --app-header-h: 60px;
 }
 
 /* Sticky header — fully opaque, z-10 so it covers scrolling content.
@@ -311,7 +180,7 @@
 .day-header-font {
   font-family: var(--font-display);
   font-size: 1.75rem;
-  font-weight: 560;
+  font-weight: 600;
   line-height: 1.1;
   letter-spacing: -0.04em;
 }
@@ -325,13 +194,7 @@
 /* Entry ruling line */
 .entry-ruling {
   height: 1px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    var(--color-notebook-ruling) 10%,
-    var(--color-notebook-ruling) 90%,
-    transparent
-  );
+  background: var(--color-notebook-ruling);
 }
 
 /* BlockNote overrides for notebook feel */
@@ -362,7 +225,7 @@
 [data-workledger-editor] .bn-editor {
   background: transparent;
   font-family: var(--editor-body-font);
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.75;
   color: var(--color-notebook-text);
   /* Remove left padding so text aligns with header/tags above.
@@ -466,14 +329,6 @@
   animation: scale-in 0.2s ease-out;
 }
 
-/* Search panel line clamp */
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;
@@ -501,6 +356,7 @@ html {
 
 /* Body base styles */
 body {
+  font-family: var(--font-sans);
   background-color: var(--color-notebook-bg);
   color: var(--color-notebook-text);
   margin: 0;
@@ -672,3 +528,85 @@ body {
   60% { content: '..'; }
   80%, 100% { content: '...'; }
 }
+
+/* Paper and Ink share the same quiet canvas; color is concentrated in navigation. */
+[data-theme="paper"] {
+  --color-notebook-bg: #f7f4ec;
+  --color-notebook-text: #202331;
+  --color-notebook-accent: #3046c5;
+  --color-notebook-ruling: #d9d7d0;
+  --color-notebook-surface: #fffefa;
+  --color-notebook-surface-alt: #eeebe3;
+  --color-notebook-muted: #555b68;
+  --color-notebook-border: #d9d7d0;
+  --color-notebook-code-bg: #eeebe3;
+  --color-notebook-scrollbar: #b8b5ae;
+  --color-notebook-scrollbar-hover: #85838a;
+}
+[data-theme="ink"] {
+  --color-notebook-bg: #191c24;
+  --color-notebook-text: #f7f4ec;
+  --color-notebook-accent: #aab8ff;
+  --color-notebook-ruling: #454957;
+  --color-notebook-surface: #242833;
+  --color-notebook-surface-alt: #303543;
+  --color-notebook-muted: #b9c0cf;
+  --color-notebook-border: #454957;
+  --color-notebook-code-bg: #242833;
+  --color-notebook-scrollbar: #555b68;
+  --color-notebook-scrollbar-hover: #82899a;
+}
+:root { --color-notebook-on-accent: #fff; }
+.dark { --color-notebook-on-accent: #191c24; }
+button:not(:disabled), summary { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--color-notebook-accent); outline-offset: 3px; }
+/* The editor caret indicates focus without a ring around the whole note. */
+[data-workledger-editor] [contenteditable]:focus-visible { outline: none; }
+.entry-action {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 36px; padding: 6px 10px; border-radius: 5px;
+  color: var(--color-notebook-muted); font-size: 12px; line-height: 1.3;
+}
+.entry-action:hover { background: var(--color-notebook-surface-alt); color: var(--color-notebook-text); }
+.notebook-primary { background: var(--color-notebook-accent); color: var(--color-notebook-on-accent); }
+.notebook-primary:hover { filter: brightness(1.08); }
+.notebook-nav-icon {
+  display: grid; place-items: center; width: 30px; height: 30px; border-radius: 7px;
+  border: 1px solid #202331; color: #202331; background: #f4d66b; flex-shrink: 0;
+}
+.notebook-nav-icon[data-view="review"] { background: #bfe3cc; }
+.notebook-nav-icon[data-view="archive"] { background: #f4b49d; }
+.mantine-Menu-item { color: var(--color-notebook-text); font-family: var(--font-sans); }
+.mantine-Menu-item:hover, .mantine-Menu-item[data-hovered] { background: var(--color-notebook-surface-alt); }
+.mantine-Menu-item[data-color="red"] { color: #c33242; }
+.dark .mantine-Menu-item[data-color="red"] { color: #ff91a0; }
+.mantine-Menu-divider { border-color: var(--color-notebook-border); }
+[data-workledger-editor] code, .ai-markdown code { font-family: var(--font-mono); }
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in, .animate-scale-in, .entry-link-highlight { animation: none; }
+  *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0s !important; }
+}
+
+/* Heading levels retain their document semantics without overwhelming the canvas. */
+[data-workledger-editor] [data-content-type="heading"] { --level: 1.75rem; padding-top: 16px; }
+[data-workledger-editor] [data-content-type="heading"][data-level="2"] { --level: 1.5rem; }
+[data-workledger-editor] [data-content-type="heading"][data-level="3"] { --level: 1.25rem; }
+[data-workledger-editor] [data-content-type="heading"][data-level="4"] { --level: 1.125rem; }
+[data-workledger-editor] [data-content-type="heading"][data-level="5"],
+[data-workledger-editor] [data-content-type="heading"][data-level="6"] { --level: 1rem; }
+
+.notebook-view-active {
+  background: #f4d66b;
+  color: #202331;
+  border-color: #202331;
+  box-shadow: 2px 2px 0 #202331;
+}
+
+/* Keep scrolling available without displaying scrollbar tracks in the sidebar. */
+.notebook-sidebar, .notebook-sidebar * { scrollbar-width: none; }
+.notebook-sidebar::-webkit-scrollbar, .notebook-sidebar *::-webkit-scrollbar { display: none; }
+.notebook-search-panel:has(input:focus-visible) {
+  border-color: var(--color-notebook-accent);
+  box-shadow: 0 0 0 1px var(--color-notebook-accent), 0 16px 40px #0002;
+}
+.notebook-search-panel input:focus-visible { outline: none; }

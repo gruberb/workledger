@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { getDB } from "../../../storage/db.ts";
-import { THEME_PRESETS, FONT_OPTIONS, type ThemeId, type FontFamily } from "../themePresets.ts";
+import { THEME_PRESETS, FONT_OPTIONS, migrateThemeValue, type ThemeId, type FontFamily } from "../themePresets.ts";
 import { useFontLoader } from "./useFontLoader.ts";
 
 const LS_THEME_KEY = "workledger-theme";
@@ -8,21 +8,12 @@ const LS_FONT_KEY = "workledger-font";
 const DB_THEME_KEY = "theme";
 const DB_FONT_KEY = "font";
 
-const VALID_THEME_IDS = new Set<string>(THEME_PRESETS.map((p) => p.id));
 const VALID_FONT_IDS = new Set<string>(FONT_OPTIONS.map((f) => f.id));
 
 function getSystemThemeId(): ThemeId {
   return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "nord-dark"
-    : "nord-light";
-}
-
-/** Migrate legacy "dark"/"light" and retired "default-*" values to ThemeId */
-function migrateThemeValue(value: string): ThemeId | null {
-  if (value === "dark" || value === "default-dark") return "nord-dark";
-  if (value === "light" || value === "default-light") return "nord-light";
-  if (VALID_THEME_IDS.has(value)) return value as ThemeId;
-  return null;
+    ? "ink"
+    : "paper";
 }
 
 function applyThemeToDOM(themeId: ThemeId) {
@@ -107,7 +98,7 @@ export function useTheme() {
     if (hasExplicitTheme) return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const handler = (e: MediaQueryListEvent) => {
-      const id = e.matches ? "nord-dark" : "nord-light";
+      const id = e.matches ? "ink" : "paper";
       setThemeIdState(id);
     };
     mq.addEventListener("change", handler);

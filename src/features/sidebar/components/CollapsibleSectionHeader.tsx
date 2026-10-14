@@ -21,14 +21,14 @@ export function CollapsibleSectionHeader({ label, count, expanded, onToggle }: C
         strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className={`text-gray-400 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
+        className={`text-[var(--color-notebook-muted)] transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
       >
         <polyline points="9 18 15 12 9 6" />
       </svg>
-      <span className={`uppercase tracking-wider text-gray-400 font-medium ${expanded ? "text-[11px]" : "text-xs"}`}>
+      <span className={`uppercase tracking-wider text-[var(--color-notebook-muted)] font-medium ${expanded ? "text-[11px]" : "text-xs"}`}>
         {label}
       </span>
-      <span className={`text-gray-300 ml-1 ${expanded ? "text-[10px]" : "text-[11px]"}`}>{count}</span>
+      <span className={`text-[var(--color-notebook-muted)] ml-1 ${expanded ? "text-[10px]" : "text-[11px]"}`}>{count}</span>
     </button>
   );
 }

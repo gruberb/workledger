@@ -1,10 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="64" fill="#f97316" />
-  <rect x="104" y="64" width="344" height="404" rx="32" fill="white" />
-  <rect x="60" y="40" width="76" height="448" rx="32" fill="#ea580c" />
-  <line x1="192" y1="148" x2="384" y2="148" stroke="#e5e7eb" stroke-width="16" stroke-linecap="round" />
-  <line x1="192" y1="212" x2="352" y2="212" stroke="#e5e7eb" stroke-width="16" stroke-linecap="round" />
-  <line x1="192" y1="276" x2="368" y2="276" stroke="#e5e7eb" stroke-width="16" stroke-linecap="round" />
-  <line x1="192" y1="340" x2="320" y2="340" stroke="#e5e7eb" stroke-width="16" stroke-linecap="round" />
-  <path d="M320 40 L320 136 L352 116 L384 136 L384 40" fill="#fb923c" />
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#f7f4ec"/><svg x="12" y="10" width="40" height="44" viewBox="0 0 40 44"><rect x="5" y="3" width="30" height="38" rx="5" fill="#f4d66b" stroke="#202331" stroke-width="2.5"/><path d="M12 4v36" stroke="#202331" stroke-width="2"/><path d="M25 3v15l4-3 4 3V3" fill="#3046c5" stroke="#202331" stroke-width="1.5"/></svg></svg>

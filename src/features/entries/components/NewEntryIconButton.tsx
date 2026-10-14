@@ -21,7 +21,7 @@ export function NewEntryIconButton({ onClick, onCreateFromTemplate }: NewEntryIc
     <div ref={wrapperRef} className="relative">
       <button
         onClick={() => setMenuOpen((open) => !open)}
-        className="w-9 h-9 rounded-full bg-orange-500 hover:bg-orange-400 active:bg-orange-600 text-white flex items-center justify-center shadow-sm transition-colors"
+        className="min-w-9 h-9 rounded-md notebook-primary flex items-center justify-center shadow-sm transition-colors"
         title="New entry"
         aria-label="New entry"
         aria-haspopup="menu"

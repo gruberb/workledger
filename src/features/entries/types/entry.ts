@@ -13,7 +13,7 @@ export interface WorkLedgerEntry {
   signifier?: EntrySignifier;
 }
 
-export const SIGNIFIERS = ["decision", "question", "idea", "milestone", "rfd"] as const;
+export const SIGNIFIERS = ["decision", "question", "idea", "milestone", "small-win", "rfd"] as const;
 
 export type EntrySignifier = (typeof SIGNIFIERS)[number];
 
@@ -37,35 +37,42 @@ interface SignifierStyle {
 export const SIGNIFIER_CONFIG: Record<EntrySignifier, SignifierStyle> = {
   decision: {
     label: "Decision",
-    color: "text-emerald-500",
+    color: "text-emerald-800 dark:text-emerald-300",
     chip: "bg-emerald-100 dark:bg-emerald-950/40",
     card: "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/40",
     accent: "border-emerald-400",
   },
   question: {
     label: "Question",
-    color: "text-amber-500",
+    color: "text-amber-800 dark:text-amber-300",
     chip: "bg-amber-100 dark:bg-amber-950/40",
     card: "bg-amber-50 dark:bg-amber-950/30 border-amber-100 dark:border-amber-900/40",
     accent: "border-amber-400",
   },
   idea: {
     label: "Idea",
-    color: "text-pink-500",
+    color: "text-pink-800 dark:text-pink-300",
     chip: "bg-pink-100 dark:bg-pink-950/40",
     card: "bg-pink-50 dark:bg-pink-950/30 border-pink-100 dark:border-pink-900/40",
     accent: "border-pink-400",
   },
   milestone: {
     label: "Milestone",
-    color: "text-blue-500",
+    color: "text-blue-800 dark:text-blue-300",
     chip: "bg-blue-100 dark:bg-blue-950/40",
     card: "bg-blue-50 dark:bg-blue-950/30 border-blue-100 dark:border-blue-900/40",
     accent: "border-blue-400",
   },
+  "small-win": {
+    label: "Small win",
+    color: "text-orange-800 dark:text-orange-300",
+    chip: "bg-orange-100 dark:bg-orange-950/40",
+    card: "bg-orange-50 dark:bg-orange-950/30 border-orange-100 dark:border-orange-900/40",
+    accent: "border-orange-400",
+  },
   rfd: {
     label: "RFD",
-    color: "text-violet-500",
+    color: "text-violet-800 dark:text-violet-300",
     chip: "bg-violet-100 dark:bg-violet-950/40",
     card: "bg-violet-50 dark:bg-violet-950/30 border-violet-100 dark:border-violet-900/40",
     accent: "border-violet-400",

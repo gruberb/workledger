@@ -10,7 +10,7 @@ interface AISetupGuideProps {
   onConnectionSuccess: () => void;
 }
 
-const TABS: { id: AIProviderType; label: string }[] = [
+const PROVIDERS: { id: AIProviderType; label: string }[] = [
   { id: "ollama", label: "Local (Ollama)" },
   { id: "anthropic", label: "Anthropic" },
   { id: "openai", label: "OpenAI" },
@@ -71,12 +71,12 @@ const INSTRUCTIONS: Record<AIProviderType, ReactNode> = {
 };
 
 export function AISetupGuide({ settings, onUpdateSettings, onConnectionSuccess }: AISetupGuideProps) {
-  const [activeTab, setActiveTab] = useState<AIProviderType>(settings.provider);
+  const [selectedProvider, setSelectedProvider] = useState<AIProviderType>(settings.provider);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
   const [draft, setDraft] = useState<ProviderDraft>(() => pickProviderDraft(settings));
 
-  const draftSettings: AISettings = { ...settings, ...draft, provider: activeTab };
+  const draftSettings: AISettings = { ...settings, ...draft, provider: selectedProvider };
   const configError = getProviderConfigError(draftSettings);
 
   const handleDraftChange = (updates: Partial<ProviderDraft>) => {
@@ -93,7 +93,7 @@ export function AISetupGuide({ settings, onUpdateSettings, onConnectionSuccess }
     setTesting(true);
     setTestResult(null);
     const ok = await provider.ping();
-    if (ok && activeTab === settings.provider && JSON.stringify(draft) === JSON.stringify(pickProviderDraft(settings))) {
+    if (ok && selectedProvider === settings.provider && JSON.stringify(draft) === JSON.stringify(pickProviderDraft(settings))) {
       onConnectionSuccess();
     }
     setTestResult(ok ? "success" : "error");
@@ -102,7 +102,7 @@ export function AISetupGuide({ settings, onUpdateSettings, onConnectionSuccess }
 
   const handleSave = () => {
     if (configError) return;
-    onUpdateSettings({ provider: activeTab, ...draft });
+    onUpdateSettings({ provider: selectedProvider, ...draft });
   };
 
   return (
@@ -112,27 +112,27 @@ export function AISetupGuide({ settings, onUpdateSettings, onConnectionSuccess }
         Connect to a local or remote LLM to power AI actions.
       </p>
 
-      <div className="flex flex-wrap border-b border-gray-100 dark:border-gray-800 mb-4">
-        {TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => { setActiveTab(tab.id); setTestResult(null); }}
-            className={`
-              text-xs px-3 py-2 -mb-px transition-colors
-              ${activeTab === tab.id
-                ? "border-b-2 border-orange-500 text-orange-600 dark:text-orange-400 font-medium"
-                : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              }
-            `}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <label className="block mb-4 text-xs text-[var(--color-notebook-muted)]">
+        AI provider
+        <select
+          value={selectedProvider}
+          onChange={(event) => {
+            const provider = PROVIDERS.find(({ id }) => id === event.target.value);
+            if (!provider) return;
+            setSelectedProvider(provider.id);
+            setTestResult(null);
+          }}
+          className="block mt-1.5 w-full rounded-md border border-[var(--color-notebook-border)] bg-[var(--color-notebook-surface)] px-3 py-2.5 text-sm text-[var(--color-notebook-text)]"
+        >
+          {PROVIDERS.map(({ id, label }) => (
+            <option key={id} value={id}>{label}</option>
+          ))}
+        </select>
+      </label>
 
       <div className="space-y-4">
-        <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-3">{INSTRUCTIONS[activeTab]}</div>
-        <ProviderFields provider={activeTab} values={draft} onChange={handleDraftChange} />
+        <div className="bg-gray-50 dark:bg-gray-900 rounded-xl p-3">{INSTRUCTIONS[selectedProvider]}</div>
+        <ProviderFields provider={selectedProvider} values={draft} onChange={handleDraftChange} />
         <div className="flex gap-2">
           <button
             onClick={handleTest}

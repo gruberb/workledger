@@ -1,3 +1,4 @@
+import { MantineProvider } from "@mantine/core";
 import { type ReactNode, useCallback, useMemo } from "react";
 import { useTheme, ThemeContext } from "../features/theme/index.ts";
 import { EntriesProvider } from "../features/entries/index.ts";
@@ -26,18 +27,20 @@ export function AppProviders({ children }: { children: ReactNode }) {
   );
 
   return (
-    <ThemeContext.Provider value={contextValue}>
-      <EntriesProvider>
-        <SyncProvider>
-        <SidebarProvider>
-          <FocusModeProvider>
-            <AIProviderWithSidebar>
-              {children}
-            </AIProviderWithSidebar>
-          </FocusModeProvider>
-        </SidebarProvider>
-        </SyncProvider>
-      </EntriesProvider>
-    </ThemeContext.Provider>
+    <MantineProvider forceColorScheme={isDark ? "dark" : "light"} theme={{ fontFamily: "var(--font-sans)" }}>
+      <ThemeContext.Provider value={contextValue}>
+        <EntriesProvider>
+          <SyncProvider>
+            <SidebarProvider>
+              <FocusModeProvider>
+                <AIProviderWithSidebar>
+                  {children}
+                </AIProviderWithSidebar>
+              </FocusModeProvider>
+            </SidebarProvider>
+          </SyncProvider>
+        </EntriesProvider>
+      </ThemeContext.Provider>
+    </MantineProvider>
   );
 }

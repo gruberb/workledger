@@ -19,6 +19,7 @@ export const NewEntryButton = memo(function NewEntryButton({ onClick, onCreateFr
   return (
     <div
       ref={menuRef}
+      onKeyDown={(event) => { if (event.key === "Escape" && menuOpen) { event.stopPropagation(); closeMenu(); menuRef.current?.querySelector<HTMLButtonElement>('[aria-label="New from template"]')?.focus(); } }}
       className={`fixed bottom-8 z-[999] ${aiSidebarOpen ? "right-[26rem]" : "right-8"}`}
     >
       {menuOpen && (
@@ -34,9 +35,7 @@ export const NewEntryButton = memo(function NewEntryButton({ onClick, onCreateFr
       <div
         className="
           flex items-stretch
-          rounded-full
-          shadow-lg shadow-orange-500/20 dark:shadow-orange-500/30
-          hover:shadow-xl hover:shadow-orange-500/25 dark:hover:shadow-orange-500/35
+          rounded-md shadow-sm border border-[var(--color-notebook-border)]
           transition-shadow duration-300 ease-in-out
         "
       >
@@ -45,9 +44,8 @@ export const NewEntryButton = memo(function NewEntryButton({ onClick, onCreateFr
           onClick={onClick}
           className="
             flex items-center gap-2
-            bg-orange-500 hover:bg-orange-400 active:bg-orange-600
-            text-white font-medium
-            px-6 py-3.5 rounded-l-full
+            notebook-primary font-medium
+            px-6 py-3.5 rounded-l-md
             transition-colors duration-200
           "
           title="New Entry (⌘J)"
@@ -68,20 +66,20 @@ export const NewEntryButton = memo(function NewEntryButton({ onClick, onCreateFr
         </button>
 
         {/* Divider */}
-        <div className="w-px bg-orange-400/40 self-stretch" />
+        <div className="w-px bg-[var(--color-notebook-on-accent)] opacity-25 self-stretch" />
 
         {/* Template dropdown toggle */}
         <button
           onClick={() => setMenuOpen((prev) => !prev)}
           className="
             flex items-center
-            bg-orange-500 hover:bg-orange-400 active:bg-orange-600
-            text-white
-            px-2.5 rounded-r-full
+            notebook-primary
+            px-2.5 rounded-r-md
             transition-colors duration-200
           "
           title="New from template"
           aria-label="New from template"
+          aria-expanded={menuOpen}
         >
           <svg
             width="14"

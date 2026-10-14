@@ -43,14 +43,14 @@ export const SidebarWeekList = memo(function SidebarWeekList({ dayKeys, entriesB
 
   if (weeks.length === 0) {
     return (
-      <nav className="flex-1 overflow-y-auto -mx-2 min-h-0">
+      <nav className="flex-1 overflow-y-auto -mx-2 min-h-24">
         <p className="text-sm text-gray-400 px-2">No entries to review</p>
       </nav>
     );
   }
 
   return (
-    <nav className="flex-1 overflow-y-auto -mx-2 min-h-0">
+    <nav className="flex-1 overflow-y-auto -mx-2 min-h-24">
       <p className="text-[11px] uppercase tracking-wider text-[var(--color-notebook-muted)] font-medium px-3 mb-2 flex items-center gap-2">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />

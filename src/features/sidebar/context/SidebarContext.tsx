@@ -180,8 +180,8 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
       signifiers: selectedSignifiers,
     };
     const updated = [...savedFilters, filter];
-    setSavedFilters(updated);
     await persistSavedFilters(updated);
+    setSavedFilters(updated);
   }, [selectedTags, selectedSignifiers, savedFilters]);
 
   const applySavedFilter = useCallback((filter: SavedFilter) => {
@@ -197,8 +197,8 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
   const deleteSavedFilter = useCallback(async (id: string) => {
     const updated = savedFilters.filter((f) => f.id !== id);
-    setSavedFilters(updated);
     await persistSavedFilters(updated);
+    setSavedFilters(updated);
   }, [savedFilters]);
 
   // --- Computed data ---

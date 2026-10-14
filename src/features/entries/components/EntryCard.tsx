@@ -42,25 +42,6 @@ export const EntryCard = memo(function EntryCard({ entry, isLatest, actions, Edi
   return (
     <div className="entry-card group scroll-mt-[172px]" id={`entry-${entry.id}`}>
       {!bare && <EntryToolbar entry={entry} actions={actions} isArchiveView={isArchiveView} />}
-      {!bare && onTagsChange && !isArchiveView && (
-        <div className="mb-2">
-          <TagEditor
-            tags={entry.tags ?? []}
-            onChange={(tags) => onTagsChange(entry.id, tags)}
-          />
-        </div>
-      )}
-      {!bare && isArchiveView && entry.tags?.length > 0 && (
-        <div className="mb-2 px-1">
-          <div className="flex flex-wrap gap-1.5">
-            {entry.tags.map((tag) => (
-              <span key={tag} className="px-2 py-0.5 rounded-full text-[11px] bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
       <div ref={contentRef} className={`rounded-xl transition-all duration-200 ${isArchiveView ? "opacity-80" : ""}`}>
         {nearViewport ? (
           <ErrorBoundary fallback={
@@ -83,6 +64,25 @@ export const EntryCard = memo(function EntryCard({ entry, isLatest, actions, Edi
           <EntryPlaceholder entry={entry} height={lastHeight} />
         )}
       </div>
+      {!bare && onTagsChange && !isArchiveView && (
+        <div className="mt-5 mb-3">
+          <TagEditor
+            tags={entry.tags ?? []}
+            onChange={(tags) => onTagsChange(entry.id, tags)}
+          />
+        </div>
+      )}
+      {!bare && isArchiveView && entry.tags?.length > 0 && (
+        <div className="mt-5 mb-3 px-1">
+          <div className="flex flex-wrap gap-1.5">
+            {entry.tags.map((tag) => (
+              <span key={tag} className="px-2 py-0.5 rounded-full text-[11px] bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
       <ErrorBoundary fallback={null}>
         <BacklinksPanel entryId={entry.id} />
       </ErrorBoundary>

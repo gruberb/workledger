@@ -5,16 +5,16 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
     <meta name="description" content="Local-first engineering notebook" />
-    <meta name="theme-color" content="#4a6b95" />
+    <meta name="theme-color" content="#3046c5" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="apple-touch-icon" href="/icon-192.svg" />
     <title>WorkLedger</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' 'sha256-dKRpQrkjwChkVkQN88GYc0+4VOKkyqJyz8AQ6dJPbXY=' 'sha256-NYihklUUIFNY2xWy+Lgdazjuq1X39Fkt3kOZkTFCEkE=' 'sha256-AI/lLLJw6YLyo54dYa5mnbbJgfcvxqKZ1zpgE68zBD8=' https://analytics.novanexus.ca; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; worker-src 'self' blob:;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' 'sha256-dKRpQrkjwChkVkQN88GYc0+4VOKkyqJyz8AQ6dJPbXY=' 'sha256-NYihklUUIFNY2xWy+Lgdazjuq1X39Fkt3kOZkTFCEkE=' 'sha256-3VZMh3/FEwnTdlgHANjV0+YeRoth71QFiEmiI4PUuPU=' https://analytics.novanexus.ca; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https: http://localhost:* http://127.0.0.1:*; worker-src 'self' blob:;">
   </head>
   <body>
     <script>
-      (function(){var t=localStorage.getItem('workledger-theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.classList.add('dark')})();
+      (function(){try{var t=localStorage.getItem('workledger-theme');var m={'dark':'nord-dark','default-dark':'nord-dark','light':'nord-light','default-light':'nord-light','solarized-light':'paper','punktespiegel':'paper','catppuccin-mocha':'ink','dracula':'ink'};t=m[t]||t;var d=['ink','nord-dark','high-contrast'];if(['paper','ink','nord-light','nord-dark','high-contrast','high-contrast-light'].indexOf(t)<0)t=matchMedia('(prefers-color-scheme:dark)').matches?'ink':'paper';document.documentElement.dataset.theme=t;document.documentElement.classList.toggle('dark',d.indexOf(t)>=0)}catch(e){}})();
     </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

@@ -20,9 +20,9 @@ function NavRow({ icon, label, active, trailing, onClick }: NavRowProps) {
     <button
       onClick={onClick}
       aria-current={active ? "page" : undefined}
-      className={`w-full flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-lg text-sm transition-colors ${
+      className={`w-full flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md border-2 border-transparent text-sm transition-colors ${
         active
-          ? "sidebar-day-active font-medium"
+          ? "notebook-view-active font-semibold"
           : "text-[var(--color-notebook-muted)] hover:bg-[var(--color-notebook-surface-alt)] hover:text-[var(--color-notebook-text)]"
       }`}
     >

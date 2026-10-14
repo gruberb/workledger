@@ -60,3 +60,11 @@ describe("filterDays", () => {
     expect(filterDays(week.days, null)).toBe(week.days);
   });
 });
+
+it("counts and filters Small wins in weekly review", () => {
+  const week = summarizeWeek(new Map([
+    ["2026-10-05", [entry("win", "2026-10-05", 1, ["backend"], "small-win"), entry("plain", "2026-10-05", 2)]],
+  ]), "2026-W41", "2026-10-12");
+  expect(week.signifierCounts).toEqual([["small-win", 1]]);
+  expect(filterDays(week.days, { kind: "signifier", value: "small-win" })[0].entries.map((e) => e.id)).toEqual(["win"]);
+});

@@ -66,3 +66,11 @@ describe("upgradeLegacyEntry (DB v5 migration)", () => {
     expect(upgradeLegacyEntry({ ...stored, signifier: "decision" })).toBeNull();
   });
 });
+
+describe("Small win compatibility", () => {
+  it("survives export/import validation and remote entry normalization", () => {
+    const entry = { ...base, signifier: "small-win" };
+    expect(validateEntry(JSON.parse(JSON.stringify(entry))).signifier).toBe("small-win");
+    expect(normalizeEntry(entry).signifier).toBe("small-win");
+  });
+});

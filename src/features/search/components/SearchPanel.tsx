@@ -72,7 +72,7 @@ export const SearchPanel = memo(function SearchPanel({
       {/* Panel */}
       <div
         ref={panelRef}
-        className="relative w-full max-w-lg mx-4 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl overflow-hidden animate-scale-in border border-gray-100 dark:border-gray-700"
+        className="notebook-search-panel relative w-full max-w-lg mx-4 bg-[var(--color-notebook-surface)] rounded-lg shadow-2xl overflow-hidden animate-scale-in border border-[var(--color-notebook-border)]"
       >
         <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-700">
           <SearchIcon size={18} className="text-gray-400 shrink-0" />
@@ -85,7 +85,7 @@ export const SearchPanel = memo(function SearchPanel({
             value={query}
             onChange={(e) => onSearch(e.target.value)}
             placeholder="Search entries and tags..."
-            className="flex-1 text-sm bg-transparent outline-none text-gray-800 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-500"
+            className="min-w-0 flex-1 text-sm bg-transparent text-[var(--color-notebook-text)] placeholder:text-[var(--color-notebook-muted)]"
             autoComplete="off"
             aria-label="Search query"
             data-1p-ignore

@@ -33,21 +33,22 @@ export function SidebarSettings({ fileInputRef, children }: SidebarSettingsProps
   }), [close]);
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative w-full" ref={menuRef} onKeyDown={(event) => { if (event.key === "Escape" && open) { event.stopPropagation(); close(); menuRef.current?.querySelector("button")?.focus(); } }}>
       <button
         onClick={() => (open ? close() : setOpen(true))}
-        className={`w-10 h-10 rounded-full border border-[var(--color-notebook-border)] flex items-center justify-center shadow-sm transition-colors hover:bg-[var(--color-notebook-surface-alt)] ${open ? "bg-[var(--color-notebook-surface-alt)] text-[var(--color-notebook-text)]" : `bg-[var(--color-notebook-surface)] ${settingsMutedClass} hover:text-[var(--color-notebook-text)]`}`}
+        className={`w-full min-h-11 px-3 rounded-md border border-[var(--color-notebook-border)] flex items-center gap-3 transition-colors hover:bg-[var(--color-notebook-surface-alt)] ${open ? "bg-[var(--color-notebook-surface-alt)] text-[var(--color-notebook-text)]" : `bg-[var(--color-notebook-surface)] ${settingsMutedClass} hover:text-[var(--color-notebook-text)]`}`}
         title="Settings"
         aria-label="Settings"
         aria-expanded={open}
         aria-haspopup="menu"
       >
         <SettingsIcon size={18} />
+        <span className="text-sm font-medium">Settings</span>
       </button>
 
       {open && (
         <SettingsMenuContext.Provider value={controls}>
-          <div className="absolute right-0 bottom-full mb-2 w-64 max-h-[70vh] overflow-y-auto bg-[var(--color-notebook-surface)] rounded-lg shadow-lg border border-[var(--color-notebook-border)] py-1 z-50" role="menu" aria-label="Settings menu">
+          <div className="absolute left-0 bottom-full mb-2 w-72 max-w-[calc(100vw-3rem)] max-h-[70vh] overflow-y-auto bg-[var(--color-notebook-surface)] rounded-lg shadow-lg border border-[var(--color-notebook-border)] py-1 z-50" role="menu" aria-label="Settings menu">
             {submenu ?? (
               <>
                 {children}
