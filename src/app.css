@@ -512,6 +512,10 @@ body {
   min-height: 100vh;
 }
 
+#root.bn-scroll-container {
+  min-height: 0;
+}
+
 /* Entry link highlight animation */
 @keyframes entry-link-pulse {
   0% {

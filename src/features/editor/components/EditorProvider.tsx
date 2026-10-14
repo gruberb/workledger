@@ -38,8 +38,6 @@ export const workledgerSchema = BlockNoteSchema.create({
         dockerfile: { name: "Dockerfile", aliases: ["docker"] },
         graphql: { name: "GraphQL", aliases: ["gql"] },
       },
-      // Loaded with the first code block, so Shiki stays out of the startup bundle.
-      createHighlighter: () => import("../utils/code-highlighter.ts").then((m) => m.createCodeHighlighter()),
     }),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     excalidraw: excalidrawBlockSpec() as any,

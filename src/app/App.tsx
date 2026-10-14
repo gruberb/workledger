@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { AppShell } from "../components/layout/AppShell.tsx";
 import { ErrorBoundary } from "../components/ui/ErrorBoundary.tsx";
 import { Sidebar } from "../features/sidebar/index.ts";
@@ -56,6 +56,13 @@ function AppContent() {
   const { selectedTags, selectedSignifiers, hasActiveFilters, removeTag, clearAllFilters, saveCurrentFilter, savedFilters } = useSidebarFilter();
   const { isFiltering, displayEntriesByDay, displayArchivedEntriesByDay } = useSidebarData();
   const { focusedEntryId, handleFocusEntry, handleExitFocus } = useFocusModeContext();
+  useLayoutEffect(() => {
+    if (!isMobile || !focusedEntryId) return;
+    const root = document.getElementById("root");
+    // BlockNote needs one page-level scroll container to track the iOS keyboard smoothly.
+    root?.classList.add("bn-scroll-container");
+    return () => root?.classList.remove("bn-scroll-container");
+  }, [isMobile, focusedEntryId]);
   const { settings: aiSettings, sidebarOpen: aiSidebarOpen, handleOpenAI, handleToggleAISidebar, available: aiAvailable, setSidebarOpen: setAISidebarOpen } = useAIContext();
   const [searchOpen, setSearchOpen] = useState(false);
   const openSearch = useCallback(() => setSearchOpen(true), []);

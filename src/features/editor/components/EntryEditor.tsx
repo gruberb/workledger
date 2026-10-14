@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { filterSuggestionItems, SuggestionMenu } from "@blocknote/core/extensions";
+import { filterSuggestionItems, SuggestionMenu, SyntaxHighlightingExtension } from "@blocknote/core/extensions";
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import { SuggestionMenuController } from "@blocknote/react";
@@ -32,6 +32,12 @@ export function EntryEditor({
     {
       schema: workledgerSchema,
       initialContent: initialContent as never,
+      extensions: [
+        SyntaxHighlightingExtension({
+          // Load Shiki only when a code block needs highlighting.
+          createHighlighter: () => import("../utils/code-highlighter.ts").then((m) => m.createCodeHighlighter()),
+        }),
+      ],
       placeholders: {
         default: "Type text, / for commands, [[ to link entries",
       },
