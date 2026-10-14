@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { filterSuggestionItems, SuggestionMenu } from "@blocknote/core/extensions";
-import { ExperimentalMobileFormattingToolbarController, useCreateBlockNote } from "@blocknote/react";
+import { filterSuggestionItems, FormattingToolbarExtension, SuggestionMenu } from "@blocknote/core/extensions";
+import { ExperimentalMobileFormattingToolbarController, useCreateBlockNote, useExtensionState } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import { SuggestionMenuController } from "@blocknote/react";
 import "@blocknote/mantine/style.css";
@@ -15,6 +15,14 @@ import type { EntryEditorProps } from "../../entries/index.ts";
 import { useAutoSave } from "../../entries/index.ts";
 import { useThemeMode } from "../../theme/index.ts";
 import { useIsMobile } from "../../../hooks/useIsMobile.ts";
+
+// The upstream mobile controller ignores the toolbar state: it renders a fixed bar
+// whether or not text is selected, and one per mounted editor. Mount it only while
+// the selection wants a toolbar.
+function MobileFormattingToolbar() {
+  const show = useExtensionState(FormattingToolbarExtension);
+  return show ? <ExperimentalMobileFormattingToolbarController /> : null;
+}
 
 export function EntryEditor({
   entry,
@@ -226,7 +234,7 @@ export function EntryEditor({
         formattingToolbar={!isMobile}
         data-workledger-editor
       >
-        {isMobile && <ExperimentalMobileFormattingToolbarController />}
+        {isMobile && <MobileFormattingToolbar />}
         <SuggestionMenuController
           triggerCharacter="/"
           getItems={slashMenuItems}
