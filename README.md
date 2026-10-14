@@ -22,7 +22,11 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/product.png" alt="WorkLedger" width="720">
+  <img src="docs/images/product.png" alt="WorkLedger in the Paper theme" width="720">
+</p>
+
+<p align="center">
+  <img src="docs/images/product-ink.png" alt="WorkLedger in the Ink theme" width="720">
 </p>
 
 ## Features
@@ -52,8 +56,11 @@
 
 ### Review your work
 
+<p align="center">
+  <img src="docs/images/weekly-review.png" alt="Weekly review" width="720">
+</p>
+
 - **Weekly review** -- Select an ISO week to see signifier breakdowns, top tags, and entry previews
-- **Collapsible week cards** -- Most recent week auto-expanded, older weeks collapsed
 - **Filtering in review mode** -- Tag, signifier, and saved filters work in the weekly view; full-text search is available separately
 
 ### Stay in control

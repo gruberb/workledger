@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Refreshed README screenshots for the v4.0.0 redesign (Paper, Ink, weekly review)
+
 ## [4.0.0] - 2026-10-14
 
 ### Changed
