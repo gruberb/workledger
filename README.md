@@ -36,6 +36,10 @@
 
 ### Write and organize
 
+<p align="center">
+  <img src="docs/images/templates.png" alt="A notebook entry with the entry templates menu open" width="720">
+</p>
+
 - **Daily entries** -- Organized by day with timestamps, create entries with `Cmd+J`
 - **Rich text editing** -- Powered by [BlockNote](https://blocknotejs.org/) with slash commands for headings, lists, code blocks, and more
 - **Inline drawings** -- Embed [Excalidraw](https://excalidraw.com/) diagrams directly in your notes via `/drawing`
