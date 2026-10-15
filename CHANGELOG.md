@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.1.1] - 2026-10-15
+
+### Changed
+
+- README shows the entry templates menu in a new screenshot
+
 ## [4.1.0] - 2026-10-15
 
 ### Added
