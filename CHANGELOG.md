@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.2.0] - 2026-10-15
+
+### Changed
+
+- RFD templates read like a written document: an H1 title, "Label: value" status lines, then H2 sections (Problem, Outcome, Scope, Uncertainty, Next check, and the numbered sections) with text beneath and H3 for their parts, instead of labeled bullet points. Meeting Notes info lines are plain lines too. Existing entries keep their structure
+- Word downloads use IBM Plex Sans with Google Docs' heading sizes (H1 20pt, H2 16pt, H3 14pt), black regular-weight headings and 11pt body text, instead of blue headings over Times New Roman. Word substitutes a default font where IBM Plex Sans isn't available
+- PDF downloads match the Word layout: IBM Plex Sans (embedded, loaded with the PDF exporter), the same heading sizes and spacing, and 11pt body text. Greek, Cyrillic, Vietnamese, arrows and common math symbols now print; characters the font lacks (for example CJK and emoji) still print as "?". Code stays in Courier
+- "Draft RFD from Notes" asks the AI for the same heading-based structure
+
 ## [4.1.1] - 2026-10-15
 
 ### Changed
