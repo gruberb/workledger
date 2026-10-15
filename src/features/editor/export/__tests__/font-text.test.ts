@@ -1,15 +1,20 @@
 import { describe, it, expect } from "vitest";
-import { toWinAnsi } from "../winansi.ts";
+import { fitToFont, isWinAnsi } from "../font-text.ts";
 import { localPageSize } from "../page.ts";
 
-describe("toWinAnsi", () => {
-  it("keeps Latin-1 and Windows-1252 punctuation", () => {
-    expect(toWinAnsi("Größe café “quoted” – € • …\n\ttab")).toBe("Größe café “quoted” – € • …\n\ttab");
+describe("fitToFont", () => {
+  it("keeps Latin-1 and Windows-1252 punctuation for the standard fonts", () => {
+    expect(fitToFont("Größe café “quoted” – € • …\n\ttab", isWinAnsi)).toBe("Größe café “quoted” – € • …\n\ttab");
   });
 
-  it("replaces common symbols and marks the rest", () => {
-    expect(toWinAnsi("a → b ≥ c ✓")).toBe("a -> b >= c v");
-    expect(toWinAnsi("日本 🙂")).toBe("?? ?");
+  it("replaces common symbols the font lacks and marks the rest", () => {
+    expect(fitToFont("a → b ≥ c ✓", isWinAnsi)).toBe("a -> b >= c v");
+    expect(fitToFont("日本 🙂", isWinAnsi)).toBe("?? ?");
+  });
+
+  it("keeps whatever the font has, beyond Windows-1252", () => {
+    const greekAndArrows = (code: number) => isWinAnsi(code) || code === 0x2192 || (code >= 0x370 && code <= 0x3ff);
+    expect(fitToFont("λ → 日", greekAndArrows)).toBe("λ → ?");
   });
 });
 

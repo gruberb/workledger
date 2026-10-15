@@ -1,8 +1,14 @@
 import { describe, it, expect } from "vitest";
+import { fileURLToPath } from "node:url";
 import type { EntryDocument } from "../../utils/entry-document.ts";
 import { entryToDocx } from "../docx.ts";
 import { entryToPdf } from "../pdf.tsx";
 import type { RasterMap } from "../images.ts";
+import type { PdfFontFiles } from "../fonts.ts";
+
+// The Node build of the renderer reads font files from disk.
+const woff = (face: string) => fileURLToPath(new URL(`../../../../../node_modules/@ibm/plex-sans/fonts/complete/woff/IBMPlexSans-${face}.woff`, import.meta.url));
+const fonts: PdfFontFiles = { regular: woff("Regular"), bold: woff("Bold"), italic: woff("Italic"), boldItalic: woff("BoldItalic") };
 
 // Every block type, nesting, a failed image and characters outside the PDF fonts.
 const doc: EntryDocument = {
@@ -36,7 +42,7 @@ describe("export renderers", () => {
   });
 
   it("writes a PDF", async () => {
-    const out = await bytes(await entryToPdf(doc, rasters, "LETTER"));
+    const out = await bytes(await entryToPdf(doc, rasters, "LETTER", fonts));
     expect(out.startsWith("%PDF-")).toBe(true);
   }, 20_000);
 });

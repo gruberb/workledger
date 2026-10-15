@@ -8,6 +8,7 @@ import { rasterizeImages } from "./export/images.ts";
 import { entryToDocx } from "./export/docx.ts";
 import { entryToPdf } from "./export/pdf.tsx";
 import { localPageSize } from "./export/page.ts";
+import { PLEX_SANS_FILES } from "./export/fonts.ts";
 import { downloadFile } from "../../utils/download.ts";
 
 const MIME_TYPES: Record<ExportFormat, string> = {
@@ -27,7 +28,7 @@ async function render(entry: WorkLedgerEntry, format: ExportFormat): Promise<Blo
   const doc = entryToDocument(entry);
   const rasters = await rasterizeImages(doc);
   const pageSize = localPageSize(navigator.language);
-  return format === "docx" ? entryToDocx(doc, rasters, pageSize) : entryToPdf(doc, rasters, pageSize);
+  return format === "docx" ? entryToDocx(doc, rasters, pageSize) : entryToPdf(doc, rasters, pageSize, PLEX_SANS_FILES);
 }
 
 /** Rejects if the export fails, e.g. when an export library can't load offline. */

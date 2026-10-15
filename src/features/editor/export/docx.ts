@@ -1,15 +1,44 @@
 // Word export. `docx` is imported on demand inside `entryToDocx` (not at the
 // top) so it lands in its own chunk, which the service worker doesn't precache.
-import type { FileChild, INumberingOptions, IRunOptions, ParagraphChild } from "docx";
+import type { FileChild, IBaseParagraphStyleOptions, INumberingOptions, IRunOptions, IStylesOptions, ParagraphChild } from "docx";
 import type { DocBlock, EntryDocument, TextRun } from "../utils/entry-document.ts";
 import { imageFallbackText, type RasterMap } from "./images.ts";
 import { PAGE_MARGIN_PT, PAGE_SIZES, type PageSize } from "./page.ts";
+import { BODY_PT, DOCUMENT_FONT, HEADINGS, LINE_HEIGHT, LINK_COLOR, LIST_ITEM_AFTER_PT, PARAGRAPH_AFTER_PT } from "./style.ts";
 
 type Docx = typeof import("docx");
 
 const twips = (pt: number) => Math.round(pt * 20);
 const INDENT = 360;
 const MONO = "Courier New";
+const LIST_SPACING = { after: twips(LIST_ITEM_AFTER_PT) };
+const hex = (color: string) => color.replace("#", "");
+
+// The docx defaults are blue headings over Times New Roman body text. Google Docs
+// offers IBM Plex Sans as a web font, so imports keep it; Word uses it when
+// installed and substitutes a default font otherwise.
+function headingStyle({ size, before, after }: (typeof HEADINGS)[number]): IBaseParagraphStyleOptions {
+  return {
+    run: { font: DOCUMENT_FONT, size: size * 2, bold: false, color: "000000" },
+    paragraph: { spacing: { before: twips(before), after: twips(after) }, keepNext: true },
+  };
+}
+
+const STYLES: IStylesOptions = {
+  default: {
+    document: {
+      run: { font: DOCUMENT_FONT, size: BODY_PT * 2, color: "000000" },
+      paragraph: { spacing: { line: Math.round(LINE_HEIGHT * 240), after: twips(PARAGRAPH_AFTER_PT) } },
+    },
+    heading1: headingStyle(HEADINGS[0]),
+    heading2: headingStyle(HEADINGS[1]),
+    heading3: headingStyle(HEADINGS[2]),
+    heading4: headingStyle(HEADINGS[3]),
+    heading5: headingStyle(HEADINGS[4]),
+    heading6: headingStyle(HEADINGS[5]),
+    hyperlink: { run: { color: hex(LINK_COLOR), underline: {} } },
+  },
+};
 
 function runOptions(run: TextRun, extra: Partial<IRunOptions> = {}): IRunOptions {
   return {
@@ -68,12 +97,13 @@ function block(D: Docx, b: DocBlock, rasters: RasterMap, contentPx: number, cont
         children: inline(D, b.runs, { italics: true }),
       });
     case "bullet":
-      return new D.Paragraph({ bullet: { level: Math.min(b.depth, 8) }, children: inline(D, b.runs) });
+      return new D.Paragraph({ bullet: { level: Math.min(b.depth, 8) }, spacing: LIST_SPACING, children: inline(D, b.runs) });
     case "number":
-      return new D.Paragraph({ numbering: { reference: `list-${b.list}`, level: Math.min(b.depth, 8) }, children: inline(D, b.runs) });
+      return new D.Paragraph({ numbering: { reference: `list-${b.list}`, level: Math.min(b.depth, 8) }, spacing: LIST_SPACING, children: inline(D, b.runs) });
     case "check":
       return new D.Paragraph({
         indent,
+        spacing: LIST_SPACING,
         children: [new D.TextRun(b.checked ? "☑ " : "☐ "), ...inline(D, b.runs, b.checked ? { strike: true } : {})],
       });
     case "code":
@@ -130,6 +160,7 @@ export async function entryToDocx(doc: EntryDocument, rasters: RasterMap, pageSi
   const contentPx = (contentPt / 72) * 96;
   const document = new D.Document({
     title: doc.title,
+    styles: STYLES,
     numbering: numbering(D, doc.blocks),
     sections: [{
       properties: {
