@@ -12,6 +12,9 @@ const EXCALIDRAW_LOCALE_MODULE = /node_modules\/@excalidraw\/excalidraw\/dist\/[
 // The Anthropic SDK (and the dependencies bundled with it) only serves API calls,
 // which need the network anyway.
 const ANTHROPIC_SDK_MODULE = /node_modules\/@anthropic-ai\/sdk\//;
+// PDF and Word export libraries (about 1.7 MB) serve a rarely used menu item;
+// like Mermaid, they load on demand, so these two formats need the network.
+const EXPORT_MODULE = /node_modules\/(@react-pdf|docx)\//;
 const CORE_MODULE = /^(?!.*node_modules)|node_modules\/@excalidraw\/excalidraw\/(?!.*\/locales\/)/;
 
 const optionalChunks = new Set<string>();
@@ -20,7 +23,7 @@ function isOptionalChunk(moduleIds: string[]): boolean {
   if (moduleIds.length === 0 || moduleIds.some((id) => CORE_MODULE.test(id))) return false;
   return (
     moduleIds.every((id) => EXCALIDRAW_LOCALE_MODULE.test(id)) ||
-    moduleIds.some((id) => MERMAID_MODULE.test(id) || ANTHROPIC_SDK_MODULE.test(id))
+    moduleIds.some((id) => MERMAID_MODULE.test(id) || ANTHROPIC_SDK_MODULE.test(id) || EXPORT_MODULE.test(id))
   );
 }
 

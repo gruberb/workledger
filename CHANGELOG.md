@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Download an entry as PDF or Word (.docx) from the Entry actions menu (and the mobile action sheet), next to Markdown. Files are generated in the browser with no print dialog. Word files keep headings, native lists, tables, code, links, images and drawings, and open in Google Docs. PDFs use the standard Helvetica/Courier fonts, so characters outside Western European scripts (for example CJK and emoji) print as "?"; use Word for those. Both formats load their exporter on first use and need an internet connection. Remote images are embedded only when their server allows cross-origin access, otherwise they appear as a link
+
 ## [4.0.2] - 2026-10-15
 
 ### Changed

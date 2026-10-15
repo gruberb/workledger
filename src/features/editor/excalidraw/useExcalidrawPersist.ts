@@ -1,5 +1,5 @@
 import { useRef, useCallback, useEffect } from "react";
-import { loadExcalidraw } from "./excalidrawLoader.ts";
+import { renderPreviewSvg } from "./excalidrawLoader.ts";
 import { serializeScene, sceneKey, type SceneSnapshot } from "./scene.ts";
 import { registerPreSave } from "../utils/pre-save.ts";
 
@@ -16,20 +16,6 @@ interface PersistEditor {
   updateBlock: (block: any, update: any) => void;
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
-
-async function renderPreviewSvg(snapshot: SceneSnapshot): Promise<string> {
-  const { exportToSvg } = await loadExcalidraw();
-  const svg = await exportToSvg({
-    elements: [...snapshot.elements],
-    appState: {
-      exportBackground: true,
-      viewBackgroundColor: "#f0f0f0",
-      theme: "light",
-    },
-    files: snapshot.files,
-  });
-  return new XMLSerializer().serializeToString(svg);
-}
 
 /** Block updates fail once the block is deleted or the editor is gone; nothing to save then. */
 function safeUpdate(editor: PersistEditor, block: PersistBlock, props: Partial<PersistBlock["props"]>) {

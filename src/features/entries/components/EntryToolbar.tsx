@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Menu } from "@mantine/core";
 import type { EntryActions, WorkLedgerEntry } from "../types/entry.ts";
-import { SIGNIFIER_CONFIG } from "../types/entry.ts";
+import { EXPORT_FORMATS, SIGNIFIER_CONFIG } from "../types/entry.ts";
 import { formatTime } from "../../../utils/dates.ts";
 import { ConfirmAction } from "../../../components/ui/ConfirmAction.tsx";
 import { AIIcon, ArchiveIcon, CheckIcon, ChevronRightIcon, DownloadIcon, ExpandIcon, LinkIcon, PinIcon, RestoreIcon, TrashIcon } from "../../../components/ui/Icons.tsx";
@@ -17,7 +17,7 @@ interface EntryToolbarProps {
 export function EntryToolbar({ entry, actions, isArchiveView }: EntryToolbarProps) {
   const [confirming, setConfirming] = useState<"archive" | "delete" | null>(null);
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
-  const { onSignifierChange, onPin, onUnpin, onFocus, onOpenAI, onArchive, onDelete, onUnarchive, onDownloadMarkdown } = actions;
+  const { onSignifierChange, onPin, onUnpin, onFocus, onOpenAI, onArchive, onDelete, onUnarchive, onDownload } = actions;
   const signifier = entry.signifier ? SIGNIFIER_CONFIG[entry.signifier] : undefined;
 
   const handleCopyLink = async () => {
@@ -80,7 +80,9 @@ export function EntryToolbar({ entry, actions, isArchiveView }: EntryToolbarProp
                     {copyStatus === "copied" ? "Link copied" : copyStatus === "failed" ? "Copy failed. Try again" : "Copy link to entry"}
                   </Menu.Item>
                 )}
-                {onDownloadMarkdown && <Menu.Item leftSection={<DownloadIcon />} onClick={() => onDownloadMarkdown(entry)}>Download Markdown</Menu.Item>}
+                {onDownload && EXPORT_FORMATS.map(({ format, label }) => (
+                  <Menu.Item key={format} leftSection={<DownloadIcon />} onClick={() => onDownload(entry, format)}>{label}</Menu.Item>
+                ))}
                 {!isArchiveView && onArchive && <Menu.Item leftSection={<ArchiveIcon />} onClick={() => setConfirming("archive")}>Archive entry</Menu.Item>}
                 {isArchiveView && onUnarchive && <Menu.Item leftSection={<RestoreIcon />} onClick={() => onUnarchive(entry.id)}>Restore entry</Menu.Item>}
                 {onDelete && <><Menu.Divider /><Menu.Item color="red" leftSection={<TrashIcon />} onClick={() => setConfirming("delete")}>Delete entry</Menu.Item></>}

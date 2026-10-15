@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { PartialBlock } from "@blocknote/core";
 import type { WorkLedgerEntry } from "../../../entries/index.ts";
-import { entryToMarkdown, markdownFileName, prepareBlocksForMarkdown } from "../entry-markdown.ts";
+import { entryToMarkdown, entryFileName, prepareBlocksForMarkdown } from "../entry-markdown.ts";
 
 function entry(blocks: unknown[], extra: Partial<WorkLedgerEntry> = {}): WorkLedgerEntry {
   return { id: "e1", dayKey: "2026-10-11", createdAt: 1, updatedAt: 1, blocks: blocks as PartialBlock[], isArchived: false, tags: [], ...extra };
@@ -43,9 +43,9 @@ describe("entryToMarkdown", () => {
   });
 });
 
-describe("markdownFileName", () => {
+describe("entryFileName", () => {
   it("uses the day and a slug of the title", () => {
-    expect(markdownFileName(entry([{ type: "heading", content: text("Crawling Strategy / v2!") }]))).toBe("2026-10-11-crawling-strategy-v2.md");
-    expect(markdownFileName(entry([{ type: "paragraph", content: text("日本語") }]))).toBe("2026-10-11.md");
+    expect(entryFileName(entry([{ type: "heading", content: text("Crawling Strategy / v2!") }]), "md")).toBe("2026-10-11-crawling-strategy-v2.md");
+    expect(entryFileName(entry([{ type: "paragraph", content: text("日本語") }]), "pdf")).toBe("2026-10-11.pdf");
   });
 });

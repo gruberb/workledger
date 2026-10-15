@@ -96,6 +96,15 @@ export interface NewEntryOptions {
   signifier?: EntrySignifier;
 }
 
+export type ExportFormat = "markdown" | "docx" | "pdf";
+
+/** Menu order and labels, shared by the desktop menu and the mobile action sheet. */
+export const EXPORT_FORMATS: { format: ExportFormat; label: string }[] = [
+  { format: "pdf", label: "Download PDF" },
+  { format: "docx", label: "Download Word (.docx)" },
+  { format: "markdown", label: "Download Markdown" },
+];
+
 /** Per-entry callbacks. Omit one to hide its control (e.g. archive view has no pin). */
 export interface EntryActions {
   onSave: (entryId: string, blocks: PartialBlock[]) => Promise<void>;
@@ -108,7 +117,7 @@ export interface EntryActions {
   onSignifierChange?: (id: string, signifier: EntrySignifier | undefined) => void;
   onOpenAI?: (entry: WorkLedgerEntry) => void;
   onFocus?: (entry: WorkLedgerEntry) => void;
-  onDownloadMarkdown?: (entry: WorkLedgerEntry) => void;
+  onDownload?: (entry: WorkLedgerEntry, format: ExportFormat) => void;
 }
 
 export interface EntryEditorProps {

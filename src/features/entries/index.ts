@@ -18,6 +18,7 @@ export type {
   EntryActions,
   EntryEditorProps,
   EntryEditorComponent,
+  ExportFormat,
 } from "./types/entry.ts";
 export { SIGNIFIER_CONFIG } from "./types/entry.ts";
 

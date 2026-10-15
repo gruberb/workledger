@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { EntryActions, WorkLedgerEntry } from "../types/entry.ts";
-import { SIGNIFIER_CONFIG } from "../types/entry.ts";
+import { EXPORT_FORMATS, SIGNIFIER_CONFIG } from "../types/entry.ts";
 import { formatDayKey, formatTime } from "../../../utils/dates.ts";
 import { getTagColor } from "../../../utils/tag-colors.ts";
 import { ArchiveIcon, CheckIcon, CloseIcon, DownloadIcon, InfoIcon, LinkIcon, MoreIcon, PinIcon, RestoreIcon, TrashIcon } from "../../../components/ui/Icons.tsx";
@@ -126,7 +126,7 @@ function SheetRow({ icon, label, danger, onClick }: SheetRowProps) {
 }
 
 function ActionSheet({ entry, actions, isArchiveView, onClose, onGone }: PanelProps & { onGone: () => void }) {
-  const { onPin, onUnpin, onArchive, onUnarchive, onDelete, onDownloadMarkdown } = actions;
+  const { onPin, onUnpin, onArchive, onUnarchive, onDelete, onDownload } = actions;
   const [confirming, setConfirming] = useState<"archive" | "delete" | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
 
@@ -174,9 +174,9 @@ function ActionSheet({ entry, actions, isArchiveView, onClose, onGone }: PanelPr
               onClick={handleCopyLink}
             />
           )}
-          {onDownloadMarkdown && (
-            <SheetRow icon={<DownloadIcon size={18} />} label="Download as Markdown" onClick={() => run(() => onDownloadMarkdown(entry))} />
-          )}
+          {onDownload && EXPORT_FORMATS.map(({ format, label }) => (
+            <SheetRow key={format} icon={<DownloadIcon size={18} />} label={label} onClick={() => run(() => onDownload(entry, format))} />
+          ))}
           {!isArchiveView && (onPin || onUnpin) && (
             <SheetRow
               icon={<PinIcon size={18} filled={entry.isPinned} />}

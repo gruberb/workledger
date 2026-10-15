@@ -1,4 +1,5 @@
 import { lazy } from "react";
+import type { SceneSnapshot } from "./scene.ts";
 
 type ExcalidrawModule = typeof import("@excalidraw/excalidraw");
 
@@ -19,6 +20,21 @@ export function loadExcalidraw(): Promise<ExcalidrawModule> {
       throw err;
     });
   return modulePromise;
+}
+
+/** The static SVG shown while a drawing isn't being edited, also used by exports. */
+export async function renderPreviewSvg(snapshot: SceneSnapshot): Promise<string> {
+  const { exportToSvg } = await loadExcalidraw();
+  const svg = await exportToSvg({
+    elements: [...snapshot.elements],
+    appState: {
+      exportBackground: true,
+      viewBackgroundColor: "#f0f0f0",
+      theme: "light",
+    },
+    files: snapshot.files,
+  });
+  return new XMLSerializer().serializeToString(svg);
 }
 
 function createLazyExcalidraw() {

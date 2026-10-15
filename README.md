@@ -63,7 +63,7 @@
 
 - **Local-first** -- All data stored in IndexedDB, no server required
 - **Optional server sync** -- End-to-end encrypted sync across devices. Use the default server or [self-host your own](https://github.com/gruberb/workledger-sync) — generate a sync ID, and your entries are encrypted before leaving the browser
-- **Import & export** -- Export all entries as JSON for backup, import them back anytime, or import a Logseq graph (see [Importing](#importing)). Download a single entry as Markdown from its toolbar, e.g. to hand it to a local LLM
+- **Import & export** -- Export all entries as JSON for backup, import them back anytime, or import a Logseq graph (see [Importing](#importing)). Download a single entry as PDF, Word (.docx, also opens in Google Docs) or Markdown from its Entry actions menu, e.g. to share it or hand it to a local LLM
 - **Archive & restore** -- Archive old entries to keep your workspace clean, browse and restore them anytime
 - **Mobile-friendly** -- Responsive layout with touch-friendly controls
 - **Keyboard-driven** -- `Cmd+J` new entry, `Cmd+K` search, `Cmd+\` toggle sidebar, `Escape` clear filter

@@ -65,11 +65,11 @@ export function entryToMarkdown(entry: WorkLedgerEntry, toMarkdown: (blocks: Par
   return frontMatter(entry) + toMarkdown(prepareBlocksForMarkdown(entry.blocks));
 }
 
-export function markdownFileName(entry: WorkLedgerEntry): string {
+export function entryFileName(entry: WorkLedgerEntry, extension: string): string {
   const slug = extractTitle(entry)
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
     .slice(0, 60);
-  return `${entry.dayKey}${slug ? `-${slug}` : ""}.md`;
+  return `${entry.dayKey}${slug ? `-${slug}` : ""}.${extension}`;
 }

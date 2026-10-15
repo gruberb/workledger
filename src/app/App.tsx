@@ -12,6 +12,8 @@ import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts.ts";
 import { useIsMobile } from "../hooks/useIsMobile.ts";
 import { scrollToEntry } from "../utils/scroll.ts";
 import { useEntryNavigation } from "./hooks/useEntryNavigation.ts";
+import { useEntryDownload } from "./hooks/useEntryDownload.ts";
+import { StatusToast } from "../components/ui/StatusToast.tsx";
 import { FilterBanner } from "./components/FilterBanner.tsx";
 import { StorageStatusBanner } from "./components/StorageStatusBanner.tsx";
 import { AppHeader, HeaderButton } from "./components/AppHeader.tsx";
@@ -30,13 +32,6 @@ if (!window.matchMedia("(max-width: 767px)").matches) void loadEditor();
 const AISidebar = lazy(() => import("../features/ai/sidebar.ts").then((m) => ({ default: m.AISidebar })));
 import { AppProviders } from "./AppProviders.tsx";
 import { SettingsMenuItems } from "./SettingsMenuItems.tsx";
-
-// Loaded on first download, and composed here so the entries feature never imports the editor.
-function downloadMarkdown(entry: WorkLedgerEntry) {
-  import("../features/editor/markdown.ts")
-    .then((m) => m.downloadEntryMarkdown(entry))
-    .catch((err) => console.error("Markdown export failed", err));
-}
 
 export default function App() {
   return (
@@ -80,8 +75,9 @@ function AppContent() {
 
   const aiActionsAvailable = aiSettings.enabled && aiAvailable && !isMobile;
 
+  const { handleDownload, status: downloadStatus } = useEntryDownload();
   const actions = useMemo<EntryActions>(() => archiveView
-    ? { onSave: saveEntryContent, onDelete: deleteEntry, onUnarchive: unarchiveEntry, onFocus: handleFocusEntry, onDownloadMarkdown: downloadMarkdown }
+    ? { onSave: saveEntryContent, onDelete: deleteEntry, onUnarchive: unarchiveEntry, onFocus: handleFocusEntry, onDownload: handleDownload }
     : {
         onSave: saveEntryContent,
         onTagsChange: updateEntryTags,
@@ -92,9 +88,9 @@ function AppContent() {
         onSignifierChange: updateEntrySignifier,
         onOpenAI: aiActionsAvailable ? handleOpenAI : undefined,
         onFocus: handleFocusEntry,
-        onDownloadMarkdown: downloadMarkdown,
+        onDownload: handleDownload,
       },
-  [archiveView, saveEntryContent, deleteEntry, unarchiveEntry, updateEntryTags, archiveEntry, pinEntry, unpinEntry, updateEntrySignifier, aiActionsAvailable, handleOpenAI, handleFocusEntry]);
+  [archiveView, saveEntryContent, deleteEntry, unarchiveEntry, updateEntryTags, archiveEntry, pinEntry, unpinEntry, updateEntrySignifier, aiActionsAvailable, handleOpenAI, handleFocusEntry, handleDownload]);
 
   const visibleCount = useMemo(
     () => [...visibleEntriesByDay.values()].reduce((sum, entries) => sum + entries.length, 0),
@@ -164,6 +160,7 @@ function AppContent() {
         settingsItems={<SettingsMenuItems onImportLogseq={handleImportLogseq} />}
       />
       <LogseqImportInput inputRef={logseqInputRef} />
+      <StatusToast message={downloadStatus?.message ?? null} tone={downloadStatus?.tone} />
 
       <AppShell
         sidebarOpen={sidebarOpen}
