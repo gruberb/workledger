@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.0.1] - 2026-10-15
+
 ### Changed
 
+- RFD and other templates: placeholder text is now regular body text instead of grey italic (bold labels still mark the structure), and the "Boundary" line and "boundaries" heading are now "Scope" and "constraints"
 - Refreshed README screenshots for the v4.0.0 redesign (Paper theme, weekly review, AI companion)
 
 ## [4.0.0] - 2026-10-14
@@ -177,7 +180,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- RFD support: a new `RFD` signifier and two templates, "RFD (brief)" (status plus the five intent lines) and "RFD (full)" (summary, problem, boundaries, unknowns, options, contract, acceptance cases, implementation, checkpoint and log). Each section is a heading with hints, so an RFD can be shortened by deleting sections. Combine the signifier with a project tag and save the filter to get every RFD of a project in one click. Update every synced device before using it: older versions drop the RFD signifier when they edit the entry
+- RFD support: a new `RFD` signifier and two templates, "RFD (brief)" (status plus the five intent lines) and "RFD (full)" (summary, problem, scope, unknowns, options, contract, acceptance cases, implementation, checkpoint and log). Each section is a heading with hints, so an RFD can be shortened by deleting sections. Combine the signifier with a project tag and save the filter to get every RFD of a project in one click. Update every synced device before using it: older versions drop the RFD signifier when they edit the entry
 - Templates can set a signifier
 - AI: bring your own key for Anthropic, OpenAI and OpenRouter. Defaults are `claude-opus-5-5`, `gpt-5` and `openrouter/auto`; the model field suggests the models your key can use
 - AI: web search for research actions on Anthropic, OpenAI and OpenRouter, with the cited pages listed under each answer. Toggle it in AI settings

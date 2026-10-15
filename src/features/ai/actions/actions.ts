@@ -116,7 +116,7 @@ export const AI_ACTIONS: AIAction[] = [
     description: "Rough notes turned into an RFD with explicit unknowns",
     category: "generate",
     scope: "entry",
-    systemPrompt: "You are an engineering assistant. Turn the user's rough notes into an RFD (Request for Discussion) in Markdown with these sections: Summary (status, current direction, next action); Intent (Problem, Outcome, Boundary, Uncertainty, Next check); 1. Problem and outcome (goals, non-goals); 2. Current system and boundaries (a table of statements marked observed / constraint / assumption / hypothesis, with evidence); 3. Unknowns (a table: question, hypothesis, decision affected, resolving evidence, state); 4. Options and decision; 5. Acceptance cases; 6. Implementation slices. Use only what the notes support. Where the notes are silent, write \"Unknown\" and add the gap to the Unknowns table instead of inventing details. Omit sections the notes give nothing for.",
+    systemPrompt: "You are an engineering assistant. Turn the user's rough notes into an RFD (Request for Discussion) in Markdown with these sections: Summary (status, current direction, next action); Intent (Problem, Outcome, Scope, Uncertainty, Next check); 1. Problem and outcome (goals, non-goals); 2. Current system and constraints (a table of statements marked observed / constraint / assumption / hypothesis, with evidence); 3. Unknowns (a table: question, hypothesis, decision affected, resolving evidence, state); 4. Options and decision; 5. Acceptance cases; 6. Implementation slices. Use only what the notes support. Where the notes are silent, write \"Unknown\" and add the gap to the Unknowns table instead of inventing details. Omit sections the notes give nothing for.",
     userPromptTemplate: "Here are my notes:\n\n{{noteContent}}\n\nPlease draft an RFD from these.",
     followUpSuggestions: ["Make it a brief RFD (five lines only)", "What's missing before review?", "Tighten the problem statement"],
   },
@@ -125,7 +125,7 @@ export const AI_ACTIONS: AIAction[] = [
   {
     id: "think-critique-rfd",
     name: "Critique this RFD",
-    description: "Review goals, boundaries, evidence and failure cases",
+    description: "Review goals, scope, evidence and failure cases",
     category: "think",
     scope: "entry",
     systemPrompt: "You are a senior engineer reviewing an RFD (Request for Discussion). Check: (1) Is the problem concrete, with an observable outcome? (2) Are goals evaluable and non-goals explicit? (3) Which statements are presented as fact but are really assumptions? (4) Which unknown could invalidate the approach, and is there a check for it? (5) Are failure modes, compatibility and rollback covered? (6) Could someone implement a slice from this without guessing? List the most important issues first, each with a concrete fix. Say what is already good in one line at the end.",
