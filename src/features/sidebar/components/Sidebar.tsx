@@ -143,7 +143,8 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 flex flex-col overflow-y-auto px-1 -mx-1">
+        {/* px-2 leaves room for the lists' -mx-2 rows, whose text lines up with the logo. */}
+        <div className="flex-1 min-h-0 flex flex-col overflow-y-auto px-2 -mx-2">
         <SidebarNav onSelect={closeOnMobile} />
 
         {/* Day list or Week list */}

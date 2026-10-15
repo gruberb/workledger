@@ -20,9 +20,9 @@ function NavRow({ icon, label, active, trailing, onClick }: NavRowProps) {
     <button
       onClick={onClick}
       aria-current={active ? "page" : undefined}
-      className={`w-full flex items-center gap-3 px-3 py-2.5 md:py-2 rounded-md border-2 border-transparent text-sm transition-colors ${
+      className={`w-full flex items-center gap-3 px-2 py-2 md:py-1.5 rounded-md text-sm transition-colors ${
         active
-          ? "notebook-view-active font-semibold"
+          ? "notebook-view-active font-medium"
           : "text-[var(--color-notebook-muted)] hover:bg-[var(--color-notebook-surface-alt)] hover:text-[var(--color-notebook-text)]"
       }`}
     >
@@ -40,7 +40,7 @@ export function SidebarNav({ onSelect }: SidebarNavProps) {
   const { archivedCount } = useSidebarData();
 
   return (
-    <nav className="mb-4 shrink-0 space-y-0.5" aria-label="Views">
+    <nav className="-mx-2 mb-4 shrink-0 space-y-0.5" aria-label="Views">
       {SIDEBAR_VIEWS.map(({ view, label, icon }) => (
         <NavRow
           key={view}

@@ -155,8 +155,8 @@
 
 /* Sidebar day list — accent-aware active state */
 .sidebar-day-active {
-  background: color-mix(in srgb, var(--color-notebook-accent) 12%, transparent);
-  color: var(--color-notebook-accent);
+  background: var(--color-notebook-surface-alt);
+  color: var(--color-notebook-text);
 }
 .sidebar-day-dot {
   background: var(--color-notebook-accent);
@@ -571,7 +571,7 @@ button:not(:disabled), summary { cursor: pointer; }
 .notebook-primary { background: var(--color-notebook-accent); color: var(--color-notebook-on-accent); }
 .notebook-primary:hover { filter: brightness(1.08); }
 .notebook-nav-icon {
-  display: grid; place-items: center; width: 30px; height: 30px; border-radius: 7px;
+  display: grid; place-items: center; width: 24px; height: 24px; border-radius: 6px;
   border: 1px solid #202331; color: #202331; background: #f4d66b; flex-shrink: 0;
 }
 .notebook-nav-icon[data-view="review"] { background: #bfe3cc; }
@@ -595,11 +595,10 @@ button:not(:disabled), summary { cursor: pointer; }
 [data-workledger-editor] [data-content-type="heading"][data-level="5"],
 [data-workledger-editor] [data-content-type="heading"][data-level="6"] { --level: 1rem; }
 
+/* The colored nav icon carries the view's identity, so the active row stays quiet. */
 .notebook-view-active {
-  background: #f4d66b;
-  color: #202331;
-  border-color: #202331;
-  box-shadow: 2px 2px 0 #202331;
+  background: var(--color-notebook-surface-alt);
+  color: var(--color-notebook-text);
 }
 
 /* Keep scrolling available without displaying scrollbar tracks in the sidebar. */

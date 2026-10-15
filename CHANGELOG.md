@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.0.2] - 2026-10-15
+
+### Changed
+
+- Sidebar navigation is quieter: smaller view icons that line up with the logo and the day list, and the selected view or day is a flat tint instead of a bordered, shadowed button
+
 ## [4.0.1] - 2026-10-15
 
 ### Changed
