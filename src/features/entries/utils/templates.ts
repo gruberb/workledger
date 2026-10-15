@@ -11,12 +11,12 @@ export interface EntryTemplate {
 }
 
 // Placeholder text is regular body text on purpose: it reads as a normal line to
-// overwrite, and only the bold labels in `field` mark the structure.
+// overwrite, and only headings and the bold labels in `field` mark the structure.
 function plain(text: string) {
-  return [{ type: "text" as const, text, styles: {} }];
+  return text ? [{ type: "text" as const, text, styles: {} }] : [];
 }
 
-function heading(text: string, level: 2 | 3 = 2): PartialBlock {
+function heading(text: string, level: 1 | 2 | 3 = 2): PartialBlock {
   return { type: "heading", props: { level }, content: text };
 }
 
@@ -24,10 +24,15 @@ function hint(text: string): PartialBlock {
   return { type: "paragraph", content: plain(text) };
 }
 
+/** A heading with the text to overwrite beneath it, the layout of a written document. */
+function section(title: string, placeholder: string, level: 2 | 3 = 2): PartialBlock[] {
+  return [heading(title, level), hint(placeholder)];
+}
+
 /** "Label: hint" line, so the label survives when the hint is overwritten. */
 function field(label: string, placeholder: string): PartialBlock {
   return {
-    type: "bulletListItem",
+    type: "paragraph",
     content: [{ type: "text", text: `${label}: `, styles: { bold: true } }, ...plain(placeholder)],
   };
 }
@@ -43,20 +48,23 @@ function table(header: string[], rows = 1): PartialBlock {
   };
 }
 
-// RFD = Request for Discussion. Each section is a heading plus hints, so shortening
-// an RFD means deleting sections; the brief and full variants share the five lines.
+// RFD = Request for Discussion. Sections are H2 headings with text beneath (H3 for
+// parts of a section), so shortening an RFD means deleting sections; the brief and
+// full variants share the title, status lines and five intent sections.
+const RFD_TITLE = heading("RFD title", 1);
+
 const RFD_STATUS: PartialBlock[] = [
   field("Status", "draft / discussion / approved / rejected / superseded / withdrawn"),
   field("Delivery", "not started / in progress / verified / released / not applicable"),
   field("Next action", "One specific investigation, review or implementation step"),
 ];
 
-const RFD_FIVE_LINES: PartialBlock[] = [
-  field("Problem", "What happens now, who is affected, and why does it matter?"),
-  field("Outcome", "One observable finish condition for this work"),
-  field("Scope", "What must stay unchanged, and what is out of scope?"),
-  field("Uncertainty", "Which open question could invalidate the approach?"),
-  field("Next check", "The smallest action that reduces that uncertainty"),
+const RFD_INTENT: PartialBlock[] = [
+  ...section("Problem", "What happens now, who is affected, and why does it matter?"),
+  ...section("Outcome", "One observable finish condition for this work"),
+  ...section("Scope", "What must stay unchanged, and what is out of scope?"),
+  ...section("Uncertainty", "Which open question could invalidate the approach?"),
+  ...section("Next check", "The smallest action that reduces that uncertainty"),
 ];
 
 const RFD_LOG_COLUMNS = ["Date", "Evidence or question", "Interpretation", "Decision changed or kept", "Next action"];
@@ -68,13 +76,12 @@ export const ENTRY_TEMPLATES: EntryTemplate[] = [
     icon: "R",
     signifier: "rfd",
     blocks: [
+      RFD_TITLE,
       ...RFD_STATUS,
-      heading("Intent"),
-      ...RFD_FIVE_LINES,
+      ...RFD_INTENT,
       heading("Log"),
       table(RFD_LOG_COLUMNS),
-      heading("Closeout"),
-      hint("What happened compared with the intended outcome? Which assumption failed?"),
+      ...section("Closeout", "What happened compared with the intended outcome? Which assumption failed?"),
       { type: "paragraph", content: "" },
     ],
   },
@@ -84,46 +91,41 @@ export const ENTRY_TEMPLATES: EntryTemplate[] = [
     icon: "R",
     signifier: "rfd",
     blocks: [
-      heading("Summary"),
+      RFD_TITLE,
       field("Owner", "Person maintaining this document"),
       field("Reviewers", "Decision owner and reviewers, or unassigned"),
       ...RFD_STATUS,
       field("Current direction", "One sentence, provisional until approved"),
-      heading("Intent"),
-      ...RFD_FIVE_LINES,
+      ...RFD_INTENT,
       heading("1. Problem and outcome"),
-      field("Current problem", "Condition, affected user or operator, consequence, evidence"),
-      field("Desired outcome", "Observable improvement, independent of the preferred technology"),
-      field("Example", "Input or situation, action, expected result"),
+      ...section("Current problem", "Condition, affected user or operator, consequence, evidence", 3),
+      ...section("Desired outcome", "Observable improvement, independent of the preferred technology", 3),
+      ...section("Example", "Input or situation, action, expected result", 3),
       heading("Goals", 3),
       { type: "bulletListItem", content: plain("G1: goal and how it will be evaluated") },
       heading("Non-goals", 3),
       { type: "bulletListItem", content: plain("Plausible adjacent work excluded from this change") },
-      heading("2. Current system and constraints"),
-      hint("Trace one representative case through the existing system: inputs, components, state, outputs, consumers."),
+      ...section("2. Current system and constraints", "Trace one representative case through the existing system: inputs, components, state, outputs, consumers."),
       table(["Statement", "Kind", "Evidence or authority", "Implication"]),
-      field("Preserved behavior", "What consumers or operators rely on"),
-      field("Constraints", "Platform, compatibility, privacy, operations, schedule, with sources"),
+      ...section("Preserved behavior", "What consumers or operators rely on", 3),
+      ...section("Constraints", "Platform, compatibility, privacy, operations, schedule, with sources", 3),
       heading("3. Unknowns and investigations"),
       table(["Question", "Hypothesis", "Decision affected", "Resolving evidence", "State"]),
-      heading("4. Options and decision"),
-      hint("Each credible option with its trade-offs against the goals. Separate findings from hypotheses."),
-      field("Decision", "Chosen option and why, or what evidence is still missing"),
-      heading("5. Contract"),
-      hint("Interfaces, data, behavior and failure semantics the implementation must satisfy."),
+      ...section("4. Options and decision", "Each credible option with its trade-offs against the goals. Separate findings from hypotheses."),
+      ...section("Decision", "Chosen option and why, or what evidence is still missing", 3),
+      ...section("5. Contract", "Interfaces, data, behavior and failure semantics the implementation must satisfy."),
       heading("6. Acceptance cases"),
       { type: "checkListItem", content: plain("Success case: input, expected result") },
       { type: "checkListItem", content: plain("Failure case: input, expected error or recovery") },
       heading("7. Implementation and verification"),
       table(["Slice", "Outcome", "Depends on", "Required checks", "State and evidence"]),
-      field("Rollout and rollback", "Transition, gates, owner and recovery action"),
+      ...section("Rollout and rollback", "Transition, gates, owner and recovery action", 3),
       heading("8. Checkpoint and log"),
-      field("Decisions settled / open", ""),
-      field("Checks run and results", ""),
-      field("Blockers", ""),
+      ...section("Decisions settled / open", "", 3),
+      ...section("Checks run and results", "", 3),
+      ...section("Blockers", "", 3),
       table(RFD_LOG_COLUMNS),
-      heading("Closeout"),
-      hint("What happened compared with the intended outcome? Which assumption failed? What should the next reader know?"),
+      ...section("Closeout", "What happened compared with the intended outcome? Which assumption failed? What should the next reader know?"),
       { type: "paragraph", content: "" },
     ],
   },
@@ -187,9 +189,9 @@ export const ENTRY_TEMPLATES: EntryTemplate[] = [
     tag: "meeting",
     blocks: [
       { type: "heading", props: { level: 2 }, content: "Meeting Info" },
-      { type: "bulletListItem", content: plain("Topic:") },
-      { type: "bulletListItem", content: plain("Date:") },
-      { type: "bulletListItem", content: plain("Attendees:") },
+      field("Topic", ""),
+      field("Date", ""),
+      field("Attendees", ""),
       { type: "heading", props: { level: 2 }, content: "Agenda" },
       { type: "numberedListItem", content: plain("First topic") },
       { type: "numberedListItem", content: plain("Second topic") },

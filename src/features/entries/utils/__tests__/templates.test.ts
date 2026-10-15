@@ -40,4 +40,16 @@ describe("RFD templates", () => {
       }
     }
   });
+
+  it("structure sections as H2 headings with text beneath, not labeled bullets", () => {
+    for (const template of rfdTemplates) {
+      const blocks = template.blocks as { type: string; props?: { level?: number }; content?: unknown }[];
+      for (const title of ["Problem", "Outcome", "Scope", "Uncertainty", "Next check"]) {
+        const i = blocks.findIndex((b) => b.type === "heading" && b.content === title);
+        expect(blocks[i]?.props?.level, `${template.id}: ${title}`).toBe(2);
+        expect(blocks[i + 1].type).toBe("paragraph");
+      }
+      expect(blocks[0]).toMatchObject({ type: "heading", props: { level: 1 } });
+    }
+  });
 });
