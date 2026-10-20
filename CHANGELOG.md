@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.2.1] - 2026-10-20
+
+### Fixed
+
+- Archive and delete confirmations no longer make the entry header jump: "Yes" and "No" now have the same height as the toolbar buttons they replace
+
 ## [4.2.0] - 2026-10-15
 
 ### Changed
