@@ -30,7 +30,7 @@ export function EntryToolbar({ entry, actions, isArchiveView }: EntryToolbarProp
   };
 
   return (
-    <div className="entry-toolbar flex flex-wrap items-center gap-x-3 gap-y-1 mb-2 px-1">
+    <div className="entry-toolbar flex flex-wrap items-center gap-x-3 gap-y-1 mb-2 px-1 min-h-9">
       <span className="text-xs text-[var(--color-notebook-muted)] font-mono">{formatTime(entry.createdAt)}</span>
       {isArchiveView && <span className="text-xs text-[var(--color-notebook-muted)]">Archived</span>}
       {onSignifierChange && !isArchiveView && (
