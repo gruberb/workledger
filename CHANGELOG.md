@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- PDF and Word downloads failed in a tab opened before an update ("PDF download failed"): the old version asked for files the new release had replaced. The page now reloads once to pick up the new version; edits are saved before it reloads
+
 ## [4.4.0] - 2026-10-21
 
 ### Added
