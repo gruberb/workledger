@@ -22,86 +22,67 @@
 </p>
 
 <p align="center">
-  <img src="docs/images/product.png" alt="WorkLedger in the Paper theme" width="720">
+  <img src="docs/images/demo.gif" alt="Writing and formatting a note, browsing days and the weekly review, then asking the AI sidebar about two attached notes and adding its reply to the note" width="960">
 </p>
 
 ## Features
 
-### Customize your workspace
+### Write
 
-- **6 theme presets**: Paper, Ink, Nord Aurora, Nord Polar Night, High Contrast Light, and High Contrast Dark. Retired light themes migrate to Paper; Dracula and Catppuccin Mocha migrate to Ink.
-- **7 font families** -- Figtree, Plus Jakarta Sans, DM Sans, Urbanist, Inter, JetBrains Mono, or Source Serif 4
-- **Focus mode** -- Full-screen, distraction-free writing on a single entry
-- **Progressive Web App** -- Install as a standalone app on any device, works offline
+- **Daily entries**: organized by day with timestamps. New entry with `Cmd+J`
+- **Rich text**: [BlockNote](https://blocknotejs.org/) editor with Markdown shortcuts and slash commands for headings, lists, checklists, tables and code blocks
+- **Drawings**: embed [Excalidraw](https://excalidraw.com/) diagrams with `/drawing`
+- **Code blocks**: syntax highlighting for 24 languages (Shiki), theme-aware
+- **Dictation**: `/dictate` where the browser supports speech recognition (Chrome may send the audio to a web service)
+- **Templates**: RFD (brief and full), Decision Log, Debugging Session, Meeting Notes, Learning Log and End of Day, with headings and tags filled in
+- **Links and backlinks**: type `[[` to link entries; each entry lists the entries that link to it
 
-### Write and organize
+### Organize and find
 
-<p align="center">
-  <img src="docs/images/templates.png" alt="A notebook entry with the entry templates menu open" width="720">
-</p>
+- **Signifiers**: mark entries as Decision, Question, Idea, Milestone, Small win or RFD. Most entries need none
+- **Tags and saved filters**: filter by tags and signifiers, save the combination for one click. Active filters show in the header with Save and Clear all
+- **Search**: full-text search across entries and tags (`Cmd+K`)
+- **Pin and archive**: pin entries to the top; archive old ones and restore them anytime
+- **Weekly review**: pick an ISO week to see its entries, signifier counts and top tags
+- **RFDs**: write RFDs as entries, tag them by project, and filter by the RFD signifier plus the project tag to see a project's RFDs
 
-- **Daily entries** -- Organized by day with timestamps, create entries with `Cmd+J`
-- **Rich text editing** -- Powered by [BlockNote](https://blocknotejs.org/) with slash commands for headings, lists, code blocks, and more
-- **Inline drawings** -- Embed [Excalidraw](https://excalidraw.com/) diagrams directly in your notes via `/drawing`
-- **Syntax highlighting** -- 24 languages with Shiki, theme-aware code blocks
-- **Wiki-style linking** -- Type `[[` to link between entries and build a knowledge graph
-- **Backlinks** -- "Referenced by" panel below each entry shows all entries that link to it, auto-maintained on save
-- **Entry templates** -- Start entries with structured sections: RFD (brief and full), Decision Log, Debugging Session, Meeting Notes, Learning Log, and End of Day, each with pre-filled headings and auto-tags or signifiers
-- **Entry signifiers** -- Label entries as Decision, Question, Idea, Milestone, Small win, or RFD with color-coded indicators; filterable in the sidebar. Most entries need no signifier; use them to highlight what matters
-- **RFDs** -- Write RFDs (Requests for Discussion) as entries: start from the brief or full RFD template and delete the sections you don't need. Tag each RFD with its project, then filter by the RFD signifier plus the project tag (and save the filter) to see every RFD of a project. Link RFDs from daily notes with `[[`, and the RFD's "Referenced by" panel shows its history
-- **Pin entries** -- Pin important entries to the top of your stream
-- **Tagging** -- Color-coded tags for categorization and filtering
-- **Saved filters** -- Select tags or signifiers, then use Save current filter in the sidebar to name the combination for one-click access. Tags and signifiers from all entries are listed, not only recent ones
-- **Search** -- Full-text search across all entries and tags (`Cmd+K`)
+### Make it yours
 
-### Review your work
+- **Themes**: Paper, Ink, Nord Aurora, Nord Polar Night, High Contrast Light and Dark
+- **Fonts**: Figtree, Plus Jakarta Sans, DM Sans, Urbanist, Inter, JetBrains Mono or Source Serif 4
+- **Resizable sidebars**: drag the inner edge; drag past the minimum to close
+- **Focus mode**: one entry, full screen
+- **Keyboard**: `Cmd+J` new entry, `Cmd+K` search, `Cmd+\` sidebar, `Cmd+Shift+I` AI sidebar, `Escape` clear filters
 
-<p align="center">
-  <img src="docs/images/weekly-review.png" alt="Weekly review" width="720">
-</p>
+### Own your data
 
-- **Weekly review** -- Select an ISO week to see signifier breakdowns, top tags, and entry previews
-- **Filtering in review mode** -- Tag, signifier, and saved filters work in the weekly view; full-text search is available separately
+- **Local-first**: everything lives in IndexedDB in your browser. No account, no server
+- **Optional sync**: end-to-end encrypted sync across devices with the default server or [your own](https://github.com/gruberb/workledger-sync). Entries are encrypted before they leave the browser ([details](docs/ENCRYPTION.md))
+- **Import and export**: JSON backup and restore, Logseq graph import (see [Importing](#importing)), and single-entry downloads as PDF, Word or Markdown
+- **Works offline and on mobile**: installable PWA with a mobile layout
 
-### Stay in control
+## AI sidebar (optional)
 
-- **Local-first** -- All data stored in IndexedDB, no server required
-- **Optional server sync** -- End-to-end encrypted sync across devices. Use the default server or [self-host your own](https://github.com/gruberb/workledger-sync) — generate a sync ID, and your entries are encrypted before leaving the browser
-- **Import & export** -- Export all entries as JSON for backup, import them back anytime, or import a Logseq graph (see [Importing](#importing)). Download a single entry as PDF, Word (.docx, also opens in Google Docs) or Markdown from its Entry actions menu, e.g. to share it or hand it to a local LLM
-- **Archive & restore** -- Archive old entries to keep your workspace clean, browse and restore them anytime
-- **Mobile-friendly** -- Responsive layout with touch-friendly controls
-- **Keyboard-driven** -- `Cmd+J` new entry, `Cmd+K` search, `Cmd+\` toggle sidebar, `Escape` clear filter
+Off by default and fully removable: delete `src/features/ai/` and nothing else changes.
 
-### Optional: AI Notebook Companion
+- **Chat** with your notes: attach notes with the **Notes** button (recent notes or search), paste text, or drop screenshots
+- **Prompts** as one-click chips: summaries of your day or week, standup updates, PR descriptions, ADRs and RFDs from notes, an RFD critique, rubber ducking, tradeoffs, and recall ("What did I decide about...?")
+- **Your own prompts**: save instructions and choose what they run on (attached notes, today, this week, or your next message). Stored in this browser
+- **Into your notes**: **Add to note** appends a reply to the attached note; **New entry** creates one
+- **Threads**: every conversation is saved; reopen or delete it from the clock menu
+- **Web research** with cited sources on Anthropic, OpenAI and OpenRouter, when enabled in AI settings (the provider bills each search)
 
-An optional AI sidebar with 16 concrete engineer actions, including web research with cited sources. Off by default, zero impact on the core app when disabled. Easy to remove if unwanted — fork and delete `src/features/ai/` without affecting anything else.
+**Set up:**
 
-**Quick start:**
+1. Open **Settings** in the left sidebar and choose **Enable AI**
+2. Pick a provider:
+   - **Ollama (local)**: install [Ollama](https://ollama.com/) and run `ollama pull mistral`. If WorkLedger runs on another origin, allow it with `OLLAMA_ORIGINS`
+   - **Anthropic, OpenAI or OpenRouter**: paste an API key. Anthropic blocks browser requests for organizations with custom data retention; use OpenRouter there
+   - **Hugging Face**: paste an [API token](https://huggingface.co/settings/tokens) and pick a model
+   - **Custom server**: any OpenAI-compatible endpoint
+3. Open the AI sidebar with the lightbulb in the header (`Cmd+Shift+I`)
 
-1. Click **Settings** in the left sidebar and select **Enable AI**
-2. **Configure a provider** — choose one:
-   - **Ollama (local):** Install [Ollama](https://ollama.com/), start its server, then run `ollama pull mistral`. Check `http://localhost:11434/api/tags` if the app says disconnected. If WorkLedger is served from another origin, allow that origin with Ollama's `OLLAMA_ORIGINS` setting
-   - **Anthropic, OpenAI or OpenRouter (bring your own key):** Paste an API key. The default models are `claude-opus-5-5`, `gpt-5` and `openrouter/auto`. These three support web search
-   - **Hugging Face (remote):** Paste a free [API token](https://huggingface.co/settings/tokens) and pick a model
-   - **Custom server:** Point to any OpenAI-compatible endpoint
-
-   Keys are stored unencrypted in this browser's IndexedDB, and requests go straight from the browser to the provider.
-3. Click **Think with AI** above a note
-4. **Pick an action** from 5 categories:
-
-| Category | Actions |
-|----------|---------|
-| **Research** | Ask / Research (free-form, uses web search), Research an Unknown (the open questions of an RFD) |
-| **Summarize** | My Day, My Week, A Topic |
-| **Generate** | Standup Update, PR Description, ADR from Notes, Draft RFD from Notes, Draft Message |
-| **Think** | Rubber Duck, Challenge My Thinking, Critique this RFD, Explore Tradeoffs |
-| **Remember** | What Did I Decide About...?, When Did I Last Work On...? |
-
-Actions support multi-entry context (day, week, or topic scope) and topic search. With web search enabled (AI settings), research answers list their sources; the provider bills each search.
-
-<p align="center">
-  <img src="docs/images/ai/ai_in_action.png" alt="AI notebook companion" width="720">
-</p>
+Keys are stored unencrypted in this browser's IndexedDB, and requests go straight from the browser to the provider.
 
 ## Importing
 

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- README: a 30-second demo GIF replaces the screenshots, and the feature list and AI section describe the current app (note picker, prompts, threads, Add to note)
+
 ## [4.5.0] - 2026-10-21
 
 ### Changed
