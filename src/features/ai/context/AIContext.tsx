@@ -1,10 +1,9 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
 import { ErrorBoundary } from "../../../components/ui/ErrorBoundary.tsx";
 import { useAISettings } from "../hooks/useAISettings.ts";
 import { useAIFeatureGate, type AIConnectionStatus } from "../hooks/useAIFeatureGate.ts";
 import { DEFAULT_AI_SETTINGS, type AISettings, type NoteActions } from "../types/ai.ts";
 import type { LLMProvider } from "../providers/types.ts";
-import type { WorkLedgerEntry } from "../../entries/index.ts";
 
 interface AIContextValue {
   settings: AISettings;
@@ -15,9 +14,7 @@ interface AIContextValue {
   configError: string | null;
   recheckConnection: () => void;
   sidebarOpen: boolean;
-  targetEntry: WorkLedgerEntry | null;
   handleToggleAI: () => void;
-  handleOpenAI: (entry: WorkLedgerEntry) => void;
   handleToggleAISidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   noteActions: NoteActions | null;
@@ -36,9 +33,7 @@ const DISABLED_AI: AIContextValue = {
   configError: null,
   recheckConnection: noop,
   sidebarOpen: false,
-  targetEntry: null,
   handleToggleAI: noop,
-  handleOpenAI: noop,
   handleToggleAISidebar: noop,
   setSidebarOpen: noop,
   noteActions: null,
@@ -68,7 +63,6 @@ function AIProviderInner({ children, onCollapseSidebar, noteActions }: AIProvide
   const { settings, updateSettings } = useAISettings();
   const { available, provider, status, configError, recheck: recheckConnection } = useAIFeatureGate(settings);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [targetEntry, setTargetEntry] = useState<WorkLedgerEntry | null>(null);
 
   // Collapse the left sidebar when the AI sidebar opens on a narrow window, or
   // when the window shrinks past the threshold. Listening for "change" rather
@@ -92,23 +86,6 @@ function AIProviderInner({ children, onCollapseSidebar, noteActions }: AIProvide
     }
   }, [settings.enabled, updateSettings]);
 
-  // Read through a ref so handleOpenAI stays stable: it sits in the entry actions
-  // object, and a new identity would re-render every entry card.
-  const openOnRef = useRef<string | null>(null);
-  useEffect(() => {
-    openOnRef.current = sidebarOpen ? targetEntry?.id ?? null : null;
-  }, [sidebarOpen, targetEntry]);
-
-  // Toggles: the button on the entry the sidebar already works on closes it.
-  const handleOpenAI = useCallback((entry: WorkLedgerEntry) => {
-    if (openOnRef.current === entry.id) {
-      setSidebarOpen(false);
-      return;
-    }
-    setTargetEntry(entry);
-    setSidebarOpen(true);
-  }, []);
-
   const handleToggleAISidebar = useCallback(() => {
     setSidebarOpen((prev) => !prev);
   }, []);
@@ -122,13 +99,11 @@ function AIProviderInner({ children, onCollapseSidebar, noteActions }: AIProvide
     configError,
     recheckConnection,
     sidebarOpen,
-    targetEntry,
     handleToggleAI,
-    handleOpenAI,
     handleToggleAISidebar,
     setSidebarOpen,
     noteActions: noteActions ?? null,
-  }), [settings, updateSettings, available, provider, status, configError, recheckConnection, sidebarOpen, targetEntry, handleToggleAI, handleOpenAI, handleToggleAISidebar, noteActions]);
+  }), [settings, updateSettings, available, provider, status, configError, recheckConnection, sidebarOpen, handleToggleAI, handleToggleAISidebar, noteActions]);
 
   return <AICtx.Provider value={value}>{children}</AICtx.Provider>;
 }

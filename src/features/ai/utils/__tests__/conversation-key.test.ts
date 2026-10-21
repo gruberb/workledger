@@ -18,7 +18,9 @@ describe("conversationKey", () => {
   });
 
   it("keys entry conversations by entry and topics by normalized query", () => {
-    expect(conversationKey("entry", { entryId: "abc" })).toBe("abc");
+    expect(conversationKey("entry", { entryIds: ["abc"] })).toBe("abc");
+    expect(conversationKey("entry", { entryIds: ["b", "a"] })).toBe(conversationKey("entry", { entryIds: ["a", "b"] }));
+    expect(conversationKey("entry", {})).toBe("global");
     expect(conversationKey("topic", { query: " Auth " })).toBe(conversationKey("topic", { query: "auth" }));
   });
 });

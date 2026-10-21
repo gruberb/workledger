@@ -1,7 +1,10 @@
-import { useRef, useState, type ClipboardEvent, type DragEvent, type KeyboardEvent } from "react";
+import { useCallback, useRef, useState, type ClipboardEvent, type DragEvent, type KeyboardEvent } from "react";
 import type { AIImage } from "../providers/types.ts";
 import { imageDataUrl, readImageFile } from "../utils/images.ts";
 import { CloseIcon, FileIcon } from "../../../components/ui/Icons.tsx";
+import { useClickOutside } from "../../../hooks/useClickOutside.ts";
+import { ContextChip } from "./ContextChip.tsx";
+import { NotePicker, type AttachedNote } from "./NotePicker.tsx";
 
 const MAX_TEXTAREA_PX = 200;
 
@@ -10,12 +13,9 @@ interface ComposerProps {
   placeholder: string;
   onSend: (text: string, images: AIImage[]) => void;
   onStop: () => void;
-  /** Title of the note sent along as context. */
-  attachedNote?: string;
-  onDetachNote?: () => void;
-  /** Title of a note the user removed from the context; offered to add back. */
-  detachedNote?: string;
-  onAttachNote?: () => void;
+  /** Notes sent along with the next message. */
+  notes: AttachedNote[];
+  onToggleNote: (note: AttachedNote) => void;
   /** Prompt the next message runs with. */
   pendingPrompt?: string;
   onClearPrompt?: () => void;
@@ -23,11 +23,15 @@ interface ComposerProps {
   /** Omitted where the prompts are already on screen. */
   onTogglePrompts?: () => void;
   maxImages?: number;
+  /** Send works with an empty message (a prompt that runs on attached notes). */
+  canSendEmpty?: boolean;
+  /** Why send is unavailable, shown under the box (e.g. a note prompt with no note). */
+  blockedReason?: string;
 }
 
-/** Message box: text, pasted or dropped images, the attached note and the prompt picker. */
+/** Message box: text, pasted or dropped images, attached notes and the prompt picker. */
 export function Composer({
-  streaming, placeholder, onSend, onStop, attachedNote, onDetachNote, detachedNote, onAttachNote, pendingPrompt, onClearPrompt, promptsOpen, onTogglePrompts, maxImages = 4,
+  streaming, placeholder, onSend, onStop, notes, onToggleNote, pendingPrompt, onClearPrompt, promptsOpen, onTogglePrompts, maxImages = 4, canSendEmpty = false, blockedReason,
 }: ComposerProps) {
   const [text, setText] = useState("");
   const [images, setImages] = useState<AIImage[]>([]);
@@ -35,8 +39,13 @@ export function Composer({
   const [dragging, setDragging] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const closePicker = useCallback(() => setPickerOpen(false), []);
+  // The whole composer counts as inside, so its own toggle button doesn't close and reopen the picker.
+  useClickOutside(rootRef, closePicker, pickerOpen);
 
-  const canSend = !streaming && (text.trim().length > 0 || images.length > 0);
+  const canSend = !streaming && !blockedReason && (canSendEmpty || text.trim().length > 0 || images.length > 0);
 
   const resize = () => {
     const el = textareaRef.current;
@@ -90,43 +99,34 @@ export function Composer({
 
   return (
     <div
-      className={`shrink-0 border-t border-[var(--color-notebook-border)] px-3 pt-2 pb-3 ${dragging ? "bg-[var(--color-notebook-surface)]" : ""}`}
+      ref={rootRef}
+      className={`relative shrink-0 border-t border-[var(--color-notebook-border)] px-3 pt-2 pb-3 ${dragging ? "bg-[var(--color-notebook-surface)]" : ""}`}
       onDragOver={(e) => { if (e.dataTransfer.types.includes("Files")) { e.preventDefault(); setDragging(true); } }}
       onDragLeave={() => setDragging(false)}
       onDrop={handleDrop}
     >
-      {(attachedNote || detachedNote || pendingPrompt) && (
+      {pickerOpen && (
+        <NotePicker
+          selectedIds={notes.map((n) => n.id)}
+          onToggle={onToggleNote}
+          onClose={() => { closePicker(); textareaRef.current?.focus(); }}
+        />
+      )}
+
+      {(notes.length > 0 || pendingPrompt) && (
         <div className="flex flex-wrap gap-1.5 mb-2">
-          {attachedNote && (
-            <span className="inline-flex items-center gap-1 max-w-full text-[11px] pl-2 pr-1 py-0.5 rounded-md bg-[var(--color-notebook-surface)] border border-[var(--color-notebook-border)] text-[var(--color-notebook-muted)]" title="This note is sent along as context">
-              <FileIcon size={11} />
-              <span className="truncate max-w-48">{attachedNote}</span>
-              {onDetachNote && (
-                <button onClick={onDetachNote} className="p-0.5 rounded hover:text-[var(--color-notebook-text)]" aria-label="Don't send this note">
-                  <CloseIcon size={10} strokeWidth={2.5} />
-                </button>
-              )}
-            </span>
+          {pendingPrompt && onClearPrompt && (
+            <ContextChip label={pendingPrompt} tone="accent" onRemove={onClearPrompt} removeLabel={`Don't use the ${pendingPrompt} prompt`} />
           )}
-          {detachedNote && onAttachNote && (
-            <button
-              onClick={onAttachNote}
-              className="inline-flex items-center gap-1 max-w-full text-[11px] px-2 py-0.5 rounded-md border border-dashed border-[var(--color-notebook-border)] text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)]"
-            >
-              <FileIcon size={11} />
-              <span className="truncate max-w-48">Attach {detachedNote}</span>
-            </button>
-          )}
-          {pendingPrompt && (
-            <span className="inline-flex items-center gap-1 text-[11px] pl-2 pr-1 py-0.5 rounded-md bg-[var(--color-notebook-surface-alt)] text-[var(--color-notebook-accent)] font-medium">
-              {pendingPrompt}
-              {onClearPrompt && (
-                <button onClick={onClearPrompt} className="p-0.5 rounded hover:opacity-70" aria-label={`Don't use the ${pendingPrompt} prompt`}>
-                  <CloseIcon size={10} strokeWidth={2.5} />
-                </button>
-              )}
-            </span>
-          )}
+          {notes.map((note) => (
+            <ContextChip
+              key={note.id}
+              label={note.title}
+              icon={<FileIcon size={11} className="shrink-0 text-[var(--color-notebook-muted)]" />}
+              onRemove={() => onToggleNote(note)}
+              removeLabel={`Remove note ${note.title}`}
+            />
+          ))}
         </div>
       )}
 
@@ -146,6 +146,7 @@ export function Composer({
           ))}
         </div>
       )}
+      {blockedReason && <p className="text-[11px] text-[var(--color-notebook-muted)] mb-2">{blockedReason}</p>}
       {imageError && <p role="alert" className="text-[11px] text-[var(--color-notebook-muted)] mb-2">{imageError}</p>}
 
       <div className="rounded-xl border border-[var(--color-notebook-border)] bg-[var(--color-notebook-surface)] focus-within:border-[var(--color-notebook-accent)] focus-within:ring-1 focus-within:ring-[var(--color-notebook-accent)] transition-colors">
@@ -170,6 +171,15 @@ export function Composer({
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
             </svg>
+          </button>
+          <button
+            onClick={() => setPickerOpen((o) => !o)}
+            className={`flex items-center gap-1 px-1.5 py-1 rounded-md text-xs transition-colors ${pickerOpen ? "bg-[var(--color-notebook-surface-alt)] text-[var(--color-notebook-accent)]" : "text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] hover:bg-[var(--color-notebook-surface-alt)]"}`}
+            title="Attach notes as context"
+            aria-expanded={pickerOpen}
+          >
+            <FileIcon size={14} />
+            Notes{notes.length > 0 && ` (${notes.length})`}
           </button>
           <input
             ref={fileRef}

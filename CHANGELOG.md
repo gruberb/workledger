@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Notes are attached in the AI sidebar itself: the Notes button in the message box lists recent notes and searches the rest, and you can attach several. Attached notes show as chips with × to remove them, go along with your next message (also mid-thread), and the first one is where "Add to note" writes
+- "Think with AI" is gone from entries, and the AI sidebar has no close button: the lightbulb in the header opens and closes it (⌘⇧I still works)
+- Prompts that run on a note no longer show greyed out without one: pick the prompt, attach notes, then send. Text you type goes along as extra instructions
+- The picked prompt and attached notes share one chip style
+
 ## [4.4.1] - 2026-10-21
 
 ### Fixed

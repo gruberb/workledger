@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { getAllEntries, getEntry, extractTextFromBlocks } from "../../entries/index.ts";
+import { getAllEntries, getEntries, extractTextFromBlocks } from "../../entries/index.ts";
 import type { WorkLedgerEntry } from "../../entries/index.ts";
 import type { Block } from "@blocknote/core";
 import { todayKey } from "../../../utils/dates.ts";
@@ -12,25 +12,27 @@ function entryToText(entry: WorkLedgerEntry): string {
   return `--- ${entry.dayKey}${tags} ---\n${text}`;
 }
 
+/** Reads the stored versions, so edits made since the notes were attached are included. */
+async function notesText(entryIds: string[]): Promise<string> {
+  if (entryIds.length === 0) return "";
+  const entries = await getEntries(entryIds);
+  return entries.map(entryToText).join("\n\n");
+}
+
 export function useMultiEntryContext() {
   const gatherContext = useCallback(async (
     scope: ActionScope,
-    targetEntry: WorkLedgerEntry | null,
-    topicQuery?: string,
+    entryIds: string[],
+    query?: string,
   ): Promise<string> => {
-    if (scope === "entry") {
-      if (!targetEntry) return "";
-      // targetEntry is a snapshot from when the AI panel opened; read the
-      // stored version so edits made since then are included.
-      const fresh = await getEntry(targetEntry.id);
-      return entryToText(fresh ?? targetEntry);
-    }
+    if (scope === "entry") return notesText(entryIds);
 
     if (scope === "ask") {
-      const question = topicQuery ?? "";
-      if (!targetEntry) return question;
-      const fresh = await getEntry(targetEntry.id);
-      return `${question}\n\nContext from my notebook entry:\n\n${entryToText(fresh ?? targetEntry)}`;
+      const question = query ?? "";
+      const notes = await notesText(entryIds);
+      if (!notes) return question;
+      const label = entryIds.length === 1 ? "Context from my notebook entry" : "Context from my notebook entries";
+      return `${question}\n\n${label}:\n\n${notes}`;
     }
 
     const allEntries = await getAllEntries();
@@ -54,14 +56,14 @@ export function useMultiEntryContext() {
       return weekEntries.map(entryToText).join("\n\n");
     }
 
-    if (scope === "topic" && topicQuery) {
-      const query = topicQuery.toLowerCase();
+    if (scope === "topic" && query) {
+      const needle = query.toLowerCase();
       const matching = active.filter((e) => {
         const text = extractTextFromBlocks(e.blocks as Block[]).toLowerCase();
-        const tagMatch = e.tags.some((t) => t.toLowerCase().includes(query));
-        return text.includes(query) || tagMatch;
+        const tagMatch = e.tags.some((t) => t.toLowerCase().includes(needle));
+        return text.includes(needle) || tagMatch;
       }).sort((a, b) => b.createdAt - a.createdAt).slice(0, 20);
-      if (matching.length === 0) return `(No entries found about "${topicQuery}")`;
+      if (matching.length === 0) return `(No entries found about "${query}")`;
       return matching.map(entryToText).join("\n\n");
     }
 

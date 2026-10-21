@@ -3,7 +3,6 @@ import { CATEGORY_LABELS, CATEGORY_ORDER } from "../actions/actions.ts";
 
 interface PromptGalleryProps {
   actions: AIAction[];
-  hasEntry: boolean;
   onSelect: (action: AIAction) => void;
   /** Edit a custom prompt. */
   onEdit: (id: string) => void;
@@ -11,7 +10,7 @@ interface PromptGalleryProps {
 }
 
 /** Prompts as chips grouped by category, with "My prompts" first. */
-export function PromptGallery({ actions, hasEntry, onSelect, onEdit, onNew }: PromptGalleryProps) {
+export function PromptGallery({ actions, onSelect, onEdit, onNew }: PromptGalleryProps) {
   const groups = CATEGORY_ORDER.map((category) => ({
     category,
     items: actions.filter((a) => a.category === category),
@@ -26,14 +25,12 @@ export function PromptGallery({ actions, hasEntry, onSelect, onEdit, onNew }: Pr
           </h4>
           <div className="flex flex-wrap gap-1.5">
             {items.map((action) => {
-              const disabled = action.scope === "entry" && !hasEntry;
               return (
                 <span key={action.id} className="inline-flex">
                   <button
                     onClick={() => onSelect(action)}
-                    disabled={disabled}
-                    title={disabled ? `${action.description}. Attach a note first: "Think with AI" on an entry` : action.description}
-                    className={`text-xs px-2.5 py-1.5 border border-[var(--color-notebook-border)] bg-[var(--color-notebook-surface)] text-[var(--color-notebook-text)] transition-colors enabled:hover:border-[var(--color-notebook-accent)] enabled:hover:text-[var(--color-notebook-accent)] disabled:opacity-40 disabled:cursor-not-allowed ${category === "mine" ? "rounded-l-full pr-2" : "rounded-full"}`}
+                    title={action.description}
+                    className={`text-xs px-2.5 py-1.5 border border-[var(--color-notebook-border)] bg-[var(--color-notebook-surface)] text-[var(--color-notebook-text)] transition-colors hover:border-[var(--color-notebook-accent)] hover:text-[var(--color-notebook-accent)] ${category === "mine" ? "rounded-l-full pr-2" : "rounded-full"}`}
                   >
                     {action.name}
                   </button>

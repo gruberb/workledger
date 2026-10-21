@@ -15,7 +15,7 @@ function message(role: AIMessage["role"], content: string, actionId: string, ext
   return msg;
 }
 
-export type ThreadMeta = Pick<AIConversation, "title" | "targetEntryId" | "query">;
+export type ThreadMeta = Pick<AIConversation, "title" | "entryIds" | "targetEntryId" | "query">;
 
 export function useAIConversation(settings: AISettings) {
   const [conversation, setConversation] = useState<AIConversation | null>(null);

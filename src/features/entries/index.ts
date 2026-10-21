@@ -23,7 +23,7 @@ export type {
 export { SIGNIFIER_CONFIG } from "./types/entry.ts";
 
 // Storage operations (for cross-feature use)
-export { getEntry, getAllEntries, getEntriesUpdatedSince, getAllEntryIds } from "./storage/entries.ts";
+export { getEntry, getEntries, getAllEntries, getEntriesUpdatedSince, getAllEntryIds } from "./storage/entries.ts";
 export { searchEntries, getRecentSearchEntries, getSearchRow, extractTextFromBlocks } from "./storage/search-index.ts";
 export { exportAllEntries, importEntries, saveImportedEntries } from "./storage/import-export.ts";
 export { applyRemoteEntries, type RemoteEntry } from "./storage/remote-entries.ts";

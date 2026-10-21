@@ -58,7 +58,7 @@ function AppContent() {
     root?.classList.add("bn-scroll-container");
     return () => root?.classList.remove("bn-scroll-container");
   }, [isMobile, focusedEntryId]);
-  const { settings: aiSettings, sidebarOpen: aiSidebarOpen, targetEntry: aiTargetEntry, handleOpenAI, handleToggleAISidebar, available: aiAvailable, setSidebarOpen: setAISidebarOpen } = useAIContext();
+  const { settings: aiSettings, sidebarOpen: aiSidebarOpen, handleToggleAISidebar, available: aiAvailable, setSidebarOpen: setAISidebarOpen } = useAIContext();
   const [searchOpen, setSearchOpen] = useState(false);
   const openSearch = useCallback(() => setSearchOpen(true), []);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
@@ -86,11 +86,10 @@ function AppContent() {
         onPin: pinEntry,
         onUnpin: unpinEntry,
         onSignifierChange: updateEntrySignifier,
-        onOpenAI: aiActionsAvailable ? handleOpenAI : undefined,
         onFocus: handleFocusEntry,
         onDownload: handleDownload,
       },
-  [archiveView, saveEntryContent, deleteEntry, unarchiveEntry, updateEntryTags, archiveEntry, pinEntry, unpinEntry, updateEntrySignifier, aiActionsAvailable, handleOpenAI, handleFocusEntry, handleDownload]);
+  [archiveView, saveEntryContent, deleteEntry, unarchiveEntry, updateEntryTags, archiveEntry, pinEntry, unpinEntry, updateEntrySignifier, handleFocusEntry, handleDownload]);
 
   const visibleCount = useMemo(
     () => [...visibleEntriesByDay.values()].reduce((sum, entries) => sum + entries.length, 0),
@@ -209,7 +208,6 @@ function AppContent() {
             Editor={EntryEditor}
             isArchiveView={archiveView}
             isFiltering={hasActiveFilters}
-            aiEntryId={aiSidebarOpen ? aiTargetEntry?.id : null}
             focusedEntryId={focusedEntryId}
             onExitFocus={handleExitFocus}
             preview={isMobile}

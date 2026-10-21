@@ -8,12 +8,13 @@ import { isoWeekKey, toDayKey } from "../../../utils/weeks.ts";
  */
 export function conversationKey(
   scope: ActionScope,
-  context: { entryId?: string; query?: string; now?: Date },
+  context: { entryIds?: string[]; query?: string; now?: Date },
 ): string {
   const now = context.now ?? new Date();
   switch (scope) {
     case "entry":
-      return context.entryId ?? "global";
+      // One note keys by its id alone, as threads saved before multi-note context did.
+      return context.entryIds?.length ? [...context.entryIds].sort().join("+") : "global";
     case "day":
       return `day-${toDayKey(now)}`;
     case "week":

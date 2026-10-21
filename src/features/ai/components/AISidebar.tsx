@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import type { AIAction } from "../actions/types.ts";
 import type { AIConversation as AIConversationType } from "../types/ai.ts";
 import type { AIImage } from "../providers/types.ts";
@@ -10,8 +10,8 @@ import { useMultiEntryContext } from "../hooks/useMultiEntryContext.ts";
 import { useIsMobile } from "../../../hooks/useIsMobile.ts";
 import { useResizablePanel } from "../../../hooks/useResizablePanel.ts";
 import { ResizeHandle } from "../../../components/ui/ResizeHandle.tsx";
-import { CloseIcon, PlusIcon, SettingsIcon, ArrowLeftIcon } from "../../../components/ui/Icons.tsx";
-import { extractTitle, getEntry, type WorkLedgerEntry } from "../../entries/index.ts";
+import { PlusIcon, SettingsIcon, ArrowLeftIcon } from "../../../components/ui/Icons.tsx";
+import type { AttachedNote } from "./NotePicker.tsx";
 import { renderUserPrompt } from "../prompt-builder.ts";
 import { conversationKey } from "../utils/conversation-key.ts";
 import { makeThreadTitle } from "../utils/thread-title.ts";
@@ -33,9 +33,11 @@ type View = "chat" | "settings" | "prompt-editor";
 interface RunOptions {
   query?: string;
   images?: AIImage[];
-  entry?: WorkLedgerEntry | null;
+  notes?: AttachedNote[];
   /** Overwrite this saved thread instead of starting a new one (Regenerate). */
   replaceId?: string;
+  /** Keeps the title of the thread being regenerated. */
+  title?: string;
 }
 
 const headerButton = "p-1.5 rounded-md text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] hover:bg-[var(--color-notebook-surface)] transition-colors shrink-0";
@@ -51,7 +53,6 @@ export function AISidebar() {
     configError,
     recheckConnection,
     sidebarOpen: isOpen,
-    targetEntry,
     handleToggleAISidebar: onClose,
     noteActions,
   } = useAIContext();
@@ -84,24 +85,17 @@ export function AISidebar() {
   const [activeAction, setActiveAction] = useState<AIAction>(CHAT_ACTION);
   /** A prompt that runs on the next message (topic and message-scoped prompts). */
   const [pendingAction, setPendingAction] = useState<AIAction | null>(null);
-  /** Target entry when the current thread was shown; null for none. */
-  const [shownWith, setShownWith] = useState<string | null>(null);
-  /** The user removed this entry from the context of the next thread. */
-  const [detachedFor, setDetachedFor] = useState<string | null>(null);
+  /** Notes that go along with the next message. */
+  const [notes, setNotes] = useState<AttachedNote[]>([]);
   // Bumped on every new request and on New thread, so an action whose context is
   // still loading can tell it was superseded and must not start a stream.
   const requestRef = useRef(0);
 
-  const targetEntryId = targetEntry?.id ?? null;
-  // "Think with AI" on another entry starts a fresh thread there; a thread
-  // belongs to the target it was shown with. Derived instead of reset in an
-  // effect, so a thread opened from the recent list survives until then.
-  const visibleConversation = conversation && shownWith === targetEntryId ? conversation : null;
-  const noteForNewThread = targetEntry && detachedFor !== targetEntry.id ? targetEntry : null;
+  const visibleConversation = conversation;
 
-  useEffect(() => {
-    if (conversation && !visibleConversation) abort();
-  }, [conversation, visibleConversation, abort]);
+  const handleToggleNote = useCallback((note: AttachedNote) => {
+    setNotes((prev) => (prev.some((n) => n.id === note.id) ? prev.filter((n) => n.id !== note.id) : [...prev, note]));
+  }, []);
 
   const allActions = useMemo(() => [...customPrompts.map(customPromptToAction), ...AI_ACTIONS], [customPrompts]);
   const findAction = useCallback((id: string) => allActions.find((a) => a.id === id) ?? CHAT_ACTION, [allActions]);
@@ -110,16 +104,18 @@ export function AISidebar() {
     setActiveAction(action);
     setPendingAction(null);
     setPromptsOpen(false);
-    setShownWith(targetEntryId);
     setView("chat");
-  }, [targetEntryId]);
+  }, []);
 
-  const runAction = useCallback(async (action: AIAction, { query, images, entry = null, replaceId }: RunOptions) => {
+  const runAction = useCallback(async (action: AIAction, { query, images, notes: withNotes = [], replaceId, title }: RunOptions) => {
     const request = ++requestRef.current;
-    const key = conversationKey(action.scope, { entryId: entry?.id, query });
+    const entryIds = withNotes.map((n) => n.id);
+    const key = conversationKey(action.scope, { entryIds, query });
 
-    // Prompts on a note, day or week resume their saved thread; Regenerate starts over.
-    if (!replaceId && action.scope !== "ask") {
+    // Prompts on a note, day or week resume their saved thread; Regenerate and
+    // extra instructions start over.
+    const extraInstructions = !!query && action.scope !== "ask" && action.scope !== "topic";
+    if (!replaceId && action.scope !== "ask" && !extraInstructions) {
       const existing = await loadConversation(key, action.id);
       if (request !== requestRef.current) return;
       if (existing) {
@@ -128,17 +124,23 @@ export function AISidebar() {
       }
     }
 
-    const noteContent = await gatherContext(action.scope, entry, query);
+    const noteContent = await gatherContext(action.scope, entryIds, query);
     if (request !== requestRef.current) return;
+    const entryTitle = withNotes.length > 1 ? `${withNotes[0].title} +${withNotes.length - 1}` : withNotes[0]?.title;
     const conv = startConversation(key, action.id, {
-      title: makeThreadTitle(action, { query, entryTitle: entry ? extractTitle(entry) : undefined }),
-      targetEntryId: entry?.id,
+      title: title ?? makeThreadTitle(action, { query, entryTitle }),
+      entryIds: entryIds.length > 0 ? entryIds : undefined,
+      targetEntryId: entryIds[0],
       query: action.scope === "topic" ? query : undefined,
     }, replaceId);
     showThread(action);
     // The bubble shows what the user typed or picked; the notes stay folded behind it.
-    const display = action.scope === "ask" ? query : action.scope === "topic" ? `${action.name}: ${query}` : action.name;
-    sendMessage(conv, action, renderUserPrompt(action.userPromptTemplate, noteContent), images, display);
+    let display = query ? `${action.name}: ${query}` : action.name;
+    if (action.scope === "ask") display = query ?? "";
+    const prompt = renderUserPrompt(action.userPromptTemplate, noteContent);
+    // Note, day and week prompts take typed text as an extra instruction after the notes.
+    const extra = query && action.scope !== "ask" && action.scope !== "topic" ? `\n\n${query}` : "";
+    sendMessage(conv, action, prompt + extra, images, display);
   }, [loadConversation, gatherContext, startConversation, sendMessage, showThread]);
 
   const handleNewThread = useCallback(() => {
@@ -162,31 +164,48 @@ export function AISidebar() {
 
   const handleSelectPrompt = useCallback((action: AIAction) => {
     setPromptsOpen(false);
-    if (action.scope === "topic" || action.scope === "ask") {
-      // Runs on the next message, in a new thread.
+    // Topic and message prompts wait for the next message; note prompts wait for notes.
+    if (action.scope === "topic" || action.scope === "ask" || (action.scope === "entry" && notes.length === 0)) {
       requestRef.current++;
       clearConversation();
       setPendingAction(action);
       return;
     }
-    void runAction(action, { entry: noteForNewThread });
-  }, [clearConversation, runAction, noteForNewThread]);
+    void runAction(action, { notes });
+    setNotes([]);
+  }, [clearConversation, runAction, notes]);
 
-  const handleSend = useCallback((text: string, images: AIImage[]) => {
+  const handleSend = useCallback(async (text: string, images: AIImage[]) => {
     const message = text || IMAGE_ONLY_TEXT;
-    if (pendingAction) {
-      void runAction(pendingAction, { query: message, images, entry: pendingAction.scope === "ask" ? noteForNewThread : null });
+    const withNotes = notes;
+    setNotes([]);
+    if (pendingAction?.scope === "entry") {
+      // Typed text goes along as extra instructions for the prompt.
+      void runAction(pendingAction, { query: text || undefined, images, notes: withNotes });
+    } else if (pendingAction) {
+      void runAction(pendingAction, { query: message, images, notes: pendingAction.scope === "ask" ? withNotes : [] });
     } else if (visibleConversation) {
-      sendMessage(visibleConversation, activeAction, message, images);
+      if (withNotes.length === 0) {
+        sendMessage(visibleConversation, activeAction, message, images);
+        return;
+      }
+      // Notes attached mid-thread go along with this message only.
+      const request = ++requestRef.current;
+      const content = await gatherContext("ask", withNotes.map((n) => n.id), message);
+      if (request !== requestRef.current) return;
+      const conv = visibleConversation.targetEntryId ? visibleConversation : { ...visibleConversation, targetEntryId: withNotes[0].id };
+      sendMessage(conv, activeAction, content, images, message);
     } else {
-      void runAction(CHAT_ACTION, { query: message, images, entry: noteForNewThread });
+      void runAction(CHAT_ACTION, { query: message, images, notes: withNotes });
     }
-  }, [pendingAction, visibleConversation, activeAction, noteForNewThread, runAction, sendMessage]);
+  }, [notes, pendingAction, visibleConversation, activeAction, runAction, sendMessage, gatherContext]);
 
-  const handleRegenerate = useCallback(async () => {
+  const handleRegenerate = useCallback(() => {
     if (!visibleConversation) return;
-    const entry = visibleConversation.targetEntryId ? await getEntry(visibleConversation.targetEntryId) : null;
-    void runAction(activeAction, { query: visibleConversation.query, entry: entry ?? null, replaceId: visibleConversation.id });
+    const ids = visibleConversation.entryIds ?? (visibleConversation.targetEntryId ? [visibleConversation.targetEntryId] : []);
+    // Note titles only feed the thread title, which Regenerate keeps.
+    const sameNotes = ids.map((id) => ({ id, title: "" }));
+    void runAction(activeAction, { query: visibleConversation.query, notes: sameNotes, replaceId: visibleConversation.id, title: visibleConversation.title });
   }, [visibleConversation, activeAction, runAction]);
 
   const threadEntryId = visibleConversation?.targetEntryId;
@@ -216,7 +235,11 @@ export function AISidebar() {
 
   const showSetup = !available && view !== "settings";
   const isSubView = view !== "chat" && !showSetup;
-  const pendingPlaceholder = pendingAction?.scope === "topic" ? "Enter a topic to search your notes…" : pendingAction ? `Your message for ${pendingAction.name}…` : null;
+  let pendingPlaceholder: string | null = null;
+  if (pendingAction?.scope === "topic") pendingPlaceholder = "Enter a topic to search your notes…";
+  else if (pendingAction?.scope === "entry") pendingPlaceholder = "Optional: extra instructions…";
+  else if (pendingAction) pendingPlaceholder = `Your message for ${pendingAction.name}…`;
+  const noteMissing = pendingAction?.scope === "entry" && notes.length === 0;
 
   let title: string;
   if (showSetup) title = "AI Setup";
@@ -229,7 +252,6 @@ export function AISidebar() {
   const gallery = (
     <PromptGallery
       actions={allActions}
-      hasEntry={!!noteForNewThread}
       onSelect={handleSelectPrompt}
       onEdit={handleEditPrompt}
       onNew={handleNewPrompt}
@@ -289,9 +311,6 @@ export function AISidebar() {
             <SettingsIcon size={16} />
           </button>
         )}
-        <button onClick={onClose} className={headerButton} title="Close AI sidebar (⌘⇧I)" aria-label="Close AI sidebar">
-          <CloseIcon size={16} />
-        </button>
       </div>
 
       <div className="flex-1 min-h-0 relative">
@@ -332,7 +351,7 @@ export function AISidebar() {
               <h3 className="text-base font-medium text-[var(--color-notebook-text)]">What are you working on?</h3>
               <p className="mt-1 mb-5 text-xs text-[var(--color-notebook-muted)]">
                 Ask anything below, paste text or screenshots, or start from a prompt.
-                {!targetEntry && " To work on a note, use \"Think with AI\" on it."}
+                {notes.length === 0 && " Attach notes with the Notes button below."}
               </p>
               {error && <p role="alert" className="mb-4 text-xs text-red-700 dark:text-red-300">{error}</p>}
               {gallery}
@@ -354,14 +373,14 @@ export function AISidebar() {
           placeholder={pendingPlaceholder ?? (visibleConversation ? "Reply…" : "Ask anything, paste text or screenshots…")}
           onSend={handleSend}
           onStop={abort}
-          attachedNote={!visibleConversation && noteForNewThread && pendingAction?.scope !== "topic" ? extractTitle(noteForNewThread) : undefined}
-          onDetachNote={() => setDetachedFor(targetEntryId)}
-          detachedNote={!visibleConversation && targetEntry && !noteForNewThread ? extractTitle(targetEntry) : undefined}
-          onAttachNote={() => setDetachedFor(null)}
+          notes={notes}
+          onToggleNote={handleToggleNote}
           pendingPrompt={pendingAction?.name}
           onClearPrompt={() => setPendingAction(null)}
           promptsOpen={promptsOpen}
           onTogglePrompts={visibleConversation ? () => setPromptsOpen((o) => !o) : undefined}
+          canSendEmpty={pendingAction?.scope === "entry"}
+          blockedReason={noteMissing ? `${pendingAction.name} runs on notes: attach one with Notes.` : undefined}
         />
       )}
     </aside>

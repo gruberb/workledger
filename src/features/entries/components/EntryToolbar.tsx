@@ -4,7 +4,7 @@ import type { EntryActions, WorkLedgerEntry } from "../types/entry.ts";
 import { EXPORT_FORMATS, SIGNIFIER_CONFIG } from "../types/entry.ts";
 import { formatTime } from "../../../utils/dates.ts";
 import { ConfirmAction } from "../../../components/ui/ConfirmAction.tsx";
-import { AIIcon, ArchiveIcon, CheckIcon, ChevronRightIcon, DownloadIcon, ExpandIcon, LinkIcon, PinIcon, RestoreIcon, TrashIcon } from "../../../components/ui/Icons.tsx";
+import { ArchiveIcon, CheckIcon, ChevronRightIcon, DownloadIcon, ExpandIcon, LinkIcon, PinIcon, RestoreIcon, TrashIcon } from "../../../components/ui/Icons.tsx";
 import { SignifierPicker } from "./SignifierPicker.tsx";
 import { copyEntryLink } from "../utils/entry-link.ts";
 
@@ -12,13 +12,12 @@ interface EntryToolbarProps {
   entry: WorkLedgerEntry;
   actions: EntryActions;
   isArchiveView?: boolean;
-  aiActive?: boolean;
 }
 
-export function EntryToolbar({ entry, actions, isArchiveView, aiActive }: EntryToolbarProps) {
+export function EntryToolbar({ entry, actions, isArchiveView }: EntryToolbarProps) {
   const [confirming, setConfirming] = useState<"archive" | "delete" | null>(null);
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
-  const { onSignifierChange, onPin, onUnpin, onFocus, onOpenAI, onArchive, onDelete, onUnarchive, onDownload } = actions;
+  const { onSignifierChange, onPin, onUnpin, onFocus, onArchive, onDelete, onUnarchive, onDownload } = actions;
   const signifier = entry.signifier ? SIGNIFIER_CONFIG[entry.signifier] : undefined;
 
   const handleCopyLink = async () => {
@@ -55,16 +54,6 @@ export function EntryToolbar({ entry, actions, isArchiveView, aiActive }: EntryT
             {!isArchiveView && onFocus && (
               <button className="entry-action" onClick={() => onFocus(entry)} title="Focus on this entry">
                 <ExpandIcon /> <span>Focus</span>
-              </button>
-            )}
-            {!isArchiveView && onOpenAI && (
-              <button
-                className="entry-action"
-                onClick={() => onOpenAI(entry)}
-                title={aiActive ? "Close the AI sidebar" : "Open the AI sidebar on this entry"}
-                aria-pressed={aiActive}
-              >
-                <AIIcon /> <span>Think with AI</span>
               </button>
             )}
             {/* Mantine handles keyboard navigation, portal positioning and focus return. */}

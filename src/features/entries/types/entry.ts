@@ -115,7 +115,6 @@ export interface EntryActions {
   onPin?: (id: string) => void;
   onUnpin?: (id: string) => void;
   onSignifierChange?: (id: string, signifier: EntrySignifier | undefined) => void;
-  onOpenAI?: (entry: WorkLedgerEntry) => void;
   onFocus?: (entry: WorkLedgerEntry) => void;
   onDownload?: (entry: WorkLedgerEntry, format: ExportFormat) => void;
 }

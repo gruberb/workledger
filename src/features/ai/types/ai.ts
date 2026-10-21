@@ -73,7 +73,9 @@ export interface AIConversation {
   frameworkId: string;
   /** Shown in the recent threads list. Older threads have none. */
   title?: string;
-  /** Note the thread was started on; "Add to note" writes here. */
+  /** Notes the thread was started with. Older threads have only `targetEntryId`. */
+  entryIds?: string[];
+  /** "Add to note" writes here: the first attached note. */
   targetEntryId?: string;
   /** Topic the thread searched for, so Regenerate can run it again. */
   query?: string;
