@@ -4,12 +4,16 @@ import { useAIContext } from "../context/AIContext.tsx";
 import { useAIConversation } from "../hooks/useAIConversation.ts";
 import { useMultiEntryContext } from "../hooks/useMultiEntryContext.ts";
 import { useIsMobile } from "../../../hooks/useIsMobile.ts";
+import { useResizablePanel } from "../../../hooks/useResizablePanel.ts";
+import { ResizeHandle } from "../../../components/ui/ResizeHandle.tsx";
 import { renderUserPrompt } from "../prompt-builder.ts";
 import { conversationKey } from "../utils/conversation-key.ts";
 import { ActionSelector } from "./ActionSelector.tsx";
 import { AIConversation } from "./AIConversation.tsx";
 import { AISetupGuide } from "./AISetupGuide.tsx";
 import { AISettingsPanel } from "./AISettingsPanel.tsx";
+
+const WIDTH_LIMITS = { min: 320, max: 720, collapseBelow: 240 };
 
 type SidebarMode = "setup" | "actions" | "topic-prompt" | "conversation" | "settings";
 
@@ -39,6 +43,14 @@ export function AISidebar() {
     clearConversation,
   } = useAIConversation(settings);
   const { gatherContext } = useMultiEntryContext();
+  const resize = useResizablePanel({
+    cssVar: "--ai-sidebar-w",
+    storageKey: "workledger-ai-sidebar-width",
+    defaultWidth: 384,
+    side: "right",
+    ...WIDTH_LIMITS,
+    onCollapse: onClose,
+  });
 
   const [userMode, setUserMode] = useState<SidebarMode>("actions");
   const [activeAction, setActiveAction] = useState<AIAction | null>(null);
@@ -155,10 +167,21 @@ export function AISidebar() {
           bg-[var(--color-notebook-surface-alt)] border-l border-gray-100 dark:border-gray-800
           shadow-[-1px_0_12px_rgba(0,0,0,0.03)] dark:shadow-[-1px_0_12px_rgba(0,0,0,0.3)]
           transition-transform duration-300 ease-in-out
-          w-96 flex flex-col
+          w-[var(--ai-sidebar-w)] flex flex-col
           ${isOpen ? "translate-x-0" : "translate-x-full"}
+          ${resize.collapsing ? "opacity-50" : ""}
         `}
+        inert={!isOpen}
       >
+        <ResizeHandle
+          edge="left"
+          label="Resize AI sidebar"
+          width={resize.width}
+          min={WIDTH_LIMITS.min}
+          max={WIDTH_LIMITS.max}
+          onPointerDown={resize.handlePointerDown}
+          onKeyDown={resize.handleKeyDown}
+        />
         {/* Header */}
         <div className="shrink-0 flex items-center gap-2 px-4 py-3 border-b border-gray-100 dark:border-gray-800">
           <button

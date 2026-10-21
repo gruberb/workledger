@@ -9,12 +9,14 @@ import { CollapsibleSectionHeader } from "./CollapsibleSectionHeader.tsx";
 interface SaveFilterButtonProps {
   onSave: (name: string) => void | Promise<void>;
   inline?: boolean;
+  /** Icon only below the xl breakpoint, for tight bars like the app header. */
+  compact?: boolean;
   savedFilters?: SavedFilter[];
   selectedTags?: string[];
   selectedSignifiers?: EntrySignifier[];
 }
 
-export function SaveFilterButton({ onSave, savedFilters, selectedTags = [], selectedSignifiers = [], inline = false }: SaveFilterButtonProps) {
+export function SaveFilterButton({ onSave, savedFilters, selectedTags = [], selectedSignifiers = [], inline = false, compact = false }: SaveFilterButtonProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [saving, setSaving] = useState(false);
@@ -69,7 +71,7 @@ export function SaveFilterButton({ onSave, savedFilters, selectedTags = [], sele
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
         </svg>
-        <span>Save current filter</span>
+        <span className={compact ? "hidden xl:inline" : undefined}>Save current filter</span>
       </button>
 
       {open && (

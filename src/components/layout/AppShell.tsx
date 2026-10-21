@@ -17,8 +17,8 @@ export function AppShell({ sidebarOpen, aiSidebarOpen, header, children }: AppSh
       className={`
         min-h-screen bg-[var(--color-notebook-bg)] text-[var(--color-notebook-text)]
         transition-[padding] duration-300 ease-in-out
-        ${!isMobile && sidebarOpen ? "pl-80" : "pl-0"}
-        ${!isMobile && aiSidebarOpen ? "pr-96" : "pr-0"}
+        ${!isMobile && sidebarOpen ? "pl-[var(--sidebar-w)]" : "pl-0"}
+        ${!isMobile && aiSidebarOpen ? "pr-[var(--ai-sidebar-w)]" : "pr-0"}
       `}
       // Sticky section headers sit below the header (see --app-header-h in app.css).
       style={header ? undefined : ({ "--app-header-h": "0px" } as CSSProperties)}

@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from "react";
+import { useMemo } from "react";
 import type { EntryActions, EntryEditorComponent, WorkLedgerEntry } from "../types/entry.ts";
 import { EntryCard } from "./EntryCard.tsx";
 import { DayHeader } from "../../../components/layout/DayHeader.tsx";
@@ -15,8 +15,10 @@ interface EntryStreamProps {
   actions: EntryActions;
   Editor: EntryEditorComponent;
   isArchiveView?: boolean;
-  /** Rendered above the results while filters are active. */
-  filterBanner?: ReactNode;
+  /** Filters are active: day headers hide and an empty result says so. */
+  isFiltering?: boolean;
+  /** Entry the AI sidebar is working on; its "Think with AI" button shows as pressed. */
+  aiEntryId?: string | null;
   focusedEntryId?: string | null;
   onExitFocus?: () => void;
   /**
@@ -30,8 +32,7 @@ interface EntryStreamProps {
 
 function noop() {}
 
-export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, filterBanner, focusedEntryId, onExitFocus, preview, autoFocusEntryId }: EntryStreamProps) {
-  const isFiltering = !!filterBanner;
+export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, isFiltering = false, aiEntryId, focusedEntryId, onExitFocus, preview, autoFocusEntryId }: EntryStreamProps) {
 
   const sortedDays = useMemo(
     () => [...entriesByDay.keys()].sort((a, b) => b.localeCompare(a)),
@@ -128,6 +129,7 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, filt
                 isLatest={focusedEntry.id === autoFocusEntryId}
                 actions={overlayActions}
                 Editor={Editor}
+                aiActive={focusedEntry.id === aiEntryId}
                 isArchiveView={isArchiveView}
                 bare={preview}
               />
@@ -144,8 +146,6 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, filt
       )}
 
       <div style={{ display: isFocused ? "none" : undefined }}>
-        {filterBanner}
-
         {isFiltering && sortedDays.length === 0 && (
           <div className="flex flex-col items-center text-center py-16">
             <p className="text-gray-400 text-sm">No entries match these filters</p>
@@ -164,7 +164,7 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, filt
                 {preview ? (
                   <EntryPreviewRow entry={entry} onOpen={handleOpen} />
                 ) : (
-                  <EntryCard entry={entry} isLatest={false} actions={actions} Editor={Editor} />
+                  <EntryCard entry={entry} isLatest={false} actions={actions} Editor={Editor} aiActive={entry.id === aiEntryId} />
                 )}
               </div>
             ))}
@@ -190,6 +190,7 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, filt
                       actions={actions}
                       Editor={Editor}
                       isArchiveView={isArchiveView}
+                      aiActive={entry.id === aiEntryId}
                     />
                   )}
                 </div>

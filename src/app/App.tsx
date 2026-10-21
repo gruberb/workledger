@@ -18,7 +18,7 @@ import { FilterBanner } from "./components/FilterBanner.tsx";
 import { StorageStatusBanner } from "./components/StorageStatusBanner.tsx";
 import { AppHeader, HeaderButton } from "./components/AppHeader.tsx";
 import { ViewMenu } from "./components/ViewMenu.tsx";
-import { AIIcon } from "../components/ui/Icons.tsx";
+import { PanelRightIcon } from "../components/ui/Icons.tsx";
 
 // BlockNote, ProseMirror and Mantine are over 1.5 MB. The editor loads on its
 // own chunk so the shell can paint first; mobile previews never need it until a
@@ -48,7 +48,7 @@ function AppContent() {
   const { loading, error } = useEntriesData();
   const { createEntry, saveEntryContent, updateEntryTags, archiveEntry, unarchiveEntry, deleteEntry, pinEntry, unpinEntry, updateEntrySignifier, setLoadAll } = useEntriesActions();
   const { isOpen: sidebarOpen, toggleSidebar, archiveView, reviewView, reviewWeekKey, setReviewWeekKey } = useSidebarUI();
-  const { selectedTags, selectedSignifiers, hasActiveFilters, removeTag, clearAllFilters, saveCurrentFilter, savedFilters } = useSidebarFilter();
+  const { selectedTags, selectedSignifiers, hasActiveFilters, removeTag, toggleSignifier, clearAllFilters, saveCurrentFilter, savedFilters } = useSidebarFilter();
   const { isFiltering, displayEntriesByDay, displayArchivedEntriesByDay } = useSidebarData();
   const { focusedEntryId, handleFocusEntry, handleExitFocus } = useFocusModeContext();
   useLayoutEffect(() => {
@@ -58,7 +58,7 @@ function AppContent() {
     root?.classList.add("bn-scroll-container");
     return () => root?.classList.remove("bn-scroll-container");
   }, [isMobile, focusedEntryId]);
-  const { settings: aiSettings, sidebarOpen: aiSidebarOpen, handleOpenAI, handleToggleAISidebar, available: aiAvailable, setSidebarOpen: setAISidebarOpen } = useAIContext();
+  const { settings: aiSettings, sidebarOpen: aiSidebarOpen, targetEntry: aiTargetEntry, handleOpenAI, handleToggleAISidebar, available: aiAvailable, setSidebarOpen: setAISidebarOpen } = useAIContext();
   const [searchOpen, setSearchOpen] = useState(false);
   const openSearch = useCallback(() => setSearchOpen(true), []);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
@@ -139,12 +139,14 @@ function AppContent() {
   const showHeader = !(isMobile && focusedEntryId);
   const canCreate = !archiveView && !reviewView;
 
-  const filterBanner = hasActiveFilters ? (
+  // Filters replace the view title in the header; the review and full-screen entry don't apply them.
+  const filterBanner = hasActiveFilters && !reviewView && !focusedEntryId ? (
     <FilterBanner
       selectedTags={selectedTags}
       selectedSignifiers={selectedSignifiers}
       count={visibleCount}
       onRemoveTag={removeTag}
+      onRemoveSignifier={toggleSignifier}
       onClearAll={clearAllFilters}
       onSaveFilter={!archiveView ? saveCurrentFilter : undefined}
       savedFilters={!archiveView ? savedFilters : undefined}
@@ -167,7 +169,7 @@ function AppContent() {
         aiSidebarOpen={aiSidebarOpen}
         header={showHeader ? (
           <AppHeader
-            title={<ViewMenu />}
+            title={filterBanner ?? <ViewMenu />}
             showMenu={isMobile || !sidebarOpen}
             onMenu={toggleSidebar}
             onSearch={openSearch}
@@ -184,7 +186,7 @@ function AppContent() {
                   pressed={aiSidebarOpen}
                   onClick={handleToggleAISidebar}
                 >
-                  <AIIcon size={18} />
+                  <PanelRightIcon size={18} />
                 </HeaderButton>
               )}
             </>}
@@ -205,7 +207,8 @@ function AppContent() {
             actions={actions}
             Editor={EntryEditor}
             isArchiveView={archiveView}
-            filterBanner={filterBanner}
+            isFiltering={hasActiveFilters}
+            aiEntryId={aiSidebarOpen ? aiTargetEntry?.id : null}
             focusedEntryId={focusedEntryId}
             onExitFocus={handleExitFocus}
             preview={isMobile}
@@ -220,7 +223,7 @@ function AppContent() {
 
       {aiSettings.enabled && (
         <ErrorBoundary fallback={
-          <div className="fixed right-0 top-0 h-full w-96 bg-[var(--color-notebook-surface)] border-l border-[var(--color-notebook-border)] flex items-center justify-center">
+          <div className="fixed right-0 top-0 h-full w-[var(--ai-sidebar-w)] bg-[var(--color-notebook-surface)] border-l border-[var(--color-notebook-border)] flex items-center justify-center">
             <p className="text-sm text-[var(--color-notebook-muted)]">AI unavailable</p>
           </div>
         }>

@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback, useEffect, type ReactNode } from "react";
 import { useIsMobile } from "../../../hooks/useIsMobile.ts";
+import { useResizablePanel } from "../../../hooks/useResizablePanel.ts";
+import { ResizeHandle } from "../../../components/ui/ResizeHandle.tsx";
 import type { EntrySignifier } from "../../entries/index.ts";
 import type { SavedFilter } from "../types/saved-filter.ts";
 import { useSidebarUI, useSidebarFilter, useSidebarData } from "../context/SidebarContext.tsx";
@@ -12,6 +14,8 @@ import { SignifierFilter } from "./SignifierFilter.tsx";
 import { SidebarWeekList } from "./SidebarWeekList.tsx";
 import { SidebarNav } from "./SidebarNav.tsx";
 import { ImportExport } from "./ImportExport.tsx";
+
+const WIDTH_LIMITS = { min: 240, max: 480, collapseBelow: 180 };
 
 interface SidebarProps {
   onDayClick: (dayKey: string) => void;
@@ -32,6 +36,14 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
     allSignifiers,
   } = useSidebarData();
   const { refresh } = useEntriesActions();
+  const resize = useResizablePanel({
+    cssVar: "--sidebar-w",
+    storageKey: "workledger-sidebar-width",
+    defaultWidth: 320,
+    side: "left",
+    ...WIDTH_LIMITS,
+    onCollapse: toggleSidebar,
+  });
 
   const dayKeys = archiveView ? archivedDayKeys : sidebarDayKeys;
   const entriesByDay = archiveView ? (displayArchivedEntriesByDay as Map<string, unknown[]>) : (displayEntriesByDay as Map<string, unknown[]>);
@@ -117,11 +129,24 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
           bg-[var(--color-notebook-surface)] border-r border-[var(--color-notebook-border)]
           shadow-[1px_0_12px_rgba(0,0,0,0.03)] dark:shadow-[1px_0_12px_rgba(0,0,0,0.3)]
           transition-transform duration-300 ease-in-out
-          ${isMobile ? "w-[85%] max-w-sm" : "w-80"} pt-[23px] pb-5 px-[22px]
+          ${isMobile ? "w-[85%] max-w-sm" : "w-[var(--sidebar-w)]"} pt-[23px] pb-5 px-[22px]
           flex flex-col
+          ${resize.collapsing ? "opacity-50" : ""}
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
+        {!isMobile && (
+          <ResizeHandle
+            edge="right"
+            label="Resize sidebar"
+            width={resize.width}
+            min={WIDTH_LIMITS.min}
+            max={WIDTH_LIMITS.max}
+            onPointerDown={resize.handlePointerDown}
+            onKeyDown={resize.handleKeyDown}
+          />
+        )}
+
         {/* Header */}
         <div className="mb-6 flex items-center gap-3 shrink-0">
           <a href="https://about.workledger.org" target="_blank" rel="noopener" className="flex items-center gap-3 flex-1 min-w-0">

@@ -20,7 +20,7 @@ export const NewEntryButton = memo(function NewEntryButton({ onClick, onCreateFr
     <div
       ref={menuRef}
       onKeyDown={(event) => { if (event.key === "Escape" && menuOpen) { event.stopPropagation(); closeMenu(); menuRef.current?.querySelector<HTMLButtonElement>('[aria-label="New from template"]')?.focus(); } }}
-      className={`fixed bottom-8 z-[999] ${aiSidebarOpen ? "right-[26rem]" : "right-8"}`}
+      className={`fixed bottom-8 z-[999] ${aiSidebarOpen ? "right-[calc(var(--ai-sidebar-w)+2rem)]" : "right-8"}`}
     >
       {menuOpen && (
         <TemplateMenu

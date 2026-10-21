@@ -16,6 +16,8 @@ interface EntryCardProps {
   isArchiveView?: boolean;
   /** Editor and backlinks only. The toolbar and tags live elsewhere (the mobile info panel and action sheet). */
   bare?: boolean;
+  /** The AI sidebar is open on this entry. */
+  aiActive?: boolean;
 }
 
 function EntryPlaceholder({ entry, height }: { entry: WorkLedgerEntry; height?: number }) {
@@ -33,7 +35,7 @@ function EntryPlaceholder({ entry, height }: { entry: WorkLedgerEntry; height?: 
 
 // Default shallow memo: entries keep their object identity unless they changed,
 // and `actions` / `Editor` are stable references from the app.
-export const EntryCard = memo(function EntryCard({ entry, isLatest, actions, Editor, isArchiveView, bare }: EntryCardProps) {
+export const EntryCard = memo(function EntryCard({ entry, isLatest, actions, Editor, isArchiveView, bare, aiActive }: EntryCardProps) {
   const isOld = entry.dayKey < useTodayKey();
   const contentRef = useRef<HTMLDivElement>(null);
   const { near: nearViewport, lastHeight } = useNearViewport(contentRef);
@@ -41,7 +43,7 @@ export const EntryCard = memo(function EntryCard({ entry, isLatest, actions, Edi
 
   return (
     <div className="entry-card group scroll-mt-[172px]" id={`entry-${entry.id}`}>
-      {!bare && <EntryToolbar entry={entry} actions={actions} isArchiveView={isArchiveView} />}
+      {!bare && <EntryToolbar entry={entry} actions={actions} isArchiveView={isArchiveView} aiActive={aiActive} />}
       <div ref={contentRef} className={`rounded-xl transition-all duration-200 ${isArchiveView ? "opacity-80" : ""}`}>
         {nearViewport ? (
           <ErrorBoundary fallback={

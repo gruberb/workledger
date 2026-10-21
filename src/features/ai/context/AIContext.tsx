@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from "react";
 import { ErrorBoundary } from "../../../components/ui/ErrorBoundary.tsx";
 import { useAISettings } from "../hooks/useAISettings.ts";
 import { useAIFeatureGate, type AIConnectionStatus } from "../hooks/useAIFeatureGate.ts";
@@ -88,7 +88,19 @@ function AIProviderInner({ children, onCollapseSidebar }: AIProviderProps) {
     }
   }, [settings.enabled, updateSettings]);
 
+  // Read through a ref so handleOpenAI stays stable: it sits in the entry actions
+  // object, and a new identity would re-render every entry card.
+  const openOnRef = useRef<string | null>(null);
+  useEffect(() => {
+    openOnRef.current = sidebarOpen ? targetEntry?.id ?? null : null;
+  }, [sidebarOpen, targetEntry]);
+
+  // Toggles: the button on the entry the sidebar already works on closes it.
   const handleOpenAI = useCallback((entry: WorkLedgerEntry) => {
+    if (openOnRef.current === entry.id) {
+      setSidebarOpen(false);
+      return;
+    }
     setTargetEntry(entry);
     setSidebarOpen(true);
   }, []);

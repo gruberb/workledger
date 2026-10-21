@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Drag the inner edge of the sidebar or the AI sidebar to resize it (sidebar 240 to 480 px, AI sidebar 320 to 720 px). Dragging well below the minimum closes the panel; it fades while a release would close it. Widths are remembered per browser. The edge is also focusable and resizes with the arrow keys
+
+### Changed
+
+- Active filters show in the header in place of the view title, with signifier and tag chips, the entry count, Save and Clear all, instead of a separate row above the entries
+- The header button for the AI sidebar has a panel icon, so it is no longer confused with "Think with AI" on entries. "Think with AI" shows as pressed on the entry the AI sidebar is working on, and clicking it again closes the sidebar
+
 ## [4.2.1] - 2026-10-20
 
 ### Fixed

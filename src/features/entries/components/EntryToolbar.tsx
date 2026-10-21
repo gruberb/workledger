@@ -12,9 +12,10 @@ interface EntryToolbarProps {
   entry: WorkLedgerEntry;
   actions: EntryActions;
   isArchiveView?: boolean;
+  aiActive?: boolean;
 }
 
-export function EntryToolbar({ entry, actions, isArchiveView }: EntryToolbarProps) {
+export function EntryToolbar({ entry, actions, isArchiveView, aiActive }: EntryToolbarProps) {
   const [confirming, setConfirming] = useState<"archive" | "delete" | null>(null);
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
   const { onSignifierChange, onPin, onUnpin, onFocus, onOpenAI, onArchive, onDelete, onUnarchive, onDownload } = actions;
@@ -57,7 +58,12 @@ export function EntryToolbar({ entry, actions, isArchiveView }: EntryToolbarProp
               </button>
             )}
             {!isArchiveView && onOpenAI && (
-              <button className="entry-action" onClick={() => onOpenAI(entry)} title="Think with AI">
+              <button
+                className="entry-action"
+                onClick={() => onOpenAI(entry)}
+                title={aiActive ? "Close the AI sidebar" : "Open the AI sidebar on this entry"}
+                aria-pressed={aiActive}
+              >
                 <AIIcon /> <span>Think with AI</span>
               </button>
             )}

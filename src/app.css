@@ -142,6 +142,16 @@
 :root {
   /* Height of the app header; sticky section headers stick below it. */
   --app-header-h: 60px;
+  /* Side panel widths; useResizablePanel overwrites them with the user's choice. */
+  --sidebar-w: 320px;
+  --ai-sidebar-w: 384px;
+}
+
+/* Set by useResizablePanel during a drag: transitions would make the page lag behind the pointer. */
+html[data-resizing], html[data-resizing] * {
+  cursor: col-resize !important;
+  user-select: none !important;
+  transition: none !important;
 }
 
 /* Sticky header — fully opaque, z-10 so it covers scrolling content.
@@ -568,6 +578,7 @@ button:not(:disabled), summary { cursor: pointer; }
   color: var(--color-notebook-muted); font-size: 12px; line-height: 1.3;
 }
 .entry-action:hover { background: var(--color-notebook-surface-alt); color: var(--color-notebook-text); }
+.entry-action[aria-pressed="true"] { background: var(--color-notebook-surface-alt); color: var(--color-notebook-accent); }
 .notebook-primary { background: var(--color-notebook-accent); color: var(--color-notebook-on-accent); }
 .notebook-primary:hover { filter: brightness(1.08); }
 .notebook-nav-icon {
