@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.5.2] - 2026-10-21
+
 ### Fixed
 
 - Pasting a code block with a language the editor doesn't offer (for example a ```` ```http ```` fence in pasted Markdown) no longer crashes the note. Unknown languages show as Plain Text, and aliases such as `js` or `yml` in pasted code now map to their language
