@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.4.0] - 2026-10-21
+
 ### Added
 
 - The AI sidebar is a chat: ask anything in the message box, with the note you opened it from attached as context (remove it with ×). Built-in prompts are chips you click to start a thread
