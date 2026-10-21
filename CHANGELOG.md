@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.5.0] - 2026-10-21
+
 ### Changed
 
 - Notes are attached in the AI sidebar itself: the Notes button in the message box lists recent notes and searches the rest, and you can attach several. Attached notes show as chips with × to remove them, go along with your next message (also mid-thread), and the first one is where "Add to note" writes
