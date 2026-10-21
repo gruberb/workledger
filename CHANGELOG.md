@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.3.0] - 2026-10-21
+
 ### Added
 
 - Drag the inner edge of the sidebar or the AI sidebar to resize it (sidebar 240 to 480 px, AI sidebar 320 to 720 px). Dragging well below the minimum closes the panel; it fades while a release would close it. Widths are remembered per browser. The edge is also focusable and resizes with the arrow keys
