@@ -1,4 +1,4 @@
-export type ActionCategory = "research" | "summarize" | "generate" | "think" | "remember";
+export type ActionCategory = "mine" | "research" | "summarize" | "generate" | "think" | "remember";
 /** `ask`: a free-form question, with the targeted entry (if any) as context. */
 export type ActionScope = "entry" | "day" | "week" | "topic" | "ask";
 

@@ -159,9 +159,10 @@ export function useEntries() {
     return entry;
   }, []);
 
-  const saveEntryContent = useCallback(async (id: string, blocks: PartialBlock[]) => {
-    const updated = await patchEntry(id, { blocks });
-    if (!updated) return; // deleted while the save was pending
+  const writeBlocks = useCallback(async (id: string, patch: (current: WorkLedgerEntry) => { blocks: PartialBlock[] }) => {
+    const updated = await patchEntry(id, patch);
+    if (!updated) return false; // deleted while the save was pending
+    const { blocks } = updated;
     // `updated.blocks` is the caller's array; the editor compares by reference
     // to recognise its own save when the state comes back.
     setEntriesByDay((prev) => updateInMap(prev, id, () => updated));
@@ -174,7 +175,18 @@ export function useEntries() {
     // Before emitting: BacklinksPanel listeners read the index on entry-changed.
     await updateIndexes("backlinks", () => updateBacklinks(id, blocks));
     emit("entry-changed", { entryId: id });
+    return true;
   }, []);
+
+  const saveEntryContent = useCallback(async (id: string, blocks: PartialBlock[]) => {
+    await writeBlocks(id, () => ({ blocks }));
+  }, [writeBlocks]);
+
+  /** Adds blocks after the stored content, e.g. an AI reply. False when the entry is gone. */
+  const appendEntryBlocks = useCallback(
+    (id: string, blocks: PartialBlock[]) => writeBlocks(id, (current) => ({ blocks: [...current.blocks, ...blocks] })),
+    [writeBlocks],
+  );
 
   const updateEntryTags = useCallback(async (id: string, tags: string[]) => {
     const updated = await patchMetadata(id, { tags });
@@ -255,6 +267,7 @@ export function useEntries() {
     storedSignifiers,
     createEntry,
     saveEntryContent,
+    appendEntryBlocks,
     updateEntryTags,
     archiveEntry,
     unarchiveEntry,

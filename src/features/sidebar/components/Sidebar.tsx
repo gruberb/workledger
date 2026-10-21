@@ -152,20 +152,24 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
           <a href="https://about.workledger.org" target="_blank" rel="noopener" className="flex items-center gap-3 flex-1 min-w-0">
             <img src="/logo.svg" alt="WorkLedger" className="w-9 h-9 shrink-0" />
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl text-[var(--color-notebook-text)] sidebar-title-font leading-tight">WorkLedger</h1>
-              <p className="text-xs text-[var(--color-notebook-muted)] -mt-0.5">Engineering Notebook</p>
+              {/* No wrapping: the sidebar can be dragged narrow. */}
+              <h1 className="text-2xl text-[var(--color-notebook-text)] sidebar-title-font leading-tight truncate">WorkLedger</h1>
+              <p className="text-xs text-[var(--color-notebook-muted)] -mt-0.5 truncate">Engineering Notebook</p>
             </div>
           </a>
-          <button
-            onClick={toggleSidebar}
-            className="p-1.5 rounded-lg hover:bg-[var(--color-notebook-surface-alt)] text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] transition-colors shrink-0"
-            title="Collapse sidebar (⌘\)"
-            aria-label="Collapse sidebar"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
+          {/* Desktop toggles from the header button; the mobile drawer covers it. */}
+          {isMobile && (
+            <button
+              onClick={toggleSidebar}
+              className="p-1.5 rounded-lg hover:bg-[var(--color-notebook-surface-alt)] text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] transition-colors shrink-0"
+              title="Collapse sidebar (⌘\)"
+              aria-label="Collapse sidebar"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* px-2 leaves room for the lists' -mx-2 rows, whose text lines up with the logo. */}

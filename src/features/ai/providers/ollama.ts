@@ -1,5 +1,6 @@
 import type { ChatOptions, LLMProvider, LLMMessage, LLMStreamChunk } from "./types.ts";
 import { normalizeBaseUrl, validateServerUrl } from "./url.ts";
+import { toOllamaMessages } from "./message-format.ts";
 
 export class OllamaProvider implements LLMProvider {
   readonly supportsWebSearch = false;
@@ -22,7 +23,7 @@ export class OllamaProvider implements LLMProvider {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: this.model,
-        messages,
+        messages: toOllamaMessages(messages),
         stream: true,
         options: {
           temperature: options.temperature,

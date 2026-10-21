@@ -1,4 +1,5 @@
-import type { AISource } from "../providers/types.ts";
+import type { AIImage, AISource } from "../providers/types.ts";
+import type { ActionScope } from "../actions/types.ts";
 
 export type AIProviderType = "ollama" | "huggingface" | "custom" | "anthropic" | "openai" | "openrouter";
 
@@ -58,13 +59,49 @@ export interface AIMessage {
   actionId?: string;
   /** Web pages the answer searched or cited. */
   sources?: AISource[];
+  /** Screenshots or photos the user attached. */
+  images?: AIImage[];
+  /** What the user typed or picked, when `content` also embeds notes as context. */
+  display?: string;
 }
 
 export interface AIConversation {
   id: string;
+  /** Resume key from conversationKey(), not always an entry id (e.g. "day-2026-10-21"). */
   entryId: string;
+  /** Id of the action or custom prompt the thread runs with. */
   frameworkId: string;
+  /** Shown in the recent threads list. Older threads have none. */
+  title?: string;
+  /** Note the thread was started on; "Add to note" writes here. */
+  targetEntryId?: string;
+  /** Topic the thread searched for, so Regenerate can run it again. */
+  query?: string;
   messages: AIMessage[];
   createdAt: number;
   updatedAt: number;
+}
+
+/** A prompt the user wrote. It runs like a built-in action. */
+export interface CustomPrompt {
+  id: string;
+  name: string;
+  /** System prompt. */
+  instructions: string;
+  /** Notes sent along: the attached note, today's, this week's, or only the message (plus the attached note, if any). */
+  scope: Extract<ActionScope, "entry" | "day" | "week" | "ask">;
+  webSearch: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/**
+ * Writes AI replies into notes. Supplied by the app, which owns the editor's
+ * Markdown parser, so this feature never imports the editor.
+ */
+export interface NoteActions {
+  /** Appends the Markdown to the end of the entry. */
+  addToEntry: (entryId: string, markdown: string) => Promise<void>;
+  /** Creates a new entry from the Markdown and shows it. */
+  createEntry: (markdown: string) => Promise<void>;
 }

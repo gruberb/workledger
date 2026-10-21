@@ -1,16 +1,21 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import type { AISettings, AIMessage, AIConversation } from "../types/ai.ts";
-import type { AISource } from "../providers/types.ts";
+import type { AIImage, AISource } from "../providers/types.ts";
 import type { AIAction } from "../actions/types.ts";
 import { createProvider, getProviderConfigError } from "../providers/provider-factory.ts";
 import { buildMessages } from "../prompt-builder.ts";
 import { generateId } from "../../../utils/id.ts";
 import { saveConversation, getConversationsByEntry } from "../storage/ai-conversations.ts";
 
-function message(role: AIMessage["role"], content: string, actionId: string, sources?: AISource[]): AIMessage {
+function message(role: AIMessage["role"], content: string, actionId: string, extra?: { sources?: AISource[]; images?: AIImage[]; display?: string }): AIMessage {
   const msg: AIMessage = { id: generateId(), role, content, timestamp: Date.now(), actionId };
-  return sources && sources.length > 0 ? { ...msg, sources } : msg;
+  if (extra?.sources?.length) msg.sources = extra.sources;
+  if (extra?.images?.length) msg.images = extra.images;
+  if (extra?.display !== undefined && extra.display !== content) msg.display = extra.display;
+  return msg;
 }
+
+export type ThreadMeta = Pick<AIConversation, "title" | "targetEntryId" | "query">;
 
 export function useAIConversation(settings: AISettings) {
   const [conversation, setConversation] = useState<AIConversation | null>(null);
@@ -40,13 +45,21 @@ export function useAIConversation(settings: AISettings) {
     return match;
   }, []);
 
+  /** Shows a saved thread, e.g. one picked from the recent threads list. */
+  const openConversation = useCallback((conv: AIConversation) => {
+    cancelStream();
+    setConversation(conv);
+    setError(null);
+  }, [cancelStream]);
+
   /** Pass `replaceId` to overwrite a saved conversation (regenerate). */
-  const startConversation = useCallback((key: string, actionId: string, replaceId?: string) => {
+  const startConversation = useCallback((key: string, actionId: string, meta: ThreadMeta, replaceId?: string) => {
     const now = Date.now();
     const conv: AIConversation = {
       id: replaceId ?? generateId(),
       entryId: key,
       frameworkId: actionId,
+      ...meta,
       messages: [],
       createdAt: now,
       updatedAt: now,
@@ -57,7 +70,7 @@ export function useAIConversation(settings: AISettings) {
   }, []);
 
   const sendMessage = useCallback(
-    async (conv: AIConversation, action: AIAction, userMessage: string) => {
+    async (conv: AIConversation, action: AIAction, userMessage: string, images?: AIImage[], display?: string) => {
       abortRef.current?.abort();
       const abort = new AbortController();
       abortRef.current = abort;
@@ -66,7 +79,7 @@ export function useAIConversation(settings: AISettings) {
       // Keep the user's message even if the request fails, so it isn't lost.
       let result: AIConversation = {
         ...conv,
-        messages: [...conv.messages, message("user", userMessage, action.id)],
+        messages: [...conv.messages, message("user", userMessage, action.id, { images, display })],
         updatedAt: Date.now(),
       };
       setConversation(result);
@@ -110,7 +123,7 @@ export function useAIConversation(settings: AISettings) {
       if (fullResponse) {
         result = {
           ...result,
-          messages: [...result.messages, message("assistant", fullResponse, action.id, [...sources.values()])],
+          messages: [...result.messages, message("assistant", fullResponse, action.id, { sources: [...sources.values()] })],
           updatedAt: Date.now(),
         };
       }
@@ -140,6 +153,7 @@ export function useAIConversation(settings: AISettings) {
     streamContent,
     error,
     loadConversation,
+    openConversation,
     startConversation,
     sendMessage,
     abort,

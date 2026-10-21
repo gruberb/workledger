@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useMemo, u
 import { ErrorBoundary } from "../../../components/ui/ErrorBoundary.tsx";
 import { useAISettings } from "../hooks/useAISettings.ts";
 import { useAIFeatureGate, type AIConnectionStatus } from "../hooks/useAIFeatureGate.ts";
-import { DEFAULT_AI_SETTINGS, type AISettings } from "../types/ai.ts";
+import { DEFAULT_AI_SETTINGS, type AISettings, type NoteActions } from "../types/ai.ts";
 import type { LLMProvider } from "../providers/types.ts";
 import type { WorkLedgerEntry } from "../../entries/index.ts";
 
@@ -20,6 +20,7 @@ interface AIContextValue {
   handleOpenAI: (entry: WorkLedgerEntry) => void;
   handleToggleAISidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
+  noteActions: NoteActions | null;
 }
 
 const noop = () => {};
@@ -40,6 +41,7 @@ const DISABLED_AI: AIContextValue = {
   handleOpenAI: noop,
   handleToggleAISidebar: noop,
   setSidebarOpen: noop,
+  noteActions: null,
 };
 
 const AICtx = createContext<AIContextValue>(DISABLED_AI);
@@ -50,17 +52,19 @@ const NARROW_QUERY = "(max-width: 1199px)";
 interface AIProviderProps {
   children: ReactNode;
   onCollapseSidebar?: () => void;
+  /** Lets replies be added to notes. Without it the sidebar hides those buttons. */
+  noteActions?: NoteActions;
 }
 
-export function AIProvider({ children, onCollapseSidebar }: AIProviderProps) {
+export function AIProvider({ children, onCollapseSidebar, noteActions }: AIProviderProps) {
   return (
     <ErrorBoundary fallback={children}>
-      <AIProviderInner onCollapseSidebar={onCollapseSidebar}>{children}</AIProviderInner>
+      <AIProviderInner onCollapseSidebar={onCollapseSidebar} noteActions={noteActions}>{children}</AIProviderInner>
     </ErrorBoundary>
   );
 }
 
-function AIProviderInner({ children, onCollapseSidebar }: AIProviderProps) {
+function AIProviderInner({ children, onCollapseSidebar, noteActions }: AIProviderProps) {
   const { settings, updateSettings } = useAISettings();
   const { available, provider, status, configError, recheck: recheckConnection } = useAIFeatureGate(settings);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -123,7 +127,8 @@ function AIProviderInner({ children, onCollapseSidebar }: AIProviderProps) {
     handleOpenAI,
     handleToggleAISidebar,
     setSidebarOpen,
-  }), [settings, updateSettings, available, provider, status, configError, recheckConnection, sidebarOpen, targetEntry, handleToggleAI, handleOpenAI, handleToggleAISidebar]);
+    noteActions: noteActions ?? null,
+  }), [settings, updateSettings, available, provider, status, configError, recheckConnection, sidebarOpen, targetEntry, handleToggleAI, handleOpenAI, handleToggleAISidebar, noteActions]);
 
   return <AICtx.Provider value={value}>{children}</AICtx.Provider>;
 }

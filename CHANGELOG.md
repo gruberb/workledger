@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- The AI sidebar is a chat: ask anything in the message box, with the note you opened it from attached as context (remove it with ×). Built-in prompts are chips you click to start a thread
+- Recent threads: the clock button lists every saved thread, newest first, to reopen or delete. Threads were saved before but could not be found again
+- Your own prompts: "+ New prompt" saves a name, instructions and what it runs on (the attached note, today, this week, or your next message). They are stored in this browser and not synced yet
+- "Add to note" on a reply appends it to the thread's note, and "New entry" creates an entry from it. Ask for a section and add it with one click
+- Paste, drop or attach screenshots and photos in the message box (up to 4 per message, scaled down before sending). Needs a model that reads images; OpenRouter, Anthropic and OpenAI models mostly do, Ollama only with a vision model
+
+### Changed
+
+- With filters active, the header becomes one left-aligned bar: chips and entry count on the left, Save and Clear all on the right. Search hides until the filters clear (⌘K still works)
+- The sidebar and AI sidebar toggles sit at both ends of the header, always visible and pressed while their panel is open: a menu icon on the left, the AI icon on the right
+
+### Fixed
+
+- The sidebar title no longer wraps when the sidebar is dragged narrow
+- Note text containing `$&` or `$'` reached the AI changed: those were read as replacement patterns
+- The resize handle showed the page's focus outline after dragging
+
 ## [4.3.0] - 2026-10-21
 
 ### Added

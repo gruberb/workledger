@@ -1,5 +1,6 @@
 import type { ChatOptions, LLMProvider, LLMMessage, LLMStreamChunk } from "./types.ts";
 import { parseSSEStream } from "./stream-parser.ts";
+import { toChatCompletionsMessages } from "./message-format.ts";
 
 /** Curated models available through HF Inference Providers. */
 export const HF_MODELS: { id: string; label: string }[] = [
@@ -36,7 +37,7 @@ export class HuggingFaceProvider implements LLMProvider {
         },
         body: JSON.stringify({
           model: this.model,
-          messages,
+          messages: toChatCompletionsMessages(messages),
           temperature: options.temperature,
           max_tokens: options.maxTokens,
           stream: true,

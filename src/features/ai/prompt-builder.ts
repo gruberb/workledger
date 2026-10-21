@@ -5,10 +5,13 @@ import type { AIMessage } from "./types/ai.ts";
 export function buildMessages(systemPrompt: string, history: AIMessage[]): LLMMessage[] {
   return [
     { role: "system", content: systemPrompt },
-    ...history.map((msg) => ({ role: msg.role, content: msg.content })),
+    ...history.map((msg) => (msg.images?.length
+      ? { role: msg.role, content: msg.content, images: msg.images }
+      : { role: msg.role, content: msg.content })),
   ];
 }
 
 export function renderUserPrompt(template: string, noteContent: string): string {
-  return template.replace("{{noteContent}}", noteContent);
+  // A function replacer: a string one would expand "$&" or "$'" inside the note.
+  return template.replace("{{noteContent}}", () => noteContent);
 }

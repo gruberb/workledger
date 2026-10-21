@@ -22,6 +22,8 @@ interface EntriesData {
 interface EntriesActions {
   createEntry: (options?: NewEntryOptions) => Promise<WorkLedgerEntry>;
   saveEntryContent: (entryId: string, blocks: PartialBlock[]) => Promise<void>;
+  /** Appends inside one transaction, so a concurrent autosave can't be overwritten. False when the entry is gone. */
+  appendEntryBlocks: (entryId: string, blocks: PartialBlock[]) => Promise<boolean>;
   updateEntryTags: (entryId: string, tags: string[]) => Promise<void>;
   archiveEntry: (id: string) => Promise<void>;
   unarchiveEntry: (id: string) => Promise<void>;
@@ -52,6 +54,7 @@ export function EntriesProvider({ children }: { children: ReactNode }) {
     storedSignifiers,
     createEntry,
     saveEntryContent,
+    appendEntryBlocks,
     updateEntryTags,
     archiveEntry,
     unarchiveEntry,
@@ -75,6 +78,7 @@ export function EntriesProvider({ children }: { children: ReactNode }) {
     () => ({
       createEntry,
       saveEntryContent,
+      appendEntryBlocks,
       updateEntryTags,
       archiveEntry,
       unarchiveEntry,
@@ -89,7 +93,7 @@ export function EntriesProvider({ children }: { children: ReactNode }) {
       loadDay,
       setLoadAll,
     }),
-    [createEntry, saveEntryContent, updateEntryTags, archiveEntry, unarchiveEntry, deleteEntry, deleteAllEntries, pinEntry, unpinEntry, updateEntrySignifier, refreshArchive, refresh, loadEntryById, loadDay, setLoadAll],
+    [createEntry, saveEntryContent, appendEntryBlocks, updateEntryTags, archiveEntry, unarchiveEntry, deleteEntry, deleteAllEntries, pinEntry, unpinEntry, updateEntrySignifier, refreshArchive, refresh, loadEntryById, loadDay, setLoadAll],
   );
 
   return (

@@ -18,7 +18,7 @@ import { FilterBanner } from "./components/FilterBanner.tsx";
 import { StorageStatusBanner } from "./components/StorageStatusBanner.tsx";
 import { AppHeader, HeaderButton } from "./components/AppHeader.tsx";
 import { ViewMenu } from "./components/ViewMenu.tsx";
-import { PanelRightIcon } from "../components/ui/Icons.tsx";
+import { AIIcon } from "../components/ui/Icons.tsx";
 
 // BlockNote, ProseMirror and Mantine are over 1.5 MB. The editor loads on its
 // own chunk so the shell can paint first; mobile previews never need it until a
@@ -169,8 +169,9 @@ function AppContent() {
         aiSidebarOpen={aiSidebarOpen}
         header={showHeader ? (
           <AppHeader
-            title={filterBanner ?? <ViewMenu />}
-            showMenu={isMobile || !sidebarOpen}
+            title={<ViewMenu />}
+            filters={filterBanner}
+            sidebarOpen={sidebarOpen}
             onMenu={toggleSidebar}
             onSearch={openSearch}
             actions={<>
@@ -186,7 +187,7 @@ function AppContent() {
                   pressed={aiSidebarOpen}
                   onClick={handleToggleAISidebar}
                 >
-                  <PanelRightIcon size={18} />
+                  <AIIcon size={18} />
                 </HeaderButton>
               )}
             </>}

@@ -1,5 +1,6 @@
 import type { ChatOptions, LLMProvider, LLMMessage, LLMStreamChunk } from "./types.ts";
 import { parseSSEStream } from "./stream-parser.ts";
+import { toChatCompletionsMessages } from "./message-format.ts";
 import { normalizeBaseUrl, validateServerUrl } from "./url.ts";
 
 export class CustomServerProvider implements LLMProvider {
@@ -33,7 +34,7 @@ export class CustomServerProvider implements LLMProvider {
       headers,
       body: JSON.stringify({
         model: this.model,
-        messages,
+        messages: toChatCompletionsMessages(messages),
         temperature: options.temperature,
         max_tokens: options.maxTokens,
         stream: true,

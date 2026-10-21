@@ -9,7 +9,7 @@ import { CollapsibleSectionHeader } from "./CollapsibleSectionHeader.tsx";
 interface SaveFilterButtonProps {
   onSave: (name: string) => void | Promise<void>;
   inline?: boolean;
-  /** Icon only below the xl breakpoint, for tight bars like the app header. */
+  /** Quiet text button ("Save") for bars like the app header. */
   compact?: boolean;
   savedFilters?: SavedFilter[];
   selectedTags?: string[];
@@ -63,7 +63,9 @@ export function SaveFilterButton({ onSave, savedFilters, selectedTags = [], sele
     <div className="relative" ref={popoverRef}>
       <button
         onClick={() => setOpen((p) => !p)}
-        className="flex items-center gap-1.5 px-2 py-2 rounded border border-[var(--color-notebook-border)] text-sm text-[var(--color-notebook-accent)] hover:bg-[var(--color-notebook-surface-alt)]"
+        className={compact
+          ? "flex items-center gap-1.5 h-8 px-2 rounded-md text-xs text-[var(--color-notebook-accent)] hover:bg-[var(--color-notebook-surface-alt)] whitespace-nowrap"
+          : "flex items-center gap-1.5 px-2 py-2 rounded border border-[var(--color-notebook-border)] text-sm text-[var(--color-notebook-accent)] hover:bg-[var(--color-notebook-surface-alt)]"}
         aria-expanded={open}
         title="Save current filter"
         aria-label="Save current filter"
@@ -71,7 +73,7 @@ export function SaveFilterButton({ onSave, savedFilters, selectedTags = [], sele
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
         </svg>
-        <span className={compact ? "hidden xl:inline" : undefined}>Save current filter</span>
+        <span>{compact ? "Save" : "Save current filter"}</span>
       </button>
 
       {open && (

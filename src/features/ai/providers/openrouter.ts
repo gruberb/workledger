@@ -1,5 +1,6 @@
 import type { ChatOptions, LLMProvider, LLMMessage, LLMStreamChunk } from "./types.ts";
 import { parseSSEStream } from "./stream-parser.ts";
+import { toChatCompletionsMessages } from "./message-format.ts";
 import { responseError } from "./http-error.ts";
 
 const BASE_URL = "https://openrouter.ai/api/v1";
@@ -28,7 +29,7 @@ export class OpenRouterProvider implements LLMProvider {
       },
       body: JSON.stringify({
         model: this.model,
-        messages,
+        messages: toChatCompletionsMessages(messages),
         temperature: options.temperature,
         max_tokens: options.maxTokens,
         stream: true,

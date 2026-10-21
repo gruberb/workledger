@@ -31,10 +31,10 @@ function Chip({ label, className, onRemove }: ChipProps) {
   );
 }
 
-/** Active filters, shown in the header in place of the view title. */
+/** Active filters as the header bar: chips on the left, Save and Clear all on the right. */
 export function FilterBanner({ selectedTags, selectedSignifiers, count, onRemoveTag, onRemoveSignifier, onClearAll, onSaveFilter, savedFilters }: FilterBannerProps) {
   return (
-    <div className="flex items-center gap-2 min-w-0" role="group" aria-label="Active filters">
+    <div className="flex items-center gap-2 min-w-0 w-full" role="group" aria-label="Active filters">
       <FilterIcon size={16} className="text-[var(--color-notebook-muted)] shrink-0" />
       {/* Chips scroll sideways instead of wrapping, so the header keeps its height. */}
       <div className="flex items-center gap-1.5 min-w-0 overflow-x-auto [scrollbar-width:none]">
@@ -48,23 +48,25 @@ export function FilterBanner({ selectedTags, selectedSignifiers, count, onRemove
       <span className="text-xs text-[var(--color-notebook-muted)] whitespace-nowrap shrink-0">
         {count} {count === 1 ? "entry" : "entries"}
       </span>
-      {onSaveFilter && (
-        <SaveFilterButton
-          compact
-          onSave={onSaveFilter}
-          savedFilters={savedFilters}
-          selectedTags={selectedTags}
-          selectedSignifiers={selectedSignifiers}
-        />
-      )}
-      <button
-        onClick={onClearAll}
-        className="text-xs text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] transition-colors flex items-center gap-1 whitespace-nowrap shrink-0"
-        title="Clear all filters (Esc)"
-      >
-        <CloseIcon />
-        Clear all
-      </button>
+      <div className="ml-auto flex items-center gap-1 shrink-0">
+        {onSaveFilter && (
+          <SaveFilterButton
+            compact
+            onSave={onSaveFilter}
+            savedFilters={savedFilters}
+            selectedTags={selectedTags}
+            selectedSignifiers={selectedSignifiers}
+          />
+        )}
+        <button
+          onClick={onClearAll}
+          className="h-8 px-2 rounded-md text-xs text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] hover:bg-[var(--color-notebook-surface-alt)] transition-colors flex items-center gap-1 whitespace-nowrap"
+          title="Clear all filters (Esc)"
+        >
+          <CloseIcon />
+          Clear all
+        </button>
+      </div>
     </div>
   );
 }

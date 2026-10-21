@@ -24,7 +24,7 @@ export function ResizeHandle({ edge, label, width, min, max, onPointerDown, onKe
       tabIndex={0}
       onPointerDown={onPointerDown}
       onKeyDown={onKeyDown}
-      className={`group absolute top-0 ${edge === "right" ? "-right-1" : "-left-1"} z-10 h-full w-2 cursor-col-resize touch-none outline-none`}
+      className={`resize-handle group absolute top-0 ${edge === "right" ? "-right-1" : "-left-1"} z-10 h-full w-2 cursor-col-resize touch-none outline-none`}
     >
       <div className="mx-auto h-full w-0.5 transition-colors group-hover:bg-[var(--color-notebook-accent)] group-focus-visible:bg-[var(--color-notebook-accent)] group-active:bg-[var(--color-notebook-accent)]" />
     </div>

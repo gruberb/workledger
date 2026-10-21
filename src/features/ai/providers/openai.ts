@@ -1,5 +1,6 @@
 import type { ChatOptions, LLMProvider, LLMMessage, LLMStreamChunk } from "./types.ts";
 import { readSSEData, toSource } from "./stream-parser.ts";
+import { toResponsesInput } from "./message-format.ts";
 import { responseError } from "./http-error.ts";
 
 const BASE_URL = "https://api.openai.com/v1";
@@ -55,7 +56,7 @@ export class OpenAIProvider implements LLMProvider {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${this.apiKey}` },
       body: JSON.stringify({
         model: this.model,
-        input: messages,
+        input: toResponsesInput(messages),
         // No temperature: reasoning models reject it.
         max_output_tokens: options.maxTokens,
         stream: true,

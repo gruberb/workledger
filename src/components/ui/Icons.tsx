@@ -115,13 +115,6 @@ export function MenuIcon(props: IconProps) {
   </>);
 }
 
-/** Toggles a panel docked to the right edge. */
-export function PanelRightIcon(props: IconProps) {
-  return svg(props, <>
-    <rect x="3" y="4" width="18" height="16" rx="2" /><line x1="15" y1="4" x2="15" y2="20" />
-  </>);
-}
-
 export function PlusIcon(props: IconProps) {
   return svg(props, <>
     <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />

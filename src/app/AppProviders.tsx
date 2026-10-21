@@ -6,13 +6,15 @@ import { SidebarProvider, useSidebarUI } from "../features/sidebar/index.ts";
 import { FocusModeProvider } from "../features/focus-mode/index.ts";
 import { AIProvider } from "../features/ai/index.ts";
 import { SyncProvider } from "../features/sync/index.ts";
+import { useAINoteActions } from "./hooks/useAINoteActions.ts";
 
 function AIProviderWithSidebar({ children }: { children: ReactNode }) {
   const { setSidebarOpen } = useSidebarUI();
   const onCollapseSidebar = useCallback(() => setSidebarOpen(false), [setSidebarOpen]);
+  const noteActions = useAINoteActions();
 
   return (
-    <AIProvider onCollapseSidebar={onCollapseSidebar}>
+    <AIProvider onCollapseSidebar={onCollapseSidebar} noteActions={noteActions}>
       {children}
     </AIProvider>
   );

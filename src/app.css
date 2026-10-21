@@ -455,6 +455,9 @@ body {
   padding-left: 1.5em;
   margin-bottom: 0.5em;
 }
+/* Tailwind's preflight removes list markers. */
+.ai-markdown ul { list-style: disc; }
+.ai-markdown ol { list-style: decimal; }
 
 .ai-markdown li {
   margin-bottom: 0.25em;
@@ -620,3 +623,6 @@ button:not(:disabled), summary { cursor: pointer; }
   box-shadow: 0 0 0 1px var(--color-notebook-accent), 0 16px 40px #0002;
 }
 .notebook-search-panel input:focus-visible { outline: none; }
+/* These show focus themselves (the composer box ring, the handle's accent bar);
+   the global outline above is unlayered, so Tailwind's outline-none can't remove it. */
+.ai-composer-input:focus-visible, .resize-handle:focus-visible { outline: none; }

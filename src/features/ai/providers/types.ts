@@ -1,6 +1,13 @@
+/** An image attached to a user message, base64 without the `data:` prefix. */
+export interface AIImage {
+  mediaType: "image/png" | "image/jpeg" | "image/webp" | "image/gif";
+  data: string;
+}
+
 export interface LLMMessage {
   role: "system" | "user" | "assistant";
   content: string;
+  images?: AIImage[];
 }
 
 /** A web page the model cited or searched. */

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 import type { AIConversation as AIConversationType } from "../types/ai.ts";
 import { AIMessage, StreamingMessage } from "./AIMessage.tsx";
 
@@ -6,14 +6,19 @@ interface AIConversationProps {
   conversation: AIConversationType;
   streaming: boolean;
   streamContent: string;
-  stepName: string;
+  /** Label above replies; omitted for plain chat. */
+  stepName?: string;
   followUpSuggestions: string[];
   onSendMessage: (message: string) => void;
-  onAbort: () => void;
-  onRegenerate: () => void;
+  /** Re-runs the prompt on the latest notes. Omitted for chat threads, which have nothing to re-read. */
+  onRegenerate?: () => void;
+  onAddToNote?: (markdown: string) => Promise<void>;
+  onNewEntry?: (markdown: string) => Promise<void>;
   error: string | null;
 }
 
+
+/** The messages of one thread. The composer below it belongs to the sidebar. */
 export function AIConversation({
   conversation,
   streaming,
@@ -21,13 +26,12 @@ export function AIConversation({
   stepName,
   followUpSuggestions,
   onSendMessage,
-  onAbort,
   onRegenerate,
+  onAddToNote,
+  onNewEntry,
   error,
 }: AIConversationProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const [input, setInput] = useState("");
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -35,108 +39,56 @@ export function AIConversation({
     }
   }, [conversation.messages, streamContent]);
 
-  const handleSend = () => {
-    const trimmed = input.trim();
-    if (!trimmed || streaming) return;
-    onSendMessage(trimmed);
-    setInput("");
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  };
-
   return (
-    <div className="flex flex-col h-full">
-      {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 min-h-0">
-        {conversation.messages.map((msg) => (
-          <AIMessage
-            key={msg.id}
-            message={msg}
-            stepName={msg.role === "assistant" ? stepName : undefined}
-          />
-        ))}
+    <div ref={scrollRef} className="h-full overflow-y-auto px-4 py-4">
+      {conversation.messages.map((msg) => (
+        <AIMessage
+          key={msg.id}
+          message={msg}
+          stepName={msg.role === "assistant" ? stepName : undefined}
+          onAddToNote={msg.role === "assistant" ? onAddToNote : undefined}
+          onNewEntry={msg.role === "assistant" ? onNewEntry : undefined}
+        />
+      ))}
 
-        {streaming && streamContent && (
-          <StreamingMessage content={streamContent} stepName={stepName} />
-        )}
+      {streaming && streamContent && (
+        <StreamingMessage content={streamContent} stepName={stepName} />
+      )}
 
-        {streaming && !streamContent && (
-          <div className="flex justify-start mb-4">
-            <div className="rounded-2xl rounded-bl-md px-4 py-3 bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-gray-700 shadow-sm">
-              <div className="flex items-center gap-2 text-sm text-gray-400">
-                <span className="ai-thinking-dots">Thinking</span>
-              </div>
-            </div>
-          </div>
-        )}
+      {streaming && !streamContent && (
+        <div className="mb-5">
+          <span className="ai-thinking-dots text-sm text-[var(--color-notebook-muted)]">Thinking</span>
+        </div>
+      )}
 
-        {error && (
-          <div className="mx-2 mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950 border border-red-100 dark:border-red-800 text-sm text-red-600 dark:text-red-400">
-            {error}
-          </div>
-        )}
+      {error && (
+        <div role="alert" className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950 border border-red-100 dark:border-red-800 text-sm text-red-700 dark:text-red-300">
+          {error}
+        </div>
+      )}
 
-        {/* Regenerate + follow-up suggestions */}
-        {!streaming && conversation.messages.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-2 mt-2">
+      {!streaming && conversation.messages.length > 0 && (onRegenerate || followUpSuggestions.length > 0) && (
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {onRegenerate && (
             <button
               onClick={onRegenerate}
-              className="text-xs px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className="text-xs px-2.5 py-1.5 rounded-full border border-[var(--color-notebook-border)] text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] transition-colors"
               title="Start over with the latest notes"
             >
               Regenerate
             </button>
-            {followUpSuggestions.map((suggestion) => (
-              <button
-                key={suggestion}
-                onClick={() => onSendMessage(suggestion)}
-                className="text-xs px-3 py-1.5 rounded-full bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-950/60 transition-colors"
-              >
-                {suggestion}
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Input */}
-      <div className="shrink-0 border-t border-gray-100 dark:border-gray-800 px-4 py-3">
-        {streaming ? (
-          <button
-            onClick={onAbort}
-            className="w-full py-2 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded-lg transition-colors"
-          >
-            Stop generating
-          </button>
-        ) : (
-          <div className="flex items-end gap-2">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask a follow-up..."
-              rows={1}
-              className="flex-1 resize-none text-sm border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 outline-none focus:border-orange-300 focus:ring-1 focus:ring-orange-100 dark:focus:ring-orange-900 bg-white dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-300 placeholder:text-gray-400 dark:placeholder:text-gray-500"
-            />
+          )}
+          {followUpSuggestions.map((suggestion) => (
             <button
-              onClick={handleSend}
-              disabled={!input.trim()}
-              className="p-2 rounded-xl bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors shrink-0"
+              key={suggestion}
+              onClick={() => onSendMessage(suggestion)}
+              className="text-xs px-2.5 py-1.5 rounded-full border border-[var(--color-notebook-border)] bg-[var(--color-notebook-surface)] text-[var(--color-notebook-accent)] hover:border-[var(--color-notebook-accent)] transition-colors"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="22" y1="2" x2="11" y2="13" />
-                <polygon points="22 2 15 22 11 13 2 9 22 2" />
-              </svg>
+              {suggestion}
             </button>
-          </div>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -31,6 +31,15 @@ export function mapAnthropicEvent(event: BetaRawMessageStreamEvent): LLMStreamCh
   return null;
 }
 
+/** Plain text, or image blocks followed by the text (Anthropic recommends images first). */
+export function toAnthropicContent({ content, images }: LLMMessage): BetaMessageParam["content"] {
+  if (!images?.length) return content;
+  return [
+    ...images.map((image) => ({ type: "image" as const, source: { type: "base64" as const, media_type: image.mediaType, data: image.data } })),
+    { type: "text" as const, text: content },
+  ];
+}
+
 type AnthropicSDK = typeof import("@anthropic-ai/sdk").default;
 
 function toError(Anthropic: AnthropicSDK, err: unknown): unknown {
@@ -71,7 +80,7 @@ export class AnthropicProvider implements LLMProvider {
     // Earlier turns are replayed as plain text, without thinking blocks.
     const history: BetaMessageParam[] = messages
       .filter((m) => m.role !== "system")
-      .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+      .map((m) => ({ role: m.role as "user" | "assistant", content: toAnthropicContent(m) }));
 
     const { Anthropic, client } = await this.loadSDK();
     try {

@@ -145,7 +145,8 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, isFi
         )
       )}
 
-      <div style={{ display: isFocused ? "none" : undefined }}>
+      {/* Filtering hides day headers, which otherwise give the first entry its top space. */}
+      <div style={{ display: isFocused ? "none" : undefined }} className={isFiltering ? "pt-4" : undefined}>
         {isFiltering && sortedDays.length === 0 && (
           <div className="flex flex-col items-center text-center py-16">
             <p className="text-gray-400 text-sm">No entries match these filters</p>

@@ -1,6 +1,8 @@
+import type { CustomPrompt } from "../types/ai.ts";
 import type { AIAction, ActionCategory } from "./types.ts";
 
 export const CATEGORY_LABELS: Record<ActionCategory, string> = {
+  mine: "My prompts",
   research: "Research",
   summarize: "Summarize",
   generate: "Generate",
@@ -8,23 +10,60 @@ export const CATEGORY_LABELS: Record<ActionCategory, string> = {
   remember: "Remember",
 };
 
-export const CATEGORY_ORDER: ActionCategory[] = ["research", "summarize", "generate", "think", "remember"];
+export const CATEGORY_ORDER: ActionCategory[] = ["mine", "research", "summarize", "generate", "think", "remember"];
 
 const SOURCES_RULE = "When you use web search, cite the pages you rely on. Keep what the sources say separate from your own inference, and say when the evidence is thin or conflicting.";
 
+// Replies often go straight into a note with "Add to note", so ask for insertable Markdown.
+const NOTE_RULE = "When the user asks you to write, extract or restructure something for their note, reply with only the Markdown to insert (headings, lists, tables), without a preamble or closing remarks.";
+
+/**
+ * Free-form chat, the default when no prompt is picked. The attached note (if
+ * any) goes along as context. Keeps the old "Ask / Research" id so those
+ * threads still open with it.
+ */
+export const CHAT_ACTION: AIAction = {
+  id: "research-ask",
+  name: "Chat",
+  description: "Ask anything; the attached note goes along as context",
+  category: "research",
+  scope: "ask",
+  webSearch: true,
+  systemPrompt: `You are an assistant for an engineer's notebook. Answer directly first, then give the supporting detail. Prefer primary sources (official docs, specs, source code, papers). When the user attaches screenshots or pasted text, read them carefully and say if something is illegible. ${NOTE_RULE} ${SOURCES_RULE}`,
+  userPromptTemplate: "{{noteContent}}",
+  followUpSuggestions: [],
+};
+
+const CUSTOM_TEMPLATES: Record<CustomPrompt["scope"], string> = {
+  entry: "Here is my note:\n\n{{noteContent}}",
+  day: "Here are today's notebook entries:\n\n{{noteContent}}",
+  week: "Here are this week's notebook entries:\n\n{{noteContent}}",
+  ask: "{{noteContent}}",
+};
+
+const CUSTOM_DESCRIPTIONS: Record<CustomPrompt["scope"], string> = {
+  entry: "Runs on the attached note",
+  day: "Runs on today's notes",
+  week: "Runs on this week's notes",
+  ask: "Runs on your next message",
+};
+
+export function customPromptToAction(prompt: CustomPrompt): AIAction {
+  return {
+    id: prompt.id,
+    name: prompt.name,
+    description: CUSTOM_DESCRIPTIONS[prompt.scope],
+    category: "mine",
+    scope: prompt.scope,
+    webSearch: prompt.webSearch,
+    systemPrompt: `${prompt.instructions}\n\n${NOTE_RULE}`,
+    userPromptTemplate: CUSTOM_TEMPLATES[prompt.scope],
+    followUpSuggestions: [],
+  };
+}
+
 export const AI_ACTIONS: AIAction[] = [
   // ── Research ──
-  {
-    id: "research-ask",
-    name: "Ask / Research",
-    description: "Any question, with web search when enabled. Uses the selected entry as context",
-    category: "research",
-    scope: "ask",
-    webSearch: true,
-    systemPrompt: `You are a research assistant for an engineer's notebook. Answer the question directly first, then give the supporting detail. Prefer primary sources (official docs, specs, source code, papers). ${SOURCES_RULE}`,
-    userPromptTemplate: "{{noteContent}}",
-    followUpSuggestions: ["What are the alternatives?", "What would change your answer?", "Summarize this as notes for my entry"],
-  },
   {
     id: "research-unknowns",
     name: "Research an Unknown",
