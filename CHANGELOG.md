@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.7.3] - 2026-11-09
+
+### Fixed
+
+- Moving the pointer up to the header after scrolling into a note no longer shows the editor's "+" and drag handle on top of the header. They belonged to a line that had scrolled under the sticky headers and covered the sidebar button
+
 ## [4.7.2] - 2026-11-09
 
 ### Fixed

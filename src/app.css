@@ -282,6 +282,14 @@ html[data-resizing], html[data-resizing] * {
   opacity: 1 !important;
 }
 
+/* The side menu (+ and ⁞⁞) anchors to the hovered block's first line. When that line
+   has scrolled under the sticky app header and day head, BlockNote still shows it,
+   on top of them (its inline z-index is base + 20) and over the header's buttons.
+   Below the day head (10) and header (20) it stays hidden behind them instead. */
+[data-floating-ui-portal] > div:has(> .bn-side-menu) {
+  z-index: 5 !important;
+}
+
 /* Hide BlockNote side menu (+ and ⁞⁞) on mobile — no drag & drop on touch */
 @media (max-width: 767px) {
   .bn-side-menu {
