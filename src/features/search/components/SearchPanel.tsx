@@ -65,14 +65,14 @@ export const SearchPanel = memo(function SearchPanel({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/20 dark:bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-[#202331]/20 dark:bg-black/50"
         onClick={onClose}
       />
 
       {/* Panel */}
       <div
         ref={panelRef}
-        className="notebook-search-panel relative w-full max-w-lg mx-4 bg-[var(--color-notebook-surface)] rounded-lg shadow-2xl overflow-hidden animate-scale-in border border-[var(--color-notebook-border)]"
+        className="notebook-search-panel relative w-full max-w-lg mx-4 bg-[var(--color-notebook-surface)] rounded-md overflow-hidden animate-scale-in"
       >
         <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-700">
           <SearchIcon size={18} className="text-gray-400 shrink-0" />

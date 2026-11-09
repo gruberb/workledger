@@ -3,7 +3,7 @@ import type { ProviderDraft } from "../utils/provider-draft.ts";
 import { HF_MODELS } from "../providers/huggingface.ts";
 import { isNonLocalHttp, validateServerUrl } from "../providers/url.ts";
 
-const inputClass = "w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-orange-300 focus:ring-1 focus:ring-orange-100 dark:focus:ring-orange-900 bg-white dark:bg-[#1a1a1a] dark:text-gray-300";
+const inputClass = "w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-[var(--color-notebook-frame)] focus:ring-1 bg-white dark:bg-[#1a1a1a] dark:text-gray-300";
 const labelClass = "text-xs text-gray-500 dark:text-gray-400 block mb-1";
 
 interface ProviderFieldsProps {

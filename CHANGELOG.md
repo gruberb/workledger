@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.6.0] - 2026-11-09
+
+### Changed
+
+- New look, closer to the landing page. Every day is its own page: a sheet with an ink frame and a sticky page head (day, date, entry count), and notes are written in a 680px column, about 70 characters per line, instead of the full window width. Entry titles are now clearly larger than day names
+- One accent: yellow marks the primary action and where you are, ink does the rest. Blue and orange are gone from the Paper and Ink themes
+- "New entry" moved from the floating button into the header, so nothing covers your notes any more
+- Signifiers are stickers (pastel fill, ink frame) everywhere, and tags are plain chips on every screen size. The Question signifier is aqua now, so yellow only means the accent
+- Focus, the entry menu (now ⋯), "+ Signifier" and "+ tag" show when you hover an entry or reach them with the keyboard, and keep their space so the text never moves
+- Menus, the search dialog and focus mode use solid offset shadows instead of blurred ones, and the search backdrop no longer blurs the page
+- Editors mount one at a time, nearest to the screen first, and only when their note is still near the screen once the notes above have opened. Applying a tag filter over a large journal no longer freezes the app: with 1,200 notes it built 848 editors and blocked the page for about 9 seconds, now it builds none of those. Startup opens 2 editors instead of 12
+- Notes far off screen close their editor again and keep their place, so scrolling through months of notes no longer leaves dozens of editors open (5 instead of 20 to 67 in a 1,200-note journal). Undo history of a note resets when its editor closes
+- Toggling a side panel no longer animates the whole page's padding, which laid out every open editor on each frame
+
+### Fixed
+
+- Buttons and fields show their intended text size and weight. Mantine's CSS reset sat outside Tailwind's layers and overrode every size on buttons, so "Signifier", "+ tag" and the sidebar rows rendered at 16px next to 12px labels
+- Note text uses its intended line height; BlockNote's per-block value had overridden it
+
 ## [4.5.2] - 2026-10-21
 
 ### Fixed

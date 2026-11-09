@@ -22,11 +22,8 @@ export function SignifierPicker({ value, onChange }: SignifierPickerProps) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((p) => !p)}
-        className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs transition-colors ${
-          config
-            ? `${config.color} ${config.chip}`
-            : "text-[var(--color-notebook-muted)] hover:bg-[var(--color-notebook-surface-alt)]"
-        }`}
+        className={config ? "sticker" : "sticker-ghost ghost"}
+        data-signifier={value}
         title={config ? `Signifier: ${config.label}` : "Add signifier"}
         aria-label={config ? `Signifier: ${config.label}` : "Add signifier"}
         aria-expanded={open}
@@ -34,25 +31,24 @@ export function SignifierPicker({ value, onChange }: SignifierPickerProps) {
         {config ? (
           <>
             <span aria-hidden="true">{value === "small-win" ? "✧" : value === "decision" ? "↗" : value === "question" ? "?" : value === "idea" ? "✦" : value === "milestone" ? "⚑" : "§"}</span>
-            <span className="font-medium">{config.label}</span>
+            <span>{config.label}</span>
           </>
         ) : (
-          <><span className="w-2 h-2 rounded-full border border-current" /><span>Signifier</span></>
+          <span>+ Signifier</span>
         )}
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-1 bg-[var(--color-notebook-surface)] border border-[var(--color-notebook-border)] rounded-lg shadow-xl py-1 z-50 w-32">
+        <div className="absolute left-0 top-full mt-2 bg-[var(--color-notebook-surface)] border-[1.5px] border-[var(--color-notebook-frame)] rounded-md shadow-[4px_4px_0_var(--color-notebook-lift)] p-1.5 z-50 w-40">
           {SIGNIFIERS.map(([key, cfg]) => (
             <button
               key={key}
               onClick={() => { onChange(key === value ? undefined : key); setOpen(false); }}
-              className={`w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 transition-colors hover:bg-[var(--color-notebook-surface-alt)] ${
-                key === value ? "font-medium" : ""
+              className={`w-full text-left px-1.5 py-1 rounded flex items-center hover:bg-[var(--color-notebook-highlight)] ${
+                key === value ? "bg-[var(--color-notebook-highlight)]" : ""
               }`}
             >
-              <span className={`w-2 h-2 rounded-full ${cfg.color} ${key === value ? "bg-current" : "bg-current opacity-60"}`} />
-              <span className={cfg.color}>{cfg.label}</span>
+              <span className="sticker" data-signifier={key}>{cfg.label}</span>
             </button>
           ))}
           {value && (
@@ -60,7 +56,7 @@ export function SignifierPicker({ value, onChange }: SignifierPickerProps) {
               <div className="border-t border-[var(--color-notebook-border)] my-1" />
               <button
                 onClick={() => { onChange(undefined); setOpen(false); }}
-                className="w-full text-left px-3 py-1.5 text-xs text-gray-400 hover:bg-[var(--color-notebook-surface-alt)] transition-colors"
+                className="w-full text-left px-2 py-1.5 rounded text-xs text-[var(--color-notebook-muted)] hover:bg-[var(--color-notebook-surface-alt)]"
               >
                 Remove signifier
               </button>

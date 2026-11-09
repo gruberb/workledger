@@ -1,52 +1,109 @@
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useCallback, useLayoutEffect, useState, type RefObject } from "react";
+import { MountQueue } from "../utils/mount-queue.ts";
+
+/** How far outside the visible area a card's editor mounts. */
+const MOUNT_MARGIN_PX = 2000;
+/**
+ * How far away a mounted editor must be before it unmounts. The gap to
+ * MOUNT_MARGIN_PX is the hysteresis: a card near one boundary cannot flip back
+ * and forth from small layout changes (mobile toolbar resizes, async content).
+ */
+const UNMOUNT_MARGIN_PX = 4000;
+
+function viewportDistance(el: Element): number {
+  const rect = el.getBoundingClientRect();
+  // A display:none ancestor (the stream behind focus mode) collapses the rect.
+  if (rect.width === 0 && rect.height === 0) return Infinity;
+  if (rect.bottom < 0) return -rect.bottom;
+  if (rect.top > window.innerHeight) return rect.top - window.innerHeight;
+  return 0;
+}
+
+// Shared by every card, so editors mount one per frame across the whole app.
+const mountQueue = new MountQueue<Element>({
+  distance: viewportDistance,
+  margin: MOUNT_MARGIN_PX,
+  schedule: (pick) => requestAnimationFrame(pick),
+});
+
+interface NearState {
+  near: boolean;
+  /** Height of the unmounted editor, kept by its placeholder so the layout does not move. */
+  height?: number;
+}
 
 /**
- * Returns whether the element is within ~2000px of the visible area,
- * plus the last measured content height so placeholders can preserve layout.
- * Starts near=true so editors mount with correct layout heights on first render.
- * IntersectionObserver then unmounts far-away editors after the initial frame.
+ * Whether the element's heavy content (the editor) is mounted, the height its
+ * placeholder must keep, and the callback the content calls once it has
+ * rendered so the next card can start.
  *
- * Mounting is one-way after the initial prune: once an entry is scrolled into
- * range and its editor mounts, it stays mounted. Re-unmounting causes layout
- * shifts that feed back into the observer (especially near the bottom of the
- * scroll container), creating an infinite jitter loop.
+ * Cards start as placeholders and mount through a shared queue: nearest to the
+ * viewport first, one at a time, re-measured after each mount grows the layout.
+ * Editors farther than UNMOUNT_MARGIN_PX unmount again, so the DOM, and with it
+ * the browser's work per keystroke, stays small after long scrolls. The
+ * placeholder keeps the measured height of the same element, so unmounting
+ * does not shift the layout; an earlier version measured the whole card, used
+ * one boundary for both directions and looped.
  */
-export function useNearViewport(ref: RefObject<HTMLElement | null>): { near: boolean; lastHeight: number | undefined } {
-  const [near, setNear] = useState(true);
-  const [lastHeight, setLastHeight] = useState<number | undefined>(undefined);
-  // Tracks whether the entry has ever been observed as intersecting.
-  // After the first real mount, we never unmount again.
-  const hasBeenNear = useRef(false);
+export function useNearViewport(ref: RefObject<HTMLElement | null>): {
+  near: boolean;
+  height: number | undefined;
+  onRendered: () => void;
+} {
+  const [state, setState] = useState<NearState>({ near: false });
+  const { near } = state;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
 
+    if (near) {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          const rect = entry.boundingClientRect;
+          // Hidden ancestors report a zero-size rect; that is not a visibility change.
+          if (rect.width === 0 && rect.height === 0) return;
+          // Unmounting the editor that has focus would drop the cursor and selection.
+          if (entry.isIntersecting || el.contains(document.activeElement)) return;
+          setState({ near: false, height: rect.height });
+        },
+        { rootMargin: `${UNMOUNT_MARGIN_PX}px 0px` },
+      );
+      observer.observe(el);
+      return () => observer.disconnect();
+    }
+
+    const mount = () => setState({ near: true });
+    // During layout, so a card already on screen skips its placeholder paint.
+    if (mountQueue.mountIfVisible(el, mount)) return;
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // When a parent has display:none, the observer fires with zero-size
-        // boundingClientRect. Ignore these — they're not real visibility changes.
         const rect = entry.boundingClientRect;
         if (rect.width === 0 && rect.height === 0) return;
-
-        if (entry.isIntersecting) {
-          hasBeenNear.current = true;
-          setNear(true);
-        } else if (!hasBeenNear.current) {
-          // Only allow unmount during the initial prune — before the entry
-          // has ever been scrolled into range.
-          if (rect.height > 0) {
-            setLastHeight(rect.height);
-          }
-          setNear(false);
-        }
+        if (entry.isIntersecting) mountQueue.request(el, mount);
+        else mountQueue.withdraw(el);
       },
-      { rootMargin: "2000px 0px" },
+      { rootMargin: `${MOUNT_MARGIN_PX}px 0px` },
     );
-
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      mountQueue.withdraw(el);
+    };
+  }, [ref, near]);
+
+  // A card removed mid-mount (view switch, filter) must not hold the queue.
+  useLayoutEffect(() => {
+    const el = ref.current;
+    return () => {
+      if (el) mountQueue.release(el);
+    };
   }, [ref]);
 
-  return { near, lastHeight };
+  const onRendered = useCallback(() => {
+    if (ref.current) mountQueue.release(ref.current);
+  }, [ref]);
+
+  return { near, height: state.height, onRendered };
 }

@@ -28,13 +28,10 @@ export const SignifierFilter = memo(function SignifierFilter({ allSignifiers, se
               <button
                 key={key}
                 onClick={() => onToggle(key as EntrySignifier)}
-                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-all ${
-                  isSelected
-                    ? `${cfg.color} ${cfg.chip} ring-2 ring-offset-1 ring-gray-400 dark:ring-gray-500`
-                    : `${cfg.color} ${cfg.chip}`
-                }`}
+                className={`sticker ${isSelected ? "shadow-[2px_2px_0_var(--color-notebook-lift)]" : "opacity-80 hover:opacity-100"}`}
+                data-signifier={key}
+                aria-pressed={isSelected}
               >
-                <span className="w-2 h-2 rounded-full bg-current" />
                 {cfg.label}
               </button>
             );

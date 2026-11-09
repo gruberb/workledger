@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { formatDayKey } from "../../utils/dates.ts";
+import { formatDayParts } from "../../utils/dates.ts";
 import { useTodayKey } from "../../hooks/useTodayKey.ts";
 
 interface DayHeaderProps {
@@ -7,15 +7,16 @@ interface DayHeaderProps {
   entryCount: number;
 }
 
+/** The head of a day's sheet: name, date and entry count. Sticks while its page is in view. */
 export const DayHeader = memo(function DayHeader({ dayKey, entryCount }: DayHeaderProps) {
   // Subscribing re-renders at midnight so "Today" / "Yesterday" stay correct.
   useTodayKey();
+  const { name, detail } = formatDayParts(dayKey);
   return (
-    <div className="day-header flex items-baseline gap-3 pt-4 max-md:pt-3 pb-3 max-md:pb-1 px-1 sticky top-0 sticky-header">
-      <h2 className="text-[var(--color-notebook-text)] day-header-font">
-        {formatDayKey(dayKey)}
-      </h2>
-      <span className="text-sm text-[var(--color-notebook-muted)]">
+    <div className="day-head">
+      <h2 className="text-[var(--color-notebook-text)] day-header-font">{name}</h2>
+      <span className="day-head-detail truncate">{detail}</span>
+      <span className="day-head-count">
         {entryCount} {entryCount === 1 ? "entry" : "entries"}
       </span>
     </div>

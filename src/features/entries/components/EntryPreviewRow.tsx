@@ -4,7 +4,6 @@ import { SIGNIFIER_CONFIG } from "../types/entry.ts";
 import { extractTitle, extractPreview } from "../utils/extract-title.ts";
 import { formatTime } from "../../../utils/dates.ts";
 import { PinIcon } from "../../../components/ui/Icons.tsx";
-import { getTagColor } from "../../../utils/tag-colors.ts";
 
 interface EntryPreviewRowProps {
   entry: WorkLedgerEntry;
@@ -20,20 +19,20 @@ export const EntryPreviewRow = memo(function EntryPreviewRow({ entry, onOpen }: 
     <button
       id={`entry-${entry.id}`}
       onClick={() => onOpen(entry)}
-      className="entry-preview-row w-full text-left px-1 py-3 border-b border-[var(--color-notebook-border)] active:bg-[var(--color-notebook-surface-alt)] transition-colors scroll-mt-[120px]"
+      className="entry-preview-row w-full text-left py-3 active:bg-[var(--color-notebook-surface-alt)] scroll-mt-[120px]"
     >
       <span className="flex items-center gap-1.5">
-        {entry.isPinned && <PinIcon filled size={12} className="text-orange-400 shrink-0" />}
+        {entry.isPinned && <PinIcon filled size={12} className="text-[var(--color-notebook-muted)] shrink-0" />}
         <span className="font-display font-semibold tracking-[-0.01em] text-[var(--color-notebook-text)] truncate">{extractTitle(entry)}</span>
       </span>
       {preview && (
         <span className="mt-0.5 block text-sm text-[var(--color-notebook-muted)] line-clamp-2">{preview}</span>
       )}
-      <span className="mt-1.5 flex items-center gap-2 text-[11px] text-gray-400 dark:text-gray-500">
+      <span className="mt-1.5 flex items-center gap-2 text-[11px] text-[var(--color-notebook-muted)]">
         <span className="font-mono">{formatTime(entry.createdAt)}</span>
-        {signifier && <span className={`font-medium ${signifier.color}`}>{signifier.label}</span>}
+        {signifier && <span className="sticker !h-5 !px-1.5 !text-[11px]" data-signifier={entry.signifier}>{signifier.label}</span>}
         {entry.tags?.slice(0, 3).map((tag) => (
-          <span key={tag} className={`px-1.5 py-px rounded-full ${getTagColor(tag)}`}>{tag}</span>
+          <span key={tag} className="tag-chip !h-5 !px-1.5 !text-[11px]">#{tag}</span>
         ))}
       </span>
     </button>

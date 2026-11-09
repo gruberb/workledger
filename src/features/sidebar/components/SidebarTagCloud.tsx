@@ -24,10 +24,10 @@ export const SidebarTagCloud = memo(function SidebarTagCloud({ allTags, selected
               key={tag}
               onClick={() => onToggleTag(tag)}
               aria-pressed={selectedTags.includes(tag)}
-              className={`px-2.5 py-1.5 rounded border text-sm transition-colors ${
+              className={`tag-chip ${
                 selectedTags.includes(tag)
-                  ? "border-[var(--color-notebook-accent)] text-[var(--color-notebook-accent)] bg-[var(--color-notebook-surface-alt)]"
-                  : "border-[var(--color-notebook-border)] text-[var(--color-notebook-muted)] hover:border-[var(--color-notebook-accent)]"
+                  ? "!bg-[var(--color-notebook-highlight)] !text-[var(--color-notebook-text)] !border-[var(--color-notebook-frame)]"
+                  : "hover:!border-[var(--color-notebook-frame)]"
               }`}
             >
               #{tag}

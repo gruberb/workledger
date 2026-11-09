@@ -1,5 +1,10 @@
+/* Mantine sits above Tailwind's preflight (so its menus keep their padding) and
+   below utilities. Unlayered, its reset (`button { font: inherit }`) beat every
+   text-size and weight class on buttons and inputs. */
+@layer theme, base, mantine, components, utilities;
 @import url("/fonts/fonts.css");
 @import "tailwindcss";
+@import "@mantine/core/styles.layer.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -187,24 +192,19 @@ html[data-resizing], html[data-resizing] * {
 }
 
 /* Day headers ("Today", dates) */
+/* Day name in the page head: smaller than an entry title, so titles lead. */
 .day-header-font {
   font-family: var(--font-display);
-  font-size: 1.75rem;
-  font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: -0.04em;
+  font-size: 20px;
+  font-weight: 750;
+  line-height: 24px;
+  letter-spacing: -0.02em;
 }
 
 @media (max-width: 767px) {
   .day-header-font {
-    font-size: 1.4rem;
+    font-size: 17px;
   }
-}
-
-/* Entry ruling line */
-.entry-ruling {
-  height: 1px;
-  background: var(--color-notebook-ruling);
 }
 
 /* BlockNote overrides for notebook feel */
@@ -235,8 +235,7 @@ html[data-resizing], html[data-resizing] * {
 [data-workledger-editor] .bn-editor {
   background: transparent;
   font-family: var(--editor-body-font);
-  font-size: 17px;
-  line-height: 1.75;
+  font-size: 18px;
   color: var(--color-notebook-text);
   /* Remove left padding so text aligns with header/tags above.
      The side menu (+/drag handle) will overflow into the left margin. */
@@ -245,6 +244,16 @@ html[data-resizing], html[data-resizing] * {
 
 [data-workledger-editor] .bn-block-group {
   padding: 0;
+}
+
+/* BlockNote sets line-height on every block, so the editor's own value never applied. */
+[data-workledger-editor] .bn-block-outer {
+  line-height: 30px;
+}
+
+@media (max-width: 767px) {
+  [data-workledger-editor] .bn-editor { font-size: 17px; }
+  [data-workledger-editor] .bn-block-outer { line-height: 28px; }
 }
 
 /* Keep side menu within content area so it doesn't hide behind the sidebar.
@@ -271,8 +280,10 @@ html[data-resizing], html[data-resizing] * {
 .mantine-Popover-dropdown {
   background: var(--color-notebook-surface, #1a1a1a) !important;
   background-color: var(--color-notebook-surface, #1a1a1a) !important;
-  border: 1px solid var(--color-notebook-border, #2a2a2a) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+  border: 1.5px solid var(--color-notebook-frame, #2a2a2a) !important;
+  border-radius: 6px !important;
+  /* Lifted things cast a solid offset; a blurred shadow costs more to paint. */
+  box-shadow: 4px 4px 0 var(--color-notebook-lift, #000) !important;
   backdrop-filter: none !important;
   opacity: 1 !important;
 }
@@ -407,19 +418,22 @@ body {
 }
 
 [data-workledger-editor] [data-content-type="heading"] .bn-inline-content {
-  font-weight: 600;
+  font-weight: 700;
+  line-height: 1.25;
 }
 
 /* Scroll margin for heading targets when navigating via backlinks */
 .entry-card [data-content-type="heading"] {
-  scroll-margin-top: 120px;
+  scroll-margin-top: 136px;
 }
 
 /* Override BlockNote hardcoded dark code block background */
 [data-workledger-editor] .bn-block-content[data-content-type="codeBlock"] {
   background-color: var(--color-notebook-code-bg);
   color: var(--color-notebook-text);
-  font-size: 14px;
+  font-size: 14.5px;
+  line-height: 24px;
+  border-radius: 6px;
 }
 
 /* Language selector: use muted text instead of white */
@@ -546,31 +560,50 @@ body {
 [data-theme="paper"] {
   --color-notebook-bg: #f7f4ec;
   --color-notebook-text: #202331;
-  --color-notebook-accent: #3046c5;
-  --color-notebook-ruling: #d9d7d0;
+  /* Accent is text and focus color; yellow is a fill only (it fails contrast as text). */
+  --color-notebook-accent: #202331;
+  --color-notebook-ruling: #e3e0d7;
   --color-notebook-surface: #fffefa;
-  --color-notebook-surface-alt: #eeebe3;
+  --color-notebook-surface-alt: #eeeae0;
   --color-notebook-muted: #555b68;
-  --color-notebook-border: #d9d7d0;
-  --color-notebook-code-bg: #eeebe3;
+  --color-notebook-border: #cfcbc1;
+  --color-notebook-code-bg: #f3efe5;
+  --color-notebook-primary: #f4d66b;
+  --color-notebook-on-primary: #202331;
+  --color-notebook-highlight: #f8e8ad;
+  --color-notebook-frame: #202331;
+  --color-notebook-lift: #202331;
   --color-notebook-scrollbar: #b8b5ae;
   --color-notebook-scrollbar-hover: #85838a;
 }
 [data-theme="ink"] {
-  --color-notebook-bg: #191c24;
-  --color-notebook-text: #f7f4ec;
-  --color-notebook-accent: #aab8ff;
-  --color-notebook-ruling: #454957;
-  --color-notebook-surface: #242833;
-  --color-notebook-surface-alt: #303543;
-  --color-notebook-muted: #b9c0cf;
-  --color-notebook-border: #454957;
-  --color-notebook-code-bg: #242833;
+  --color-notebook-bg: #15171d;
+  --color-notebook-text: #f1eee6;
+  --color-notebook-accent: #f4d66b;
+  --color-notebook-ruling: #2c303b;
+  --color-notebook-surface: #1c1f27;
+  --color-notebook-surface-alt: #262a34;
+  --color-notebook-muted: #aab0bd;
+  --color-notebook-border: #3d4252;
+  --color-notebook-code-bg: #252934;
+  --color-notebook-primary: #f4d66b;
+  --color-notebook-on-primary: #1b1d26;
+  --color-notebook-highlight: #4a4227;
+  --color-notebook-frame: #6b7287;
+  --color-notebook-lift: #07080b;
   --color-notebook-scrollbar: #555b68;
   --color-notebook-scrollbar-hover: #82899a;
 }
 :root { --color-notebook-on-accent: #fff; }
 .dark { --color-notebook-on-accent: #191c24; }
+/* Roles the Paper design adds. Themes without their own values derive them. */
+:where(:root, .dark, [data-theme]) {
+  --color-notebook-primary: var(--color-notebook-accent);
+  --color-notebook-on-primary: var(--color-notebook-on-accent);
+  --color-notebook-highlight: var(--color-notebook-surface-alt);
+  --color-notebook-frame: var(--color-notebook-border);
+  --color-notebook-lift: var(--color-notebook-border);
+}
 button:not(:disabled), summary { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--color-notebook-accent); outline-offset: 3px; }
 /* The editor caret indicates focus without a ring around the whole note. */
@@ -581,8 +614,8 @@ button:not(:disabled), summary { cursor: pointer; }
   color: var(--color-notebook-muted); font-size: 12px; line-height: 1.3;
 }
 .entry-action:hover { background: var(--color-notebook-surface-alt); color: var(--color-notebook-text); }
-.notebook-primary { background: var(--color-notebook-accent); color: var(--color-notebook-on-accent); }
-.notebook-primary:hover { filter: brightness(1.08); }
+.notebook-primary { background: var(--color-notebook-primary); color: var(--color-notebook-on-primary); }
+.notebook-primary:hover { filter: brightness(1.04); }
 .notebook-nav-icon {
   display: grid; place-items: center; width: 24px; height: 24px; border-radius: 6px;
   border: 1px solid #202331; color: #202331; background: #f4d66b; flex-shrink: 0;
@@ -601,27 +634,181 @@ button:not(:disabled), summary { cursor: pointer; }
 }
 
 /* Heading levels retain their document semantics without overwhelming the canvas. */
-[data-workledger-editor] [data-content-type="heading"] { --level: 1.75rem; padding-top: 16px; }
-[data-workledger-editor] [data-content-type="heading"][data-level="2"] { --level: 1.5rem; }
-[data-workledger-editor] [data-content-type="heading"][data-level="3"] { --level: 1.25rem; }
-[data-workledger-editor] [data-content-type="heading"][data-level="4"] { --level: 1.125rem; }
+/* Clear steps: the title (H1) leads the entry, the day head stays below it. */
+[data-workledger-editor] [data-content-type="heading"] { --level: 34px; padding-top: 18px; }
+[data-workledger-editor] [data-content-type="heading"][data-level="1"] .bn-inline-content { font-weight: 750; letter-spacing: -0.032em; }
+[data-workledger-editor] [data-content-type="heading"][data-level="2"] { --level: 23px; }
+[data-workledger-editor] [data-content-type="heading"][data-level="3"] { --level: 19px; }
+[data-workledger-editor] [data-content-type="heading"][data-level="4"] { --level: 18px; }
+/* The entry's first block starts right under the meta row. */
+[data-workledger-editor] .bn-block-group > .bn-block-outer:first-child [data-content-type="heading"] { padding-top: 0; }
+@media (max-width: 767px) {
+  [data-workledger-editor] [data-content-type="heading"] { --level: 28px; }
+  [data-workledger-editor] [data-content-type="heading"][data-level="2"] { --level: 21px; }
+  [data-workledger-editor] [data-content-type="heading"][data-level="3"] { --level: 18px; }
+}
 [data-workledger-editor] [data-content-type="heading"][data-level="5"],
 [data-workledger-editor] [data-content-type="heading"][data-level="6"] { --level: 1rem; }
 
 /* The colored nav icon carries the view's identity, so the active row stays quiet. */
 .notebook-view-active {
-  background: var(--color-notebook-surface-alt);
+  background: var(--color-notebook-highlight);
   color: var(--color-notebook-text);
 }
 
 /* Keep scrolling available without displaying scrollbar tracks in the sidebar. */
 .notebook-sidebar, .notebook-sidebar * { scrollbar-width: none; }
 .notebook-sidebar::-webkit-scrollbar, .notebook-sidebar *::-webkit-scrollbar { display: none; }
-.notebook-search-panel:has(input:focus-visible) {
-  border-color: var(--color-notebook-accent);
-  box-shadow: 0 0 0 1px var(--color-notebook-accent), 0 16px 40px #0002;
+.notebook-search-panel {
+  border: 1.5px solid var(--color-notebook-frame);
+  box-shadow: 8px 8px 0 var(--color-notebook-primary);
 }
 .notebook-search-panel input:focus-visible { outline: none; }
 /* These show focus themselves (the composer box ring, the handle's accent bar);
    the global outline above is unlayered, so Tailwind's outline-none can't remove it. */
 .ai-composer-input:focus-visible, .resize-handle:focus-visible { outline: none; }
+
+/* In the components layer so Tailwind utilities (e.g. max-lg:hidden) still override these. */
+@layer components {
+/* ── Paper page: every day is a sheet on the desk ──
+   Fixed measure: 680px of text, 56px gutters (they hold BlockNote's side menu). */
+:root {
+  --measure: 680px;
+  --sheet-pad: 56px;
+  --sheet-w: calc(var(--measure) + 2 * var(--sheet-pad) + 3px);
+}
+
+.day-sheet {
+  width: 100%;
+  max-width: var(--sheet-w);
+  margin: 0 auto 32px;
+  background: var(--color-notebook-surface);
+  border: 1.5px solid var(--color-notebook-frame);
+  border-radius: 6px;
+  /* clip, not hidden: hidden would turn the sheet into a scroll container and break the sticky head. */
+  overflow: clip;
+}
+.day-sheet:first-child { margin-top: 32px; }
+
+/* Page head: sticks below the app header while its page is in view. */
+.day-head {
+  position: sticky;
+  top: var(--app-header-h);
+  z-index: 10;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-height: 56px;
+  padding: 16px var(--sheet-pad) 14px;
+  background: var(--color-notebook-surface);
+  border-bottom: 1.5px solid var(--color-notebook-frame);
+}
+.day-head-detail { font-size: 14px; color: var(--color-notebook-muted); }
+.day-head-count {
+  margin-left: auto;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--color-notebook-muted);
+}
+
+/* One entry inside a sheet. Hairlines separate entries; the gap between sheets separates days. */
+.entry-slot + .entry-slot { border-top: 1px solid var(--color-notebook-ruling); }
+.day-sheet .entry-card {
+  padding: 22px var(--sheet-pad) 30px;
+  /* The entry with the caret gets the landing card's margin strip. Changes on focus enter/leave only. */
+  box-shadow: inset 0 0 0 transparent;
+}
+.day-sheet .entry-card:focus-within { box-shadow: inset 4px 0 0 var(--color-notebook-primary); }
+
+/* Meta row: time, signifier, actions. */
+.entry-toolbar { display: flex; align-items: center; gap: 10px; min-height: 28px; margin-bottom: 12px; }
+.entry-time { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--color-notebook-muted); }
+
+/* Controls that only matter on hover: shown on hover and keyboard focus. Opacity only,
+   with their space kept, so the text never moves. Touch screens always show them. */
+@media (hover: hover) {
+  .entry-card .ghost { opacity: 0; }
+  .entry-card:hover .ghost, .entry-card .ghost:focus-visible, .entry-card .ghost[aria-expanded="true"] { opacity: 1; }
+}
+
+/* Signifier stickers: pastel fill, ink frame, ink text, plus a glyph so color is never the only cue. */
+.sticker {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 24px; padding: 0 8px;
+  border: 1.5px solid var(--color-notebook-frame); border-radius: 4px;
+  font-size: 12.5px; font-weight: 700; line-height: 1;
+  color: #202331; background: var(--sticker, var(--color-notebook-surface-alt));
+}
+.sticker[data-signifier="decision"] { --sticker: #bfe3cc; }
+.sticker[data-signifier="small-win"] { --sticker: #f9d4b4; }
+.sticker[data-signifier="idea"] { --sticker: #f5c9d3; }
+.sticker[data-signifier="rfd"] { --sticker: #d9cff2; }
+.sticker[data-signifier="milestone"] { --sticker: #c9daf5; }
+.sticker[data-signifier="question"] { --sticker: #bfe2e3; }
+.sticker-ghost {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 24px; padding: 0 8px;
+  border: 1px dashed var(--color-notebook-border); border-radius: 4px;
+  font-size: 12.5px; font-weight: 600; color: var(--color-notebook-muted);
+}
+.sticker-ghost:hover { color: var(--color-notebook-text); border-color: var(--color-notebook-frame); }
+
+/* Tags: neutral chips everywhere. */
+.tag-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 24px; padding: 0 8px;
+  border: 1px solid var(--color-notebook-border); border-radius: 4px;
+  font-size: 12.5px; font-weight: 600; color: var(--color-notebook-muted);
+  background: var(--color-notebook-surface);
+}
+
+/* Header controls */
+.header-button {
+  min-width: 36px; height: 36px; padding: 0 8px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 6px; color: var(--color-notebook-muted);
+}
+.header-button:hover { background: var(--color-notebook-surface-alt); color: var(--color-notebook-text); }
+.header-button[aria-pressed="true"] { background: var(--color-notebook-highlight); color: var(--color-notebook-text); }
+.header-search {
+  height: 36px; padding: 0 10px; gap: 8px;
+  display: inline-flex; align-items: center;
+  border: 1px solid var(--color-notebook-border); border-radius: 6px;
+  background: var(--color-notebook-surface); color: var(--color-notebook-muted); font-size: 14px;
+}
+.header-search:hover { border-color: var(--color-notebook-frame); color: var(--color-notebook-text); }
+.header-search kbd {
+  font-family: var(--font-mono); font-size: 11px; padding: 1px 5px;
+  border: 1px solid var(--color-notebook-border); border-radius: 3px;
+}
+
+/* The primary action: butter fill, ink frame, a solid ink offset like the landing's buttons. */
+.primary-split {
+  display: inline-flex; align-items: stretch; height: 36px;
+  border: 1.5px solid var(--color-notebook-frame); border-radius: 6px;
+  box-shadow: 3px 3px 0 var(--color-notebook-lift);
+  overflow: hidden;
+}
+.primary-split > button { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; }
+.primary-split > button + button { border-left: 1.5px solid var(--color-notebook-frame); }
+.primary-split:has(button:active) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--color-notebook-lift); }
+
+/* Mobile: sheets run nearly edge to edge. */
+@media (max-width: 767px) {
+  :root { --sheet-pad: 16px; }
+  .day-sheet { margin-bottom: 20px; }
+  .day-sheet:first-child { margin-top: 16px; }
+  .day-head { min-height: 46px; padding-top: 12px; padding-bottom: 10px; }
+  .entry-preview-row { padding-left: var(--sheet-pad); padding-right: var(--sheet-pad); }
+}
+
+/* Checkboxes: butter when done, like the landing's checklist. */
+[data-workledger-editor] input[type="checkbox"] { accent-color: var(--color-notebook-primary); }
+
+/* Focus mode lifts its one sheet off the desk; on phones it is the whole screen. */
+.day-sheet-focus { box-shadow: 8px 8px 0 var(--color-notebook-primary); }
+@media (max-width: 767px) {
+  /* Cancels main's 16px side padding. */
+  .day-sheet-focus { width: auto; margin: 0 -16px; border: 0; border-radius: 0; box-shadow: none; }
+  .day-sheet-focus:first-child { margin-top: 0; }
+}
+}

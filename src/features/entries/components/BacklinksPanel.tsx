@@ -62,7 +62,7 @@ export const BacklinksPanel = memo(function BacklinksPanel({ entryId }: Backlink
   if (backlinks.length === 0) return null;
 
   return (
-    <div className="mx-1 mt-4 mb-1 border-t border-dashed border-[var(--color-notebook-border)] py-3">
+    <div className="mt-4 pt-3 border-t border-[var(--color-notebook-ruling)]">
       <button
         onClick={() => setExpanded((p) => !p)}
         aria-expanded={expanded}
@@ -70,8 +70,8 @@ export const BacklinksPanel = memo(function BacklinksPanel({ entryId }: Backlink
       >
         <ChevronRightIcon size={10} strokeWidth={2.5} className={`transition-transform duration-200 ${expanded ? "rotate-90" : ""}`} />
         <LinkIcon size={12} />
-        <span className="uppercase tracking-wider font-medium">Referenced by</span>
-        <span className="text-[10px] opacity-60">{backlinks.length}</span>
+        <span className="uppercase tracking-[0.12em] font-bold">Referenced by</span>
+        <span className="font-bold">{backlinks.length}</span>
       </button>
       {expanded && (
         <div className="flex flex-wrap gap-1.5 mt-2">
@@ -79,7 +79,7 @@ export const BacklinksPanel = memo(function BacklinksPanel({ entryId }: Backlink
             <button
               key={bl.id}
               onClick={() => emit("navigate-entry", { entryId: bl.id })}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium text-[var(--color-notebook-accent)] hover:bg-[var(--color-notebook-surface-alt)] transition-colors"
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-sm font-semibold text-[var(--color-notebook-text)] bg-[var(--color-notebook-highlight)] hover:brightness-95"
               title={formatDayKey(bl.dayKey)}
             >
               <FileIcon size={10} className="opacity-50" />

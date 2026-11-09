@@ -155,7 +155,7 @@ function ExcalidrawRenderer({
     return (
       <div ref={containerRef} className="excalidraw-block my-2 relative" style={{ width: "100%" }}>
         <div
-          className="excalidraw-preview cursor-pointer rounded-lg overflow-hidden hover:ring-2 hover:ring-orange-300 transition-all"
+          className="excalidraw-preview cursor-pointer rounded-lg overflow-hidden hover:ring-2 hover:ring-[var(--color-notebook-primary)] transition-all"
           style={{ height: `${previewHeight}px` }}
           onClick={() => setIsEditing(true)}
           dangerouslySetInnerHTML={{ __html: safePreviewSvg }}

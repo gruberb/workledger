@@ -22,14 +22,11 @@ export function TagEditor({ tags, onChange }: TagEditorProps) {
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5 px-1">
+    <div className="flex flex-wrap items-center gap-1.5">
       {tags.map((tag) => (
         <span
           key={tag}
-          className={`
-            inline-flex items-center gap-1 px-2 py-0.5 rounded border border-current/15 text-xs font-medium
-            bg-[var(--color-notebook-surface)] text-[var(--color-notebook-muted)]
-          `}
+          className="tag-chip"
         >
           #{tag}
           <button
@@ -50,7 +47,7 @@ export function TagEditor({ tags, onChange }: TagEditorProps) {
       ) : (
         <button
           onClick={() => setIsAdding(true)}
-          className="text-xs text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] transition-colors px-1.5 py-0.5 rounded hover:bg-stone-100 dark:hover:bg-stone-800"
+          className="sticker-ghost ghost"
         >
           + tag
         </button>

@@ -104,8 +104,8 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, isFi
       {/* Focus mode overlay; the main list stays mounted but hidden to keep scroll state */}
       {isFocused && (
         focusedEntry ? (
-          <div>
-            <div className={`flex items-center gap-3 px-1 sticky top-0 sticky-header ${preview ? "py-2" : "pt-4 pb-3"}`}>
+          <div className="day-sheet day-sheet-focus">
+            <div className="day-head">
               <button
                 onClick={onExitFocus}
                 className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
@@ -121,7 +121,7 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, isFi
                 <EntryDetailControls entry={focusedEntry} actions={actions} isArchiveView={isArchiveView} onGone={onExitFocus ?? noop} />
               )}
             </div>
-            <div className={preview ? "pt-3" : "pt-4"}>
+            <div>
               <EntryCard
                 entry={focusedEntry}
                 isLatest={focusedEntry.id === autoFocusEntryId}
@@ -143,7 +143,7 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, isFi
       )}
 
       {/* Filtering hides day headers, which otherwise give the first entry its top space. */}
-      <div style={{ display: isFocused ? "none" : undefined }} className={isFiltering ? "pt-4" : undefined}>
+      <div style={{ display: isFocused ? "none" : undefined }}>
         {isFiltering && sortedDays.length === 0 && (
           <div className="flex flex-col items-center text-center py-16">
             <p className="text-gray-400 text-sm">No entries match these filters</p>
@@ -151,14 +151,14 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, isFi
         )}
 
         {pinnedEntries.length > 0 && (
-          <div className="mb-2">
-            <div className="flex items-center gap-2 pt-6 pb-3 px-1 sticky top-0 sticky-header">
-              <PinIcon filled className="text-orange-400" />
-              <span className="text-[11px] uppercase tracking-wider text-orange-400 font-medium">Pinned</span>
-              <span className="text-[10px] text-gray-300">{pinnedEntries.length}</span>
+          <section className="day-sheet">
+            <div className="day-head">
+              <PinIcon filled className="self-center text-[var(--color-notebook-text)]" />
+              <h2 className="text-[var(--color-notebook-text)] day-header-font">Pinned</h2>
+              <span className="day-head-count">{pinnedEntries.length}</span>
             </div>
             {pinnedEntries.filter((e) => e.id !== focusedEntryId).map((entry) => (
-              <div key={entry.id}>
+              <div key={entry.id} className="entry-slot">
                 {preview ? (
                   <EntryPreviewRow entry={entry} onOpen={handleOpen} />
                 ) : (
@@ -166,19 +166,19 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, isFi
                 )}
               </div>
             ))}
-          </div>
+          </section>
         )}
 
         {[...unpinnedByDay].map(([dayKey, entries]) => {
           const dayLimit = dayRenderLimits.get(dayKey) ?? entries.length;
           const entriesToRender = dayLimit >= entries.length ? entries : entries.slice(0, dayLimit);
           return (
-            <div key={dayKey} id={`day-${dayKey}`}>
+            <section key={dayKey} id={`day-${dayKey}`} className="day-sheet">
               {!isFiltering && (
                 <DayHeader dayKey={dayKey} entryCount={entries.length} />
               )}
               {entriesToRender.map((entry, idx) => (
-                <div key={entry.id} className={idx === 0 && !isFiltering && !preview ? "mt-3" : ""}>
+                <div key={entry.id} className="entry-slot">
                   {preview ? (
                     <EntryPreviewRow entry={entry} onOpen={handleOpen} />
                   ) : (
@@ -192,7 +192,7 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, isFi
                   )}
                 </div>
               ))}
-            </div>
+            </section>
           );
         })}
       </div>

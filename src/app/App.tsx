@@ -177,6 +177,9 @@ function AppContent() {
               {isMobile && canCreate && (
                 <NewEntryIconButton onClick={handleHeaderNewEntry} onCreateFromTemplate={handleNewEntryFromTemplate} />
               )}
+              {!isMobile && canCreate && !focusedEntryId && (
+                <NewEntryButton onClick={handleNewEntry} onCreateFromTemplate={handleNewEntryFromTemplate} />
+              )}
               {/* The AI sidebar is desktop-only. The button stays while it is open
                   (pressed), so the header buttons never jump. */}
               {!isMobile && aiSettings.enabled && (
@@ -216,7 +219,6 @@ function AppContent() {
         )}
       </AppShell>
 
-      {!isMobile && canCreate && !focusedEntryId && <NewEntryButton onClick={handleNewEntry} onCreateFromTemplate={handleNewEntryFromTemplate} aiSidebarOpen={aiSidebarOpen} />}
 
       <SearchDialog isOpen={searchOpen} onClose={closeSearch} onResultClick={revealEntry} />
 

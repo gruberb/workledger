@@ -10,22 +10,17 @@ interface HeaderButtonProps {
   pressed?: boolean;
 }
 
-/** Round icon button sized for the header; other controls in the header use it too. */
+/** Square icon button for the header; other controls in the header use it too. */
 export function HeaderButton({ label, onClick, children, title, pressed }: HeaderButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`min-w-9 h-9 px-2 rounded-md border flex items-center justify-center transition-colors shrink-0 hover:text-[var(--color-notebook-text)] ${
-        pressed
-          ? "border-[var(--color-notebook-accent)] bg-[var(--color-notebook-surface-alt)] text-[var(--color-notebook-accent)]"
-          : "border-[var(--color-notebook-border)] bg-[var(--color-notebook-surface)] text-[var(--color-notebook-muted)]"
-      }`}
+      className="header-button shrink-0"
       title={title ?? label}
       aria-label={label}
       aria-pressed={pressed}
     >
       {children}
-      {label === "Search" && <span className="hidden lg:inline ml-2 text-sm">Search</span>}
     </button>
   );
 }
@@ -57,7 +52,7 @@ export function AppHeader({ title, sidebarOpen, onMenu, onSearch, actions, filte
 
   if (filters) {
     return (
-      <header className="sticky top-0 z-20 h-[var(--app-header-h)] bg-[var(--color-notebook-bg)] border-b border-[var(--color-notebook-border)]">
+      <header className="sticky top-0 z-20 h-[var(--app-header-h)] bg-[var(--color-notebook-bg)] border-b-[1.5px] border-[var(--color-notebook-frame)]">
         <div className="h-full w-full flex items-center gap-3 px-4 md:px-12">
           {menuButton}
           <div className="flex-1 min-w-0">{filters}</div>
@@ -68,16 +63,24 @@ export function AppHeader({ title, sidebarOpen, onMenu, onSearch, actions, filte
   }
 
   return (
-    <header className="sticky top-0 z-20 h-[var(--app-header-h)] bg-[var(--color-notebook-bg)] border-b border-[var(--color-notebook-border)]">
+    <header className="sticky top-0 z-20 h-[var(--app-header-h)] bg-[var(--color-notebook-bg)] border-b-[1.5px] border-[var(--color-notebook-frame)]">
       {/* Equal side columns keep the title centered, so collapsing the sidebar (which
           adds the menu button) does not shift it. */}
       <div className="h-full w-full mx-auto grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-4 md:px-12">
         <div className="flex items-center">{menuButton}</div>
         <div className="min-w-0">{title}</div>
         <div className="flex items-center justify-end gap-2">
-          <HeaderButton label="Search" title="Search (⌘K)" onClick={onSearch}>
-            <SearchIcon size={18} />
-          </HeaderButton>
+          {/* A field-shaped button on wide screens, an icon on narrow ones. */}
+          <button className="header-search max-lg:hidden" onClick={onSearch} title="Search (⌘K)">
+            <SearchIcon size={16} />
+            <span className="w-28 text-left">Search notes</span>
+            <kbd>⌘K</kbd>
+          </button>
+          <span className="lg:hidden">
+            <HeaderButton label="Search" title="Search (⌘K)" onClick={onSearch}>
+              <SearchIcon size={18} />
+            </HeaderButton>
+          </span>
           {actions}
         </div>
       </div>

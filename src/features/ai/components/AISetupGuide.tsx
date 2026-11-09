@@ -24,7 +24,7 @@ function keySteps(site: string, page: string) {
     <>
       <p className="text-xs text-gray-600 dark:text-gray-300 font-medium mb-2">Bring your own key:</p>
       <ol className="text-xs text-gray-500 space-y-1.5 list-decimal list-inside">
-        <li>Sign in at <span className="text-orange-600 font-medium">{site}</span></li>
+        <li>Sign in at <span className="text-[var(--color-notebook-accent)] underline font-medium">{site}</span></li>
         <li>Create a key under {page}</li>
         <li>Paste it below. Requests go straight from this browser to the provider; supports web search</li>
       </ol>
@@ -39,7 +39,7 @@ const INSTRUCTIONS: Record<AIProviderType, ReactNode> = {
     <>
       <p className="text-xs text-gray-600 dark:text-gray-300 font-medium mb-2">Quick setup:</p>
       <ol className="text-xs text-gray-500 space-y-1.5 list-decimal list-inside">
-        <li>Install Ollama from <span className="text-orange-600 font-medium">ollama.com</span></li>
+        <li>Install Ollama from <span className="text-[var(--color-notebook-accent)] underline font-medium">ollama.com</span></li>
         <li>Run <code className={codeClass}>ollama pull mistral</code> in terminal</li>
         <li>Start Ollama, then check that <code className={codeClass}>http://localhost:11434/api/tags</code> responds</li>
         <li>For a hosted WorkLedger origin, add that origin to Ollama&apos;s <code className={codeClass}>OLLAMA_ORIGINS</code> setting</li>
@@ -50,7 +50,7 @@ const INSTRUCTIONS: Record<AIProviderType, ReactNode> = {
     <>
       <p className="text-xs text-gray-600 dark:text-gray-300 font-medium mb-2">Quick setup:</p>
       <ol className="text-xs text-gray-500 space-y-1.5 list-decimal list-inside">
-        <li>Create a free account at <span className="text-orange-600 font-medium">huggingface.co</span></li>
+        <li>Create a free account at <span className="text-[var(--color-notebook-accent)] underline font-medium">huggingface.co</span></li>
         <li>Go to Settings &gt; Access Tokens</li>
         <li>Create a token and paste it below</li>
       </ol>
@@ -145,7 +145,7 @@ export function AISetupGuide({ settings, onUpdateSettings, onConnectionSuccess }
             onClick={handleSave}
             disabled={!!configError}
             title={configError ?? undefined}
-            className="flex-1 py-2 text-sm rounded-lg bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50 transition-colors"
+            className="flex-1 py-2 text-sm rounded-lg notebook-primary  disabled:opacity-50 transition-colors"
           >
             Save & Connect
           </button>

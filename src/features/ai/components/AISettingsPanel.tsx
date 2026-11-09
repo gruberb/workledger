@@ -73,7 +73,7 @@ export function AISettingsPanel({ settings, onUpdateSettings, status, configErro
           <select
             value={settings.provider}
             onChange={(e) => { flush(); onUpdateSettings({ provider: e.target.value as AISettings["provider"] }); }}
-            className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-orange-300 bg-white dark:bg-[#1a1a1a] dark:text-gray-300"
+            className="w-full text-sm border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 outline-none focus:border-[var(--color-notebook-frame)] bg-white dark:bg-[#1a1a1a] dark:text-gray-300"
           >
             <option value="ollama">Ollama (Local)</option>
             <option value="anthropic">Anthropic</option>
@@ -92,7 +92,7 @@ export function AISettingsPanel({ settings, onUpdateSettings, status, configErro
               type="checkbox"
               checked={settings.webSearch}
               onChange={(e) => onUpdateSettings({ webSearch: e.target.checked })}
-              className="mt-0.5 accent-orange-500"
+              className="mt-0.5 accent-[var(--color-notebook-primary)]"
             />
             <span>
               Web search for research actions
@@ -114,7 +114,7 @@ export function AISettingsPanel({ settings, onUpdateSettings, status, configErro
             step="0.1"
             value={settings.temperature}
             onChange={(e) => onUpdateSettings({ temperature: parseFloat(e.target.value) })}
-            className="w-full accent-orange-500"
+            className="w-full accent-[var(--color-notebook-primary)]"
           />
           <div className="flex justify-between text-[10px] text-gray-400">
             <span>Focused</span>
@@ -133,7 +133,7 @@ export function AISettingsPanel({ settings, onUpdateSettings, status, configErro
             step="256"
             value={settings.maxTokens}
             onChange={(e) => onUpdateSettings({ maxTokens: parseInt(e.target.value) })}
-            className="w-full accent-orange-500"
+            className="w-full accent-[var(--color-notebook-primary)]"
           />
           <div className="flex justify-between text-[10px] text-gray-400">
             <span>Shorter</span>

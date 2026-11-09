@@ -51,7 +51,7 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Bottom panel resize
-  const [bottomHeight, setBottomHeight] = useState(160);
+  const [bottomHeight, setBottomHeight] = useState(240);
   const [filtersCollapsed, setFiltersCollapsed] = useState(false);
   const [signifiersCollapsed, setSignifiersCollapsed] = useState(false);
   const [tagsCollapsed, setTagsCollapsed] = useState(false);
@@ -126,8 +126,7 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
         inert={!isOpen}
         className={`
           notebook-sidebar fixed top-0 left-0 h-dvh ${isMobile ? "z-40" : "z-0"}
-          bg-[var(--color-notebook-surface)] border-r border-[var(--color-notebook-border)]
-          shadow-[1px_0_12px_rgba(0,0,0,0.03)] dark:shadow-[1px_0_12px_rgba(0,0,0,0.3)]
+          bg-[var(--color-notebook-bg)] border-r-[1.5px] border-[var(--color-notebook-frame)]
           transition-transform duration-300 ease-in-out
           ${isMobile ? "w-[85%] max-w-sm" : "w-[var(--sidebar-w)]"} pt-[23px] pb-5 px-[22px]
           flex flex-col
@@ -201,11 +200,11 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
               onMouseDown={handleDragStart}
               className="h-2 cursor-row-resize flex items-center justify-center group"
             >
-              <div className="w-8 h-0.5 rounded-full bg-gray-200 dark:bg-gray-700 group-hover:bg-gray-400 dark:group-hover:bg-gray-500 transition-colors" />
+              <div className="w-10 h-1 rounded-full bg-[var(--color-notebook-border)] group-hover:bg-[var(--color-notebook-muted)]" />
             </div>
             <div
-              className="border-t border-[var(--color-notebook-border)] pt-2 overflow-y-auto"
-              style={{ maxHeight: `min(${bottomHeight}px, 35dvh)` }}
+              className="border-t border-[var(--color-notebook-ruling)] pt-2 overflow-y-auto"
+              style={{ maxHeight: `min(${bottomHeight}px, 45dvh)` }}
             >
               <SavedFilterSection
                 onSave={saveCurrentFilter}

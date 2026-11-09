@@ -86,7 +86,7 @@ export function SaveFilterButton({ onSave, savedFilters, selectedTags = [], sele
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") { setOpen(false); setName(""); } }}
             placeholder="Filter name"
-            className="w-full text-xs bg-[var(--color-notebook-surface-alt)] border border-[var(--color-notebook-border)] rounded px-2 py-1.5 outline-none focus:border-orange-400 text-[var(--color-notebook-text)] placeholder:text-[var(--color-notebook-muted)] mb-2"
+            className="w-full text-xs bg-[var(--color-notebook-surface-alt)] border border-[var(--color-notebook-border)] rounded px-2 py-1.5 outline-none focus:border-[var(--color-notebook-frame)] text-[var(--color-notebook-text)] placeholder:text-[var(--color-notebook-muted)] mb-2"
             autoFocus
           />
           <button

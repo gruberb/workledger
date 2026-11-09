@@ -4,7 +4,7 @@ import type { EntryActions, WorkLedgerEntry } from "../types/entry.ts";
 import { EXPORT_FORMATS, SIGNIFIER_CONFIG } from "../types/entry.ts";
 import { formatTime } from "../../../utils/dates.ts";
 import { ConfirmAction } from "../../../components/ui/ConfirmAction.tsx";
-import { ArchiveIcon, CheckIcon, ChevronRightIcon, DownloadIcon, ExpandIcon, LinkIcon, PinIcon, RestoreIcon, TrashIcon } from "../../../components/ui/Icons.tsx";
+import { ArchiveIcon, CheckIcon, DownloadIcon, ExpandIcon, LinkIcon, MoreIcon, PinIcon, RestoreIcon, TrashIcon } from "../../../components/ui/Icons.tsx";
 import { SignifierPicker } from "./SignifierPicker.tsx";
 import { copyEntryLink } from "../utils/entry-link.ts";
 
@@ -30,13 +30,14 @@ export function EntryToolbar({ entry, actions, isArchiveView }: EntryToolbarProp
   };
 
   return (
-    <div className="entry-toolbar flex flex-wrap items-center gap-x-3 gap-y-1 mb-2 px-1 min-h-9">
-      <span className="text-xs text-[var(--color-notebook-muted)] font-mono">{formatTime(entry.createdAt)}</span>
+    <div className="entry-toolbar flex-wrap">
+      <span className="entry-time">{formatTime(entry.createdAt)}</span>
       {isArchiveView && <span className="text-xs text-[var(--color-notebook-muted)]">Archived</span>}
       {onSignifierChange && !isArchiveView && (
         <SignifierPicker value={entry.signifier} onChange={(s) => onSignifierChange(entry.id, s)} />
       )}
-      {isArchiveView && signifier && <span className={`text-xs font-medium ${signifier.color}`}>{signifier.label}</span>}
+      {isArchiveView && signifier && <span className="sticker" data-signifier={entry.signifier}>{signifier.label}</span>}
+      {entry.isPinned && <PinIcon filled className="text-[var(--color-notebook-muted)]" aria-label="Pinned" />}
       <div className="ml-auto flex items-center gap-1">
         {confirming ? (
           <ConfirmAction
@@ -52,16 +53,15 @@ export function EntryToolbar({ entry, actions, isArchiveView }: EntryToolbarProp
         ) : (
           <>
             {!isArchiveView && onFocus && (
-              <button className="entry-action" onClick={() => onFocus(entry)} title="Focus on this entry">
+              <button className="entry-action ghost" onClick={() => onFocus(entry)} title="Focus on this entry">
                 <ExpandIcon /> <span>Focus</span>
               </button>
             )}
             {/* Mantine handles keyboard navigation, portal positioning and focus return. */}
             <Menu position="bottom-end" offset={6} width={220} withinPortal zIndex={400} onOpen={() => setCopyStatus("idle")}>
               <Menu.Target>
-                <button className="entry-action" aria-label="Entry actions">
-                  {entry.isPinned && <PinIcon filled />}
-                  <span>Entry actions</span><ChevronRightIcon className="rotate-90" size={12} />
+                <button className="entry-action ghost" aria-label="Entry actions" title="Entry actions">
+                  <MoreIcon size={16} />
                 </button>
               </Menu.Target>
               <Menu.Dropdown>
