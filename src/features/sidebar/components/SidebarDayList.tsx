@@ -1,8 +1,9 @@
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useEffect, useState } from "react";
 import type { WorkLedgerEntry } from "../../entries/index.ts";
 import { extractTitle } from "../../entries/index.ts";
 import { formatDayKey, todayKey } from "../../../utils/dates.ts";
 import { ChevronRightIcon } from "../../../components/ui/Icons.tsx";
+import { on } from "../../../utils/events.ts";
 import { useActiveDayKey } from "../context/SidebarContext.tsx";
 
 interface SidebarDayRowProps {
@@ -10,6 +11,8 @@ interface SidebarDayRowProps {
   /** The day's entries; the same array until one of them changes. */
   entries: WorkLedgerEntry[] | undefined;
   isHighlighted: boolean;
+  /** The entry the reader is in, when it belongs to this day. */
+  activeEntryId: string | null;
   expanded: boolean;
   onDayClick: (dayKey: string) => void;
   onToggle: (dayKey: string) => void;
@@ -18,7 +21,7 @@ interface SidebarDayRowProps {
 
 // One row per stored day (up to years of them). Memoized so a save in one day
 // does not re-format and re-render every other row.
-const SidebarDayRow = memo(function SidebarDayRow({ dayKey, entries, isHighlighted, expanded, onDayClick, onToggle, onEntryClick }: SidebarDayRowProps) {
+const SidebarDayRow = memo(function SidebarDayRow({ dayKey, entries, isHighlighted, activeEntryId, expanded, onDayClick, onToggle, onEntryClick }: SidebarDayRowProps) {
   const count = entries?.length ?? 0;
   // Titles exist only for loaded days; older days show their count and load on click.
   const canExpand = count > 0;
@@ -48,7 +51,12 @@ const SidebarDayRow = memo(function SidebarDayRow({ dayKey, entries, isHighlight
             <li key={entry.id}>
               <button
                 onClick={() => onEntryClick(entry.id)}
-                className="w-full text-left pl-3 pr-2 py-1 text-[13px] truncate text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] hover:bg-[var(--color-notebook-surface-alt)] rounded-r-md"
+                aria-current={entry.id === activeEntryId || undefined}
+                className={`w-full text-left pl-3 pr-2 py-1 text-[13px] truncate rounded-r-md ${
+                  entry.id === activeEntryId
+                    ? "bg-[var(--color-notebook-highlight)] text-[var(--color-notebook-text)] font-semibold"
+                    : "text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] hover:bg-[var(--color-notebook-surface-alt)]"
+                }`}
               >
                 {extractTitle(entry)}
               </button>
@@ -72,6 +80,9 @@ export const SidebarDayList = memo(function SidebarDayList({ dayKeys, entriesByD
   const activeDayKey = useActiveDayKey();
   const today = todayKey();
   // Days opened or closed by hand. The day being read opens by itself unless closed.
+  // Announced by the entry stream as the reader crosses entries.
+  const [activeEntryId, setActiveEntryId] = useState<string | null>(null);
+  useEffect(() => on("entry-active", ({ entryId }) => setActiveEntryId(entryId)), []);
   const [toggled, setToggled] = useState<ReadonlyMap<string, boolean>>(() => new Map());
   const handleToggle = useCallback((dayKey: string) => {
     setToggled((prev) => new Map(prev).set(dayKey, !(prev.get(dayKey) ?? dayKey === (activeDayKey ?? today))));
@@ -89,12 +100,15 @@ export const SidebarDayList = memo(function SidebarDayList({ dayKeys, entriesByD
       ) : (
         dayKeys.map((dayKey) => {
           const isCurrent = !isArchiveView && dayKey === (activeDayKey ?? today);
+          const entries = entriesByDay.get(dayKey);
+          const dayActiveEntry = activeEntryId && entries?.some((e) => e.id === activeEntryId) ? activeEntryId : null;
           return (
             <SidebarDayRow
               key={dayKey}
               dayKey={dayKey}
-              entries={entriesByDay.get(dayKey)}
+              entries={entries}
               isHighlighted={isCurrent}
+              activeEntryId={dayActiveEntry}
               expanded={toggled.get(dayKey) ?? isCurrent}
               onDayClick={onDayClick}
               onToggle={handleToggle}

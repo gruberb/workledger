@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.7.1] - 2026-11-09
+
+### Changed
+
+- One entry list instead of two: the index beside the pages is gone, and the sidebar marks the entry you are reading under its day. The pages get the full width
+
 ## [4.7.0] - 2026-11-09
 
 ### Added

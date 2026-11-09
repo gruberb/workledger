@@ -10,12 +10,10 @@ import { useProgressiveRender } from "../hooks/useProgressiveRender.ts";
 import { EntryDetailControls } from "./EntryDetailControls.tsx";
 import { EntryPreviewRow } from "./EntryPreviewRow.tsx";
 import { EntryFoldedCard } from "./EntryFoldedCard.tsx";
-import { EntryIndex } from "./EntryIndex.tsx";
 import { useActiveEntry } from "../hooks/useActiveEntry.ts";
 import { extractTitle } from "../utils/extract-title.ts";
 import { useTodayKey } from "../../../hooks/useTodayKey.ts";
-import { on } from "../../../utils/events.ts";
-import { scrollIntoViewSettled, waitForElement } from "../../../utils/scroll.ts";
+import { emit, on } from "../../../utils/events.ts";
 
 interface EntryStreamProps {
   entriesByDay: Map<string, WorkLedgerEntry[]>;
@@ -118,20 +116,13 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, isFi
   const isFocused = !!focusedEntryId;
   const handleOpen = actions.onFocus ?? noop;
 
-  // The entry under the sticky headers drives the index highlight and the day head's title.
+  // The entry under the sticky headers: its title shows in the day head, and the sidebar marks it.
   const mainRef = useRef<HTMLDivElement>(null);
   const layoutKey = `${renderedCount}:${openOverrides.size}:${[...openOverrides.values()].filter(Boolean).length}:${today}`;
   const activeId = useActiveEntry(mainRef, layoutKey, !preview && !isFocused);
   const active = useMemo(() => (activeId ? findEntry(entriesByDay, activeId) : undefined), [activeId, entriesByDay]);
+  useEffect(() => emit("entry-active", { entryId: activeId }), [activeId]);
 
-  const indexDays = useMemo(() => [...unpinnedByDay], [unpinnedByDay]);
-
-  const handleJump = useCallback(async (id: string) => {
-    setOpen([id], true);
-    if (!(await waitForElement(`entry-${id}`))) return;
-    // A frame for the folded preview to be replaced by the open entry.
-    requestAnimationFrame(() => scrollIntoViewSettled(() => document.getElementById(`entry-${id}`)));
-  }, [setOpen]);
 
   if (sortedDays.length === 0 && !isFiltering) {
     return isArchiveView ? <EmptyArchive /> : <EmptyEntries />;
@@ -181,8 +172,7 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, isFi
       )}
 
       {/* The list stays mounted but hidden in focus mode, to keep scroll state. */}
-      <div className="stream-layout" style={{ display: isFocused ? "none" : undefined }}>
-        <div className="stream-main" ref={mainRef}>
+      <div ref={mainRef} style={{ display: isFocused ? "none" : undefined }}>
         {isFiltering && sortedDays.length === 0 && (
           <div className="flex flex-col items-center text-center py-16">
             <p className="text-gray-400 text-sm">No entries match these filters</p>
@@ -246,8 +236,6 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, isFi
             </section>
           );
         })}
-        </div>
-        {!preview && <EntryIndex days={indexDays} activeId={activeId} onJump={handleJump} />}
       </div>
     </div>
   );

@@ -9,6 +9,8 @@ interface AppEvents {
   "navigate-entry": { entryId: string };
   /** Navigation is about to scroll to this entry; a folded entry opens first. */
   "entry-revealed": { entryId: string };
+  /** The entry the reader is in changed (null when none is under the sticky headers). */
+  "entry-active": { entryId: string | null };
   /** Another tab holds an older DB version open, so the upgrade cannot start. */
   "db-blocked": Record<string, never>;
   /** A newer app version opened the DB in another tab; this tab's connection was closed. */
