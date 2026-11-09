@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.7.4] - 2026-11-09
+
+### Changed
+
+- Saved filters, signifiers and tags in the sidebar start collapsed, so the list of days has more room. Click a heading to open it
+
 ## [4.7.3] - 2026-11-09
 
 ### Fixed

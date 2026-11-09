@@ -54,9 +54,10 @@ export function Sidebar({ onDayClick, onEntryClick, settingsItems }: SidebarProp
 
   // Bottom panel resize
   const [bottomHeight, setBottomHeight] = useState(240);
-  const [filtersCollapsed, setFiltersCollapsed] = useState(false);
-  const [signifiersCollapsed, setSignifiersCollapsed] = useState(false);
-  const [tagsCollapsed, setTagsCollapsed] = useState(false);
+  // Collapsed until opened, so the day list keeps the room.
+  const [filtersCollapsed, setFiltersCollapsed] = useState(true);
+  const [signifiersCollapsed, setSignifiersCollapsed] = useState(true);
+  const [tagsCollapsed, setTagsCollapsed] = useState(true);
   const dragRef = useRef<{ startY: number; startHeight: number } | null>(null);
   const handleDragStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
