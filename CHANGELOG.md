@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.7.2] - 2026-11-09
+
+### Fixed
+
+- The entry menu (⋯) and other menus open and close instantly. Closing took about 200ms: the menu's fade-out was invisible, so it simply stayed on screen until the fade ended
+
 ## [4.7.1] - 2026-11-09
 
 ### Changed

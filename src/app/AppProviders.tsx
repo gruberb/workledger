@@ -20,6 +20,15 @@ function AIProviderWithSidebar({ children }: { children: ReactNode }) {
   );
 }
 
+// Menus open and close instantly. Their 150ms fade never showed (app.css forces
+// dropdowns opaque so BlockNote's stay readable), so a closing menu just stayed
+// on screen for 150ms and felt laggy.
+const NO_TRANSITION = { transitionProps: { duration: 0 } };
+const MANTINE_THEME = {
+  fontFamily: "var(--font-sans)",
+  components: { Menu: { defaultProps: NO_TRANSITION }, Popover: { defaultProps: NO_TRANSITION } },
+};
+
 export function AppProviders({ children }: { children: ReactNode }) {
   const { themeId, isDark, fontFamily, setTheme, setFont } = useTheme();
 
@@ -29,7 +38,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
   );
 
   return (
-    <MantineProvider forceColorScheme={isDark ? "dark" : "light"} theme={{ fontFamily: "var(--font-sans)" }}>
+    <MantineProvider forceColorScheme={isDark ? "dark" : "light"} theme={MANTINE_THEME}>
       <ThemeContext.Provider value={contextValue}>
         <EntriesProvider>
           <SyncProvider>
