@@ -1,73 +1,104 @@
-import { memo } from "react";
+import { memo, useCallback, useState } from "react";
+import type { WorkLedgerEntry } from "../../entries/index.ts";
+import { extractTitle } from "../../entries/index.ts";
 import { formatDayKey, todayKey } from "../../../utils/dates.ts";
+import { ChevronRightIcon } from "../../../components/ui/Icons.tsx";
 import { useActiveDayKey } from "../context/SidebarContext.tsx";
 
 interface SidebarDayRowProps {
   dayKey: string;
-  count: number;
+  /** The day's entries; the same array until one of them changes. */
+  entries: WorkLedgerEntry[] | undefined;
   isHighlighted: boolean;
+  expanded: boolean;
   onDayClick: (dayKey: string) => void;
+  onToggle: (dayKey: string) => void;
+  onEntryClick: (entryId: string) => void;
 }
 
-// One row per stored day (up to years of them). Memoized on primitives so a
-// save in one day does not re-format and re-render every other row.
-const SidebarDayRow = memo(function SidebarDayRow({ dayKey, count, isHighlighted, onDayClick }: SidebarDayRowProps) {
+// One row per stored day (up to years of them). Memoized so a save in one day
+// does not re-format and re-render every other row.
+const SidebarDayRow = memo(function SidebarDayRow({ dayKey, entries, isHighlighted, expanded, onDayClick, onToggle, onEntryClick }: SidebarDayRowProps) {
+  const count = entries?.length ?? 0;
+  // Titles exist only for loaded days; older days show their count and load on click.
+  const canExpand = count > 0;
   return (
-    <button
-      onClick={() => onDayClick(dayKey)}
-      className={`
-        w-full text-left px-2 py-2 md:py-1.5 rounded-md text-sm
-        transition-colors duration-150
-        flex items-center justify-between gap-2
-        ${isHighlighted ? "sidebar-day-active font-medium" : "text-[var(--color-notebook-muted)] hover:bg-[var(--color-notebook-surface-alt)] hover:text-[var(--color-notebook-text)]"}
-      `}
-    >
-      <span className="truncate">
-        {formatDayKey(dayKey)}
-      </span>
-      <span className="flex items-center gap-1.5">
-        {count > 0 && (
-          <span
-            className={`w-1.5 h-1.5 rounded-full ${isHighlighted ? "sidebar-day-dot" : "bg-gray-300 dark:bg-gray-600"}`}
-          />
-        )}
-        <span className={`text-xs ${isHighlighted ? "sidebar-day-count" : "text-gray-400 dark:text-gray-500"}`}>{count}</span>
-      </span>
-    </button>
+    <div>
+      <div className={`flex items-center rounded-md ${isHighlighted ? "sidebar-day-active" : "hover:bg-[var(--color-notebook-surface-alt)]"}`}>
+        <button
+          onClick={() => canExpand && onToggle(dayKey)}
+          className={`w-6 h-8 md:h-7 shrink-0 flex items-center justify-center text-[var(--color-notebook-muted)] ${canExpand ? "" : "invisible"}`}
+          aria-label={expanded ? "Hide entries" : "Show entries"}
+          aria-expanded={expanded}
+          tabIndex={canExpand ? 0 : -1}
+        >
+          <ChevronRightIcon size={12} className={expanded ? "rotate-90" : ""} />
+        </button>
+        <button
+          onClick={() => onDayClick(dayKey)}
+          className={`flex-1 min-w-0 text-left pr-2 py-2 md:py-1.5 text-sm flex items-center justify-between gap-2 ${isHighlighted ? "font-semibold" : "text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)]"}`}
+        >
+          <span className="truncate">{formatDayKey(dayKey)}</span>
+          <span className={`text-xs tabular-nums ${isHighlighted ? "" : "opacity-70"}`}>{count}</span>
+        </button>
+      </div>
+      {expanded && entries && (
+        <ul className="ml-6 mb-1 border-l border-[var(--color-notebook-ruling)]">
+          {entries.map((entry) => (
+            <li key={entry.id}>
+              <button
+                onClick={() => onEntryClick(entry.id)}
+                className="w-full text-left pl-3 pr-2 py-1 text-[13px] truncate text-[var(--color-notebook-muted)] hover:text-[var(--color-notebook-text)] hover:bg-[var(--color-notebook-surface-alt)] rounded-r-md"
+              >
+                {extractTitle(entry)}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 });
 
 interface SidebarDayListProps {
   dayKeys: string[];
-  entriesByDay: Map<string, unknown[]>;
+  entriesByDay: Map<string, WorkLedgerEntry[]>;
   isArchiveView: boolean;
   onDayClick: (dayKey: string) => void;
+  onEntryClick: (entryId: string) => void;
 }
 
-export const SidebarDayList = memo(function SidebarDayList({ dayKeys, entriesByDay, isArchiveView, onDayClick }: SidebarDayListProps) {
+export const SidebarDayList = memo(function SidebarDayList({ dayKeys, entriesByDay, isArchiveView, onDayClick, onEntryClick }: SidebarDayListProps) {
   const activeDayKey = useActiveDayKey();
   const today = todayKey();
+  // Days opened or closed by hand. The day being read opens by itself unless closed.
+  const [toggled, setToggled] = useState<ReadonlyMap<string, boolean>>(() => new Map());
+  const handleToggle = useCallback((dayKey: string) => {
+    setToggled((prev) => new Map(prev).set(dayKey, !(prev.get(dayKey) ?? dayKey === (activeDayKey ?? today))));
+  }, [activeDayKey, today]);
 
   return (
     <nav className="flex-1 overflow-y-auto -mx-2 min-h-24" aria-label={isArchiveView ? "Archived pages" : "Recent pages"}>
-      <h2 className="px-2 pt-2 pb-2 text-xs font-semibold uppercase tracking-widest text-[var(--color-notebook-muted)]">
+      <h2 className="px-2 pt-2 pb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--color-notebook-muted)]">
         {isArchiveView ? "Archived pages" : "Recent pages"}
       </h2>
       {dayKeys.length === 0 ? (
-        <p className="text-sm text-gray-400 px-2">
+        <p className="text-sm text-[var(--color-notebook-muted)] px-2">
           {isArchiveView ? "No archived entries" : "No entries yet"}
         </p>
       ) : (
         dayKeys.map((dayKey) => {
-          const isToday = dayKey === today && !isArchiveView;
-          const isActive = activeDayKey === dayKey && !isArchiveView;
+          const isCurrent = !isArchiveView && dayKey === (activeDayKey ?? today);
           return (
             <SidebarDayRow
               key={dayKey}
               dayKey={dayKey}
-              count={entriesByDay.get(dayKey)?.length || 0}
-              isHighlighted={isActive || (isToday && !activeDayKey)}
+              entries={entriesByDay.get(dayKey)}
+              isHighlighted={isCurrent}
+              expanded={toggled.get(dayKey) ?? isCurrent}
               onDayClick={onDayClick}
+              onToggle={handleToggle}
+              onEntryClick={onEntryClick}
             />
           );
         })

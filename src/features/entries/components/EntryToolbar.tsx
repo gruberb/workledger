@@ -4,7 +4,7 @@ import type { EntryActions, WorkLedgerEntry } from "../types/entry.ts";
 import { EXPORT_FORMATS, SIGNIFIER_CONFIG } from "../types/entry.ts";
 import { formatTime } from "../../../utils/dates.ts";
 import { ConfirmAction } from "../../../components/ui/ConfirmAction.tsx";
-import { ArchiveIcon, CheckIcon, DownloadIcon, ExpandIcon, LinkIcon, MoreIcon, PinIcon, RestoreIcon, TrashIcon } from "../../../components/ui/Icons.tsx";
+import { ArchiveIcon, CheckIcon, ChevronRightIcon, DownloadIcon, ExpandIcon, LinkIcon, MoreIcon, PinIcon, RestoreIcon, TrashIcon } from "../../../components/ui/Icons.tsx";
 import { SignifierPicker } from "./SignifierPicker.tsx";
 import { copyEntryLink } from "../utils/entry-link.ts";
 
@@ -17,7 +17,7 @@ interface EntryToolbarProps {
 export function EntryToolbar({ entry, actions, isArchiveView }: EntryToolbarProps) {
   const [confirming, setConfirming] = useState<"archive" | "delete" | null>(null);
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "failed">("idle");
-  const { onSignifierChange, onPin, onUnpin, onFocus, onArchive, onDelete, onUnarchive, onDownload } = actions;
+  const { onSignifierChange, onPin, onUnpin, onFocus, onFold, onArchive, onDelete, onUnarchive, onDownload } = actions;
   const signifier = entry.signifier ? SIGNIFIER_CONFIG[entry.signifier] : undefined;
 
   const handleCopyLink = async () => {
@@ -52,6 +52,11 @@ export function EntryToolbar({ entry, actions, isArchiveView }: EntryToolbarProp
           />
         ) : (
           <>
+            {onFold && (
+              <button className="entry-action ghost" onClick={() => onFold(entry.id)} title="Fold to a preview">
+                <ChevronRightIcon size={12} className="-rotate-90" /> <span>Fold</span>
+              </button>
+            )}
             {!isArchiveView && onFocus && (
               <button className="entry-action ghost" onClick={() => onFocus(entry)} title="Focus on this entry">
                 <ExpandIcon /> <span>Focus</span>

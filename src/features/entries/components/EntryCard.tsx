@@ -50,7 +50,7 @@ export const EntryCard = memo(function EntryCard({ entry, isLatest, actions, Edi
   const { onTagsChange } = actions;
 
   return (
-    <div className="entry-card scroll-mt-[132px]" id={`entry-${entry.id}`}>
+    <div className="entry-card scroll-mt-[132px]" id={`entry-${entry.id}`} data-entry-id={entry.id}>
       {!bare && <EntryToolbar entry={entry} actions={actions} isArchiveView={isArchiveView} />}
       <div ref={contentRef} className={isArchiveView ? "opacity-80" : undefined}>
         {nearViewport ? (

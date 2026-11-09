@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect, type ReactNode } from "react"
 import { useIsMobile } from "../../../hooks/useIsMobile.ts";
 import { useResizablePanel } from "../../../hooks/useResizablePanel.ts";
 import { ResizeHandle } from "../../../components/ui/ResizeHandle.tsx";
-import type { EntrySignifier } from "../../entries/index.ts";
+import type { EntrySignifier, WorkLedgerEntry } from "../../entries/index.ts";
 import type { SavedFilter } from "../types/saved-filter.ts";
 import { useSidebarUI, useSidebarFilter, useSidebarData } from "../context/SidebarContext.tsx";
 import { useEntriesActions } from "../../entries/index.ts";
@@ -19,11 +19,13 @@ const WIDTH_LIMITS = { min: 240, max: 480, collapseBelow: 180 };
 
 interface SidebarProps {
   onDayClick: (dayKey: string) => void;
+  /** Jumps to an entry, from the titles listed under a day. */
+  onEntryClick: (entryId: string) => void;
   /** Settings menu items from other features (theme, AI, storage), composed by the app. */
   settingsItems?: ReactNode;
 }
 
-export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
+export function Sidebar({ onDayClick, onEntryClick, settingsItems }: SidebarProps) {
   const isMobile = useIsMobile();
   const { isOpen, toggleSidebar, archiveView, reviewView, reviewWeekKey, setReviewWeekKey } = useSidebarUI();
   const { selectedTags, toggleTag, selectedSignifiers, toggleSignifier, savedFilters, saveCurrentFilter, applySavedFilter, deleteSavedFilter } = useSidebarFilter();
@@ -46,7 +48,7 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
   });
 
   const dayKeys = archiveView ? archivedDayKeys : sidebarDayKeys;
-  const entriesByDay = archiveView ? (displayArchivedEntriesByDay as Map<string, unknown[]>) : (displayEntriesByDay as Map<string, unknown[]>);
+  const entriesByDay: Map<string, WorkLedgerEntry[]> = archiveView ? displayArchivedEntriesByDay : displayEntriesByDay;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -81,6 +83,11 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
     onDayClick(dayKey);
     closeOnMobile();
   }, [onDayClick, closeOnMobile]);
+
+  const handleEntryClick = useCallback((entryId: string) => {
+    onEntryClick(entryId);
+    closeOnMobile();
+  }, [onEntryClick, closeOnMobile]);
 
   const handleWeekSelect = useCallback((weekKey: string) => {
     setReviewWeekKey(weekKey);
@@ -189,6 +196,7 @@ export function Sidebar({ onDayClick, settingsItems }: SidebarProps) {
             entriesByDay={entriesByDay}
             isArchiveView={archiveView}
             onDayClick={handleDayClick}
+            onEntryClick={handleEntryClick}
           />
         )}
 

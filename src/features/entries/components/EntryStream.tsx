@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { EntryActions, EntryEditorComponent, WorkLedgerEntry } from "../types/entry.ts";
 import { EntryCard } from "./EntryCard.tsx";
 import { DayHeader } from "../../../components/layout/DayHeader.tsx";
@@ -9,6 +9,13 @@ import { findEntry } from "../utils/entries-state.ts";
 import { useProgressiveRender } from "../hooks/useProgressiveRender.ts";
 import { EntryDetailControls } from "./EntryDetailControls.tsx";
 import { EntryPreviewRow } from "./EntryPreviewRow.tsx";
+import { EntryFoldedCard } from "./EntryFoldedCard.tsx";
+import { EntryIndex } from "./EntryIndex.tsx";
+import { useActiveEntry } from "../hooks/useActiveEntry.ts";
+import { extractTitle } from "../utils/extract-title.ts";
+import { useTodayKey } from "../../../hooks/useTodayKey.ts";
+import { on } from "../../../utils/events.ts";
+import { scrollIntoViewSettled, waitForElement } from "../../../utils/scroll.ts";
 
 interface EntryStreamProps {
   entriesByDay: Map<string, WorkLedgerEntry[]>;
@@ -84,6 +91,22 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, isFi
     return limits;
   }, [renderedCount, unpinnedByDay]);
 
+  // Today's entries start open, older ones folded; a click or navigation overrides that per entry.
+  const today = useTodayKey();
+  const [openOverrides, setOpenOverrides] = useState<ReadonlyMap<string, boolean>>(() => new Map());
+  const setOpen = useCallback((ids: string[], open: boolean) => {
+    setOpenOverrides((prev) => {
+      const next = new Map(prev);
+      for (const id of ids) next.set(id, open);
+      return next;
+    });
+  }, []);
+  const isOpen = (entry: WorkLedgerEntry) => openOverrides.get(entry.id) ?? entry.dayKey === today;
+  const handleOpenEntry = useCallback((id: string) => setOpen([id], true), [setOpen]);
+  const handleFold = useCallback((id: string) => setOpen([id], false), [setOpen]);
+  useEffect(() => on("entry-revealed", ({ entryId }) => setOpen([entryId], true)), [setOpen]);
+  const streamActions = useMemo(() => ({ ...actions, onFold: handleFold }), [actions, handleFold]);
+
   const focusedEntry = useMemo(
     () => (focusedEntryId ? findEntry(entriesByDay, focusedEntryId) : undefined),
     [focusedEntryId, entriesByDay],
@@ -94,6 +117,21 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, isFi
 
   const isFocused = !!focusedEntryId;
   const handleOpen = actions.onFocus ?? noop;
+
+  // The entry under the sticky headers drives the index highlight and the day head's title.
+  const mainRef = useRef<HTMLDivElement>(null);
+  const layoutKey = `${renderedCount}:${openOverrides.size}:${[...openOverrides.values()].filter(Boolean).length}:${today}`;
+  const activeId = useActiveEntry(mainRef, layoutKey, !preview && !isFocused);
+  const active = useMemo(() => (activeId ? findEntry(entriesByDay, activeId) : undefined), [activeId, entriesByDay]);
+
+  const indexDays = useMemo(() => [...unpinnedByDay], [unpinnedByDay]);
+
+  const handleJump = useCallback(async (id: string) => {
+    setOpen([id], true);
+    if (!(await waitForElement(`entry-${id}`))) return;
+    // A frame for the folded preview to be replaced by the open entry.
+    requestAnimationFrame(() => scrollIntoViewSettled(() => document.getElementById(`entry-${id}`)));
+  }, [setOpen]);
 
   if (sortedDays.length === 0 && !isFiltering) {
     return isArchiveView ? <EmptyArchive /> : <EmptyEntries />;
@@ -142,8 +180,9 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, isFi
         )
       )}
 
-      {/* Filtering hides day headers, which otherwise give the first entry its top space. */}
-      <div style={{ display: isFocused ? "none" : undefined }}>
+      {/* The list stays mounted but hidden in focus mode, to keep scroll state. */}
+      <div className="stream-layout" style={{ display: isFocused ? "none" : undefined }}>
+        <div className="stream-main" ref={mainRef}>
         {isFiltering && sortedDays.length === 0 && (
           <div className="flex flex-col items-center text-center py-16">
             <p className="text-gray-400 text-sm">No entries match these filters</p>
@@ -172,29 +211,43 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, isFi
         {[...unpinnedByDay].map(([dayKey, entries]) => {
           const dayLimit = dayRenderLimits.get(dayKey) ?? entries.length;
           const entriesToRender = dayLimit >= entries.length ? entries : entries.slice(0, dayLimit);
+          const allOpen = entries.every(isOpen);
           return (
             <section key={dayKey} id={`day-${dayKey}`} className="day-sheet">
               {!isFiltering && (
-                <DayHeader dayKey={dayKey} entryCount={entries.length} />
+                <DayHeader
+                  dayKey={dayKey}
+                  entryCount={entries.length}
+                  current={active?.dayKey === dayKey ? extractTitle(active) : undefined}
+                  action={preview ? undefined : (
+                    <button className="day-head-toggle" onClick={() => setOpen(entries.map((e) => e.id), !allOpen)}>
+                      {allOpen ? "Fold all" : "Open all"}
+                    </button>
+                  )}
+                />
               )}
               {entriesToRender.map((entry, idx) => (
                 <div key={entry.id} className="entry-slot">
                   {preview ? (
                     <EntryPreviewRow entry={entry} onOpen={handleOpen} />
-                  ) : (
+                  ) : isOpen(entry) ? (
                     <EntryCard
                       entry={entry}
                       isLatest={idx === 0 && !isFiltering && !isArchiveView}
-                      actions={actions}
+                      actions={streamActions}
                       Editor={Editor}
                       isArchiveView={isArchiveView}
                     />
+                  ) : (
+                    <EntryFoldedCard entry={entry} onOpen={handleOpenEntry} />
                   )}
                 </div>
               ))}
             </section>
           );
         })}
+        </div>
+        {!preview && <EntryIndex days={indexDays} activeId={activeId} onJump={handleJump} />}
       </div>
     </div>
   );

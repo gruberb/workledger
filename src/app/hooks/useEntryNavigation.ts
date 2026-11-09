@@ -2,8 +2,8 @@ import { useEffect, useCallback, useRef } from "react";
 import { useEntriesData, useEntriesActions } from "../../features/entries/index.ts";
 import { useSidebarUI, useSetActiveDayKey } from "../../features/sidebar/index.ts";
 import { useFocusModeContext } from "../../features/focus-mode/index.ts";
-import { on } from "../../utils/events.ts";
-import { waitForElement } from "../../utils/scroll.ts";
+import { emit, on } from "../../utils/events.ts";
+import { scrollIntoViewSettled, waitForElement } from "../../utils/scroll.ts";
 
 const SCROLL_SETTLE_MS = 800;
 
@@ -55,15 +55,23 @@ export function useEntryNavigation(visibleDayKeys: string) {
         dayKey = entry.dayKey;
       }
       setActiveDayKey(dayKey);
+      // A folded entry opens, so the scroll lands on its editor.
+      emit("entry-revealed", { entryId });
 
       const el = await waitForElement(`entry-${entryId}`);
       if (!el) return;
       suppressObserver();
       // Scroll to the first heading so the user sees the title, not the toolbar row.
-      const heading = el.querySelector<HTMLElement>("[data-content-type='heading']");
-      (heading ?? el).scrollIntoView({ behavior: "smooth", block: "start" });
-      el.classList.add("entry-link-highlight");
-      setTimeout(() => el.classList.remove("entry-link-highlight"), 2000);
+      scrollIntoViewSettled(() => {
+        const card = document.getElementById(`entry-${entryId}`);
+        return card?.querySelector<HTMLElement>("[data-content-type='heading']") ?? card;
+      });
+      // After the folded preview (if any) has been replaced by the open entry.
+      setTimeout(() => {
+        const card = document.getElementById(`entry-${entryId}`);
+        card?.classList.add("entry-link-highlight");
+        setTimeout(() => card?.classList.remove("entry-link-highlight"), 2000);
+      }, 100);
     },
     [loadEntryById, setActiveDayKey, suppressObserver],
   );

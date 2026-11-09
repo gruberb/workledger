@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.7.0] - 2026-11-09
+
+### Added
+
+- An index of the loaded entries beside the pages, by day, with the entry you are reading highlighted. Click a title to jump to it. It shows when the window has room for it
+- The day head shows the title of the entry you are reading once its own title has scrolled away
+- The sidebar lists the entries under the day you are reading; the chevron opens any other loaded day
+
+### Changed
+
+- Pages use the full width of the window again
+- Older entries are folded to their title, preview and tags, so a long journal is quick to scan and opens no editors until you need them. Click one to open it, use "Open all" or "Fold all" in a day's head, or "Fold" on an open entry. Today's entries start open
+
+### Fixed
+
+- Jumping to an entry from search, a wiki link, the index or the sidebar lands on it. A smooth scroll used to stop thousands of pixels short once the entries above it opened their editors
+
 ## [4.6.0] - 2026-11-09
 
 ### Changed

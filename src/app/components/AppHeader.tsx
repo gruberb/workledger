@@ -71,12 +71,12 @@ export function AppHeader({ title, sidebarOpen, onMenu, onSearch, actions, filte
         <div className="min-w-0">{title}</div>
         <div className="flex items-center justify-end gap-2">
           {/* A field-shaped button on wide screens, an icon on narrow ones. */}
-          <button className="header-search max-lg:hidden" onClick={onSearch} title="Search (⌘K)">
+          <button className="header-search max-[1439px]:hidden" onClick={onSearch} title="Search (⌘K)">
             <SearchIcon size={16} />
             <span className="w-28 text-left">Search notes</span>
             <kbd>⌘K</kbd>
           </button>
-          <span className="lg:hidden">
+          <span className="min-[1440px]:hidden">
             <HeaderButton label="Search" title="Search (⌘K)" onClick={onSearch}>
               <SearchIcon size={18} />
             </HeaderButton>

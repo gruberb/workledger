@@ -7,6 +7,8 @@ interface AppEvents {
   "entry-changed": { entryId: string };
   "entry-deleted": { entryId: string };
   "navigate-entry": { entryId: string };
+  /** Navigation is about to scroll to this entry; a folded entry opens first. */
+  "entry-revealed": { entryId: string };
   /** Another tab holds an older DB version open, so the upgrade cannot start. */
   "db-blocked": Record<string, never>;
   /** A newer app version opened the DB in another tab; this tab's connection was closed. */

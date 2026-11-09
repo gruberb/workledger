@@ -158,6 +158,7 @@ function AppContent() {
 
       <Sidebar
         onDayClick={handleDayClick}
+        onEntryClick={revealEntry}
         settingsItems={<SettingsMenuItems onImportLogseq={handleImportLogseq} />}
       />
       <LogseqImportInput inputRef={logseqInputRef} />

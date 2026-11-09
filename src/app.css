@@ -173,12 +173,6 @@ html[data-resizing], html[data-resizing] * {
   background: var(--color-notebook-surface-alt);
   color: var(--color-notebook-text);
 }
-.sidebar-day-dot {
-  background: var(--color-notebook-accent);
-}
-.sidebar-day-count {
-  color: var(--color-notebook-accent);
-}
 
 /* iOS Safari zooms into any focused field under 16px and stays zoomed after
    it blurs. 16px on small screens prevents that for every input at once; the
@@ -671,17 +665,14 @@ button:not(:disabled), summary { cursor: pointer; }
 /* In the components layer so Tailwind utilities (e.g. max-lg:hidden) still override these. */
 @layer components {
 /* ── Paper page: every day is a sheet on the desk ──
-   Fixed measure: 680px of text, 56px gutters (they hold BlockNote's side menu). */
+   Sheets fill the column beside the entry index; 56px gutters hold BlockNote's side menu. */
 :root {
-  --measure: 680px;
   --sheet-pad: 56px;
-  --sheet-w: calc(var(--measure) + 2 * var(--sheet-pad) + 3px);
 }
 
 .day-sheet {
   width: 100%;
-  max-width: var(--sheet-w);
-  margin: 0 auto 32px;
+  margin: 0 0 32px;
   background: var(--color-notebook-surface);
   border: 1.5px solid var(--color-notebook-frame);
   border-radius: 6px;
@@ -803,6 +794,67 @@ button:not(:disabled), summary { cursor: pointer; }
 
 /* Checkboxes: butter when done, like the landing's checklist. */
 [data-workledger-editor] input[type="checkbox"] { accent-color: var(--color-notebook-primary); }
+
+/* Pages and the entry index side by side. The index only shows when the column
+   leaves the pages enough room (container query). */
+.stream-layout { display: flex; gap: 32px; container-type: inline-size; }
+.stream-main { flex: 1 1 auto; min-width: 0; }
+.entry-index {
+  display: none;
+  flex: 0 0 220px;
+  position: sticky; top: calc(var(--app-header-h) + 32px); align-self: flex-start;
+  max-height: calc(100vh - var(--app-header-h) - 64px); overflow-y: auto;
+  margin-top: 32px; padding-bottom: 16px;
+  scrollbar-width: none;
+}
+@container (min-width: 1000px) { .entry-index { display: block; } }
+.entry-index-day + .entry-index-day { margin-top: 18px; }
+.entry-index-label {
+  padding: 0 8px 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--color-notebook-muted);
+}
+.entry-index-label span { font-weight: 600; letter-spacing: 0.04em; text-transform: none; }
+.entry-index-row {
+  display: flex; align-items: baseline; gap: 8px; width: 100%; text-align: left;
+  padding: 4px 8px; border-radius: 4px; font-size: 13.5px; line-height: 18px; color: var(--color-notebook-muted);
+}
+.entry-index-row:hover { color: var(--color-notebook-text); background: var(--color-notebook-surface-alt); }
+.entry-index-row[data-active] { color: var(--color-notebook-text); background: var(--color-notebook-highlight); font-weight: 650; }
+.entry-index-time { flex: none; font-family: var(--font-mono); font-size: 10.5px; opacity: 0.8; }
+.entry-index-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.entry-index-dot { flex: none; width: 8px; height: 8px; border-radius: 2px; border: 1px solid var(--color-notebook-frame); background: var(--sticker); align-self: center; }
+.entry-index-dot[data-signifier="decision"] { --sticker: #bfe3cc; }
+.entry-index-dot[data-signifier="small-win"] { --sticker: #f9d4b4; }
+.entry-index-dot[data-signifier="idea"] { --sticker: #f5c9d3; }
+.entry-index-dot[data-signifier="rfd"] { --sticker: #d9cff2; }
+.entry-index-dot[data-signifier="milestone"] { --sticker: #c9daf5; }
+.entry-index-dot[data-signifier="question"] { --sticker: #bfe2e3; }
+
+/* Day head: the entry being read replaces the date; the toggle opens or folds the day. */
+.day-head-current { font-size: 14px; font-weight: 650; color: var(--color-notebook-text); min-width: 0; }
+.day-head-current::before { content: "· "; color: var(--color-notebook-muted); font-weight: 400; }
+.day-head-toggle {
+  flex: none; align-self: center; height: 26px; padding: 0 8px; border-radius: 4px;
+  font-size: 12px; font-weight: 600; color: var(--color-notebook-muted);
+}
+.day-head-toggle:hover { background: var(--color-notebook-surface-alt); color: var(--color-notebook-text); }
+
+/* Folded entry: title, preview, tags. No editor. */
+.entry-folded {
+  display: block; width: 100%; text-align: left;
+  padding: 18px var(--sheet-pad) 20px;
+}
+.entry-folded:hover { background: color-mix(in srgb, var(--color-notebook-surface-alt) 55%, transparent); }
+.entry-folded-meta { display: flex; align-items: center; gap: 10px; min-height: 24px; color: var(--color-notebook-muted); }
+.entry-folded-title {
+  display: block; margin-top: 8px; font-size: 22px; line-height: 28px; font-weight: 750; letter-spacing: -0.02em;
+  color: var(--color-notebook-text);
+}
+.entry-folded-preview {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  margin-top: 4px; font-size: 16px; line-height: 25px; color: var(--color-notebook-muted);
+}
+.entry-folded-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 
 /* Focus mode lifts its one sheet off the desk; on phones it is the whole screen. */
 .day-sheet-focus { box-shadow: 8px 8px 0 var(--color-notebook-primary); }

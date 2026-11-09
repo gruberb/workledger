@@ -116,6 +116,8 @@ export interface EntryActions {
   onUnpin?: (id: string) => void;
   onSignifierChange?: (id: string, signifier: EntrySignifier | undefined) => void;
   onFocus?: (entry: WorkLedgerEntry) => void;
+  /** Folds an open entry back to its preview (older days start folded). */
+  onFold?: (entryId: string) => void;
   onDownload?: (entry: WorkLedgerEntry, format: ExportFormat) => void;
 }
 
