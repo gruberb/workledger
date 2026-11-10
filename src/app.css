@@ -684,8 +684,9 @@ button:not(:disabled), summary { cursor: pointer; }
   background: var(--color-notebook-surface);
   border: 1.5px solid var(--color-notebook-frame);
   border-radius: 6px;
-  /* clip, not hidden: hidden would turn the sheet into a scroll container and break the sticky head. */
-  overflow: clip;
+  /* visible: the tag and signifier dropdowns open below short entries and must not be cut off at the sheet edge.
+     The head and last slot round their own corners instead. */
+  overflow: visible;
 }
 .day-sheet:first-child { margin-top: 32px; }
 
@@ -701,6 +702,7 @@ button:not(:disabled), summary { cursor: pointer; }
   padding: 16px var(--sheet-pad) 14px;
   background: var(--color-notebook-surface);
   border-bottom: 1.5px solid var(--color-notebook-frame);
+  border-radius: 4.5px 4.5px 0 0;
 }
 .day-head-detail { font-size: 14px; color: var(--color-notebook-muted); }
 .day-head-count {
@@ -711,6 +713,7 @@ button:not(:disabled), summary { cursor: pointer; }
 
 /* One entry inside a sheet. Hairlines separate entries; the gap between sheets separates days. */
 .entry-slot + .entry-slot { border-top: 1px solid var(--color-notebook-ruling); }
+.entry-slot:last-child, .entry-slot:last-child .entry-card { border-radius: 0 0 4.5px 4.5px; }
 .day-sheet .entry-card {
   padding: 22px var(--sheet-pad) 30px;
   /* The entry with the caret gets the landing card's margin strip. Changes on focus enter/leave only. */

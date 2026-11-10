@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.7.5] - 2026-11-10
+
+### Fixed
+
+- The tag and signifier dropdowns are no longer cut off at the bottom of a short note, such as a new empty one
+
 ## [4.7.4] - 2026-11-09
 
 ### Changed
