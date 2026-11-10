@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.8.0] - 2026-11-10
+
+### Added
+
+- Open loops: every unchecked checklist item and every note marked Question, from all your notes (older ones too), grouped into the last 7 days, the last 30 days and older. Done checks an item off, Drop checks it off and strikes it through, Answered removes the Question signifier. All three change the note itself, so you undo them by editing the note. The tag and signifier filters work here too. Click a note's title to open it
+
+### Removed
+
+- The weekly review. Open loops takes its place in the sidebar and the view menu
+
+### Fixed
+
+- Opening a note from another view (search from the archive, or a note's title in Open loops) opens it if it was folded, instead of scrolling to the folded preview
+- Notes created from a template and not edited yet show their heading as the title in lists, not "Untitled entry"
+
 ## [4.7.5] - 2026-11-10
 
 ### Fixed

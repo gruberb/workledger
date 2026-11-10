@@ -43,7 +43,7 @@
 - **Tags and saved filters**: filter by tags and signifiers, save the combination for one click. Active filters show in the header with Save and Clear all
 - **Search**: full-text search across entries and tags (`Cmd+K`)
 - **Pin and archive**: pin entries to the top; archive old ones and restore them anytime
-- **Weekly review**: pick an ISO week to see its entries, signifier counts and top tags
+- **Open loops**: every unchecked checklist item and open question across all notes, grouped by age; check items off or drop them without opening the note
 - **RFDs**: write RFDs as entries, tag them by project, and filter by the RFD signifier plus the project tag to see a project's RFDs
 
 ### Make it yours

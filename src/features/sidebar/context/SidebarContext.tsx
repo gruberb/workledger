@@ -7,12 +7,10 @@ import { loadSavedFilters, persistSavedFilters } from "../storage/saved-filters.
 import { savedFilterMatches } from "../utils/saved-filters.ts";
 import { generateId } from "../../../utils/id.ts";
 import { useIsMobile } from "../../../hooks/useIsMobile.ts";
-import { todayKey } from "../../../utils/dates.ts";
-import { isoWeekKey } from "../../../utils/weeks.ts";
 
 // --- Context value types ---
 
-export type SidebarView = "journal" | "review" | "archive";
+export type SidebarView = "journal" | "loops" | "archive";
 
 interface SidebarUIValue {
   isOpen: boolean;
@@ -20,12 +18,9 @@ interface SidebarUIValue {
   setSidebarOpen: (open: boolean) => void;
   archiveView: boolean;
   toggleArchiveView: () => void;
-  reviewView: boolean;
-  toggleReviewView: () => void;
-  /** ISO week shown by the weekly review; reset to the current week whenever the review opens. */
-  reviewWeekKey: string;
-  setReviewWeekKey: (weekKey: string) => void;
-  /** The view currently shown, derived from archiveView/reviewView. */
+  loopsView: boolean;
+  toggleLoopsView: () => void;
+  /** The view currently shown, derived from archiveView/loopsView. */
   view: SidebarView;
   /** Switches straight to a view; does nothing if it is already shown. */
   setView: (view: SidebarView) => void;
@@ -90,8 +85,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(() => !isMobile);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [archiveView, setArchiveView] = useState(false);
-  const [reviewView, setReviewView] = useState(false);
-  const [reviewWeekKey, setReviewWeekKey] = useState(() => isoWeekKey(todayKey()));
+  const [loopsView, setLoopsView] = useState(false);
   const [activeDayKey, setActiveDayKey] = useState<string | null>(null);
   const [selectedSignifiers, setSelectedSignifiers] = useState<EntrySignifier[]>([]);
 
@@ -116,28 +110,27 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     // silently carry over and filter archived entries.
     setSelectedTags([]);
     setSelectedSignifiers([]);
-    setReviewView(false);
+    setLoopsView(false);
   }, [archiveView, refreshArchive]);
 
-  const toggleReviewView = useCallback(() => {
-    if (!reviewView) setReviewWeekKey(isoWeekKey(todayKey()));
-    setReviewView((prev) => !prev);
+  const toggleLoopsView = useCallback(() => {
+    setLoopsView((prev) => !prev);
     if (archiveView) {
       setArchiveView(false);
     }
-  }, [archiveView, reviewView]);
+  }, [archiveView]);
 
   const setView = useCallback((view: SidebarView) => {
     if (view === "archive") {
       if (!archiveView) toggleArchiveView();
-    } else if (view === "review") {
-      if (!reviewView) toggleReviewView();
+    } else if (view === "loops") {
+      if (!loopsView) toggleLoopsView();
     } else if (archiveView) {
       toggleArchiveView();
-    } else if (reviewView) {
-      toggleReviewView();
+    } else if (loopsView) {
+      toggleLoopsView();
     }
-  }, [archiveView, reviewView, toggleArchiveView, toggleReviewView]);
+  }, [archiveView, loopsView, toggleArchiveView, toggleLoopsView]);
 
   // --- Filter actions ---
 
@@ -270,13 +263,11 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
     setSidebarOpen,
     archiveView,
     toggleArchiveView,
-    reviewView,
-    toggleReviewView,
-    reviewWeekKey,
-    setReviewWeekKey,
-    view: archiveView ? "archive" : reviewView ? "review" : "journal",
+    loopsView,
+    toggleLoopsView,
+    view: archiveView ? "archive" : loopsView ? "loops" : "journal",
     setView,
-  }), [isOpen, toggleSidebar, setSidebarOpen, archiveView, toggleArchiveView, reviewView, toggleReviewView, reviewWeekKey, setView]);
+  }), [isOpen, toggleSidebar, setSidebarOpen, archiveView, toggleArchiveView, loopsView, toggleLoopsView, setView]);
 
   const filterValue: SidebarFilterValue = useMemo(() => ({
     selectedTags,

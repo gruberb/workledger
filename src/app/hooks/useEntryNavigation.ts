@@ -17,7 +17,7 @@ const SCROLL_SETTLE_MS = 800;
 export function useEntryNavigation(visibleDayKeys: string) {
   const { entriesByDay, loading } = useEntriesData();
   const { loadEntryById, loadDay } = useEntriesActions();
-  const { archiveView, toggleArchiveView, reviewView, toggleReviewView } = useSidebarUI();
+  const { archiveView, toggleArchiveView, loopsView, toggleLoopsView } = useSidebarUI();
   const setActiveDayKey = useSetActiveDayKey();
   const { focusedEntryId, handleExitFocus } = useFocusModeContext();
   // Callbacks read the latest map through a ref: depending on it would hand the
@@ -55,7 +55,8 @@ export function useEntryNavigation(visibleDayKeys: string) {
         dayKey = entry.dayKey;
       }
       setActiveDayKey(dayKey);
-      // A folded entry opens, so the scroll lands on its editor.
+      // A folded entry opens, so the scroll lands on its editor. A stream that
+      // mounts after this (coming from another view) opens it from the URL hash.
       emit("entry-revealed", { entryId });
 
       const el = await waitForElement(`entry-${entryId}`);
@@ -77,18 +78,18 @@ export function useEntryNavigation(visibleDayKeys: string) {
   );
 
   /**
-   * Shows an entry from anywhere (search, weekly review). The target card is
-   * hidden in focus mode and absent in the archive and review views, so leave
+   * Shows an entry from anywhere (search, open loops). The target card is
+   * hidden in focus mode and absent in the archive and open-loops views, so leave
    * those first.
    */
   const revealEntry = useCallback(
     (entryId: string) => {
       if (focusedEntryId) handleExitFocus();
       if (archiveView) toggleArchiveView();
-      if (reviewView) toggleReviewView();
+      if (loopsView) toggleLoopsView();
       navigateToEntry(entryId);
     },
-    [focusedEntryId, handleExitFocus, archiveView, toggleArchiveView, reviewView, toggleReviewView, navigateToEntry],
+    [focusedEntryId, handleExitFocus, archiveView, toggleArchiveView, loopsView, toggleLoopsView, navigateToEntry],
   );
 
   const handleDayClick = useCallback(async (dayKey: string) => {

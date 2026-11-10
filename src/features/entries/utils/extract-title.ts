@@ -4,16 +4,23 @@ interface InlineLike {
   type?: string;
   text?: string;
   props?: { displayText?: string };
+  content?: InlineLike[];
 }
 
-/** Plain text of one block's inline content, including wiki-link labels. */
-function blockText(block: unknown): string {
+function inlineText(c: InlineLike): string {
+  if (c.type === "text") return c.text ?? "";
+  if (c.type === "entryLink") return c.props?.displayText ?? "";
+  if (c.type === "link" && Array.isArray(c.content)) return c.content.map(inlineText).join("");
+  return "";
+}
+
+/** Plain text of one block's inline content, including link and wiki-link labels. */
+export function blockText(block: unknown): string {
   const content = (block as { content?: unknown }).content;
+  // Template blocks are PartialBlocks, which may hold plain strings until the editor saves them.
+  if (typeof content === "string") return content.trim();
   if (!Array.isArray(content)) return "";
-  return (content as InlineLike[])
-    .map((c) => (c.type === "text" ? c.text ?? "" : c.type === "entryLink" ? c.props?.displayText ?? "" : ""))
-    .join("")
-    .trim();
+  return (content as InlineLike[]).map(inlineText).join("").trim();
 }
 
 function truncate(text: string, max: number): string {

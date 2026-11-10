@@ -6,7 +6,7 @@ export { useAutoSave } from "./hooks/useAutoSave.ts";
 
 // Components
 export { EntryStream } from "./components/EntryStream.tsx";
-export { ReviewStream } from "./components/ReviewStream.tsx";
+export { OpenLoopsStream } from "./components/OpenLoopsStream.tsx";
 export { NewEntryButton } from "./components/NewEntryButton.tsx";
 export { NewEntryIconButton } from "./components/NewEntryIconButton.tsx";
 

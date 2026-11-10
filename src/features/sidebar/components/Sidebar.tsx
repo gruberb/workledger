@@ -11,7 +11,6 @@ import { SidebarDayList } from "./SidebarDayList.tsx";
 import { SidebarTagCloud } from "./SidebarTagCloud.tsx";
 import { SavedFilterSection } from "./SavedFilters.tsx";
 import { SignifierFilter } from "./SignifierFilter.tsx";
-import { SidebarWeekList } from "./SidebarWeekList.tsx";
 import { SidebarNav } from "./SidebarNav.tsx";
 import { ImportExport } from "./ImportExport.tsx";
 
@@ -27,7 +26,7 @@ interface SidebarProps {
 
 export function Sidebar({ onDayClick, onEntryClick, settingsItems }: SidebarProps) {
   const isMobile = useIsMobile();
-  const { isOpen, toggleSidebar, archiveView, reviewView, reviewWeekKey, setReviewWeekKey } = useSidebarUI();
+  const { isOpen, toggleSidebar, archiveView, loopsView } = useSidebarUI();
   const { selectedTags, toggleTag, selectedSignifiers, toggleSignifier, savedFilters, saveCurrentFilter, applySavedFilter, deleteSavedFilter } = useSidebarFilter();
   const {
     displayEntriesByDay,
@@ -89,11 +88,6 @@ export function Sidebar({ onDayClick, onEntryClick, settingsItems }: SidebarProp
     onEntryClick(entryId);
     closeOnMobile();
   }, [onEntryClick, closeOnMobile]);
-
-  const handleWeekSelect = useCallback((weekKey: string) => {
-    setReviewWeekKey(weekKey);
-    closeOnMobile();
-  }, [setReviewWeekKey, closeOnMobile]);
 
   const handleApplyFilter = useCallback((f: SavedFilter) => {
     applySavedFilter(f);
@@ -183,15 +177,8 @@ export function Sidebar({ onDayClick, onEntryClick, settingsItems }: SidebarProp
         <div className="flex-1 min-h-0 flex flex-col overflow-y-auto px-2 -mx-2">
         <SidebarNav onSelect={closeOnMobile} />
 
-        {/* Day list or Week list */}
-        {reviewView ? (
-          <SidebarWeekList
-            dayKeys={dayKeys}
-            entriesByDay={entriesByDay}
-            selectedWeekKey={reviewWeekKey}
-            onSelect={handleWeekSelect}
-          />
-        ) : (
+        {/* Open loops lists items, not days; the filters below still narrow it. */}
+        {!loopsView && (
           <SidebarDayList
             dayKeys={dayKeys}
             entriesByDay={entriesByDay}

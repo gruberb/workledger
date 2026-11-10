@@ -36,23 +36,26 @@ export async function putEntry(entry: WorkLedgerEntry): Promise<void> {
 
 /**
  * Read-modify-write in one transaction so concurrent writers (autosave, pin,
- * tags) cannot overwrite each other's fields. Returns undefined when the entry
- * no longer exists, e.g. a pending autosave firing after delete.
+ * tags) cannot overwrite each other's fields. Returns undefined when nothing
+ * was written: the entry no longer exists (e.g. a pending autosave firing after
+ * delete), or a function patch returned null.
  */
 export async function patchEntry(
   id: string,
-  patch: EntryPatch | ((current: WorkLedgerEntry) => EntryPatch),
+  patch: EntryPatch | ((current: WorkLedgerEntry) => EntryPatch | null),
 ): Promise<WorkLedgerEntry | undefined> {
   const db = await getDB();
   const tx = db.transaction("entries", "readwrite");
   const raw = await tx.store.get(id);
-  if (!raw) {
+  const current = raw ? normalizeEntry(raw) : undefined;
+  // A function patch reads the stored version inside the transaction, e.g. to
+  // append blocks, and returns null when that version no longer needs the change.
+  const resolved = current && (typeof patch === "function" ? patch(current) : patch);
+  if (!current || !resolved) {
     await tx.done;
     return undefined;
   }
-  const current = normalizeEntry(raw);
-  // A function patch reads the stored version inside the transaction, e.g. to append blocks.
-  const updated = applyPatch(current, typeof patch === "function" ? patch(current) : patch);
+  const updated = applyPatch(current, resolved);
   await Promise.all([tx.store.put(updated), tx.done]);
   return updated;
 }

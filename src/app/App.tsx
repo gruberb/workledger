@@ -3,7 +3,7 @@ import { AppShell } from "../components/layout/AppShell.tsx";
 import { ErrorBoundary } from "../components/ui/ErrorBoundary.tsx";
 import { Sidebar } from "../features/sidebar/index.ts";
 import { useSidebarUI, useSidebarFilter, useSidebarData } from "../features/sidebar/index.ts";
-import { EntryStream, ReviewStream, NewEntryButton, NewEntryIconButton, useEntriesData, useEntriesActions, type EntryActions, type EntryTemplate, type WorkLedgerEntry } from "../features/entries/index.ts";
+import { EntryStream, OpenLoopsStream, NewEntryButton, NewEntryIconButton, useEntriesData, useEntriesActions, type EntryActions, type EntryTemplate, type WorkLedgerEntry } from "../features/entries/index.ts";
 import { SearchDialog } from "../features/search/index.ts";
 import { useFocusModeContext } from "../features/focus-mode/index.ts";
 import { useAIContext } from "../features/ai/index.ts";
@@ -47,7 +47,7 @@ function AppContent() {
   const isMobile = useIsMobile();
   const { loading, error } = useEntriesData();
   const { createEntry, saveEntryContent, updateEntryTags, archiveEntry, unarchiveEntry, deleteEntry, pinEntry, unpinEntry, updateEntrySignifier, setLoadAll } = useEntriesActions();
-  const { isOpen: sidebarOpen, toggleSidebar, archiveView, reviewView, reviewWeekKey, setReviewWeekKey } = useSidebarUI();
+  const { isOpen: sidebarOpen, toggleSidebar, archiveView, loopsView } = useSidebarUI();
   const { selectedTags, selectedSignifiers, hasActiveFilters, removeTag, toggleSignifier, clearAllFilters, saveCurrentFilter, savedFilters } = useSidebarFilter();
   const { isFiltering, displayEntriesByDay, displayArchivedEntriesByDay } = useSidebarData();
   const { focusedEntryId, handleFocusEntry, handleExitFocus } = useFocusModeContext();
@@ -58,7 +58,7 @@ function AppContent() {
     root?.classList.add("bn-scroll-container");
     return () => root?.classList.remove("bn-scroll-container");
   }, [isMobile, focusedEntryId]);
-  const { settings: aiSettings, sidebarOpen: aiSidebarOpen, handleToggleAISidebar, available: aiAvailable, setSidebarOpen: setAISidebarOpen } = useAIContext();
+  const { settings: aiSettings, sidebarOpen: aiSidebarOpen, handleToggleAISidebar } = useAIContext();
   const [searchOpen, setSearchOpen] = useState(false);
   const openSearch = useCallback(() => setSearchOpen(true), []);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
@@ -68,12 +68,11 @@ function AppContent() {
   const visibleDayKeys = useMemo(() => [...visibleEntriesByDay.keys()].join("|"), [visibleEntriesByDay]);
   const { revealEntry, handleDayClick } = useEntryNavigation(visibleDayKeys);
 
-  // Filters only see in-memory entries; load all of them while filtering the main view.
+  // Filters only see in-memory entries; load all of them while filtering the journal.
+  // Open loops reads every entry itself.
   useEffect(() => {
-    setLoadAll(isFiltering && !archiveView);
-  }, [isFiltering, archiveView, setLoadAll]);
-
-  const aiActionsAvailable = aiSettings.enabled && aiAvailable && !isMobile;
+    setLoadAll(isFiltering && !archiveView && !loopsView);
+  }, [isFiltering, archiveView, loopsView, setLoadAll]);
 
   const { handleDownload, status: downloadStatus } = useEntryDownload();
   const actions = useMemo<EntryActions>(() => archiveView
@@ -98,10 +97,6 @@ function AppContent() {
 
   const logseqInputRef = useRef<HTMLInputElement>(null);
   const handleImportLogseq = useCallback(() => logseqInputRef.current?.click(), []);
-
-  const handleReviewOpenAI = useCallback(() => {
-    setAISidebarOpen(true);
-  }, [setAISidebarOpen]);
 
   // Small screens show previews, so a new entry opens full-screen instead of scrolling to a card.
   const [newEntryId, setNewEntryId] = useState<string | null>(null);
@@ -136,14 +131,14 @@ function AppContent() {
 
   // The full-screen entry has its own header (back, info, actions).
   const showHeader = !(isMobile && focusedEntryId);
-  const canCreate = !archiveView && !reviewView;
+  const canCreate = !archiveView && !loopsView;
 
-  // Filters replace the view title in the header; the review and full-screen entry don't apply them.
-  const filterBanner = hasActiveFilters && !reviewView && !focusedEntryId ? (
+  // Filters replace the view title in the header; the full-screen entry doesn't apply them.
+  const filterBanner = hasActiveFilters && !focusedEntryId ? (
     <FilterBanner
       selectedTags={selectedTags}
       selectedSignifiers={selectedSignifiers}
-      count={visibleCount}
+      count={loopsView ? undefined : visibleCount}
       onRemoveTag={removeTag}
       onRemoveSignifier={toggleSignifier}
       onClearAll={clearAllFilters}
@@ -197,14 +192,8 @@ function AppContent() {
           />
         ) : undefined}
       >
-        {reviewView ? (
-          <ReviewStream
-            entriesByDay={displayEntriesByDay}
-            weekKey={reviewWeekKey}
-            onWeekChange={setReviewWeekKey}
-            onEntryClick={revealEntry}
-            onOpenAI={aiActionsAvailable ? handleReviewOpenAI : undefined}
-          />
+        {loopsView ? (
+          <OpenLoopsStream tags={selectedTags} signifiers={selectedSignifiers} onEntryClick={revealEntry} />
         ) : (
           <EntryStream
             entriesByDay={visibleEntriesByDay}

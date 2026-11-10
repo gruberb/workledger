@@ -91,7 +91,12 @@ export function EntryStream({ entriesByDay, actions, Editor, isArchiveView, isFi
 
   // Today's entries start open, older ones folded; a click or navigation overrides that per entry.
   const today = useTodayKey();
-  const [openOverrides, setOpenOverrides] = useState<ReadonlyMap<string, boolean>>(() => new Map());
+  // Navigating here from another view sets #entry-<id> before this stream mounts,
+  // so its entry-revealed event fired before the listener below existed.
+  const [openOverrides, setOpenOverrides] = useState<ReadonlyMap<string, boolean>>(() => {
+    const revealed = window.location.hash.match(/^#entry-(.+)$/)?.[1];
+    return new Map(revealed ? [[revealed, true]] : []);
+  });
   const setOpen = useCallback((ids: string[], open: boolean) => {
     setOpenOverrides((prev) => {
       const next = new Map(prev);

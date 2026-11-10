@@ -6,7 +6,8 @@ import { SIGNIFIER_CONFIG, type EntrySignifier } from "../../features/entries/in
 interface FilterBannerProps {
   selectedTags: string[];
   selectedSignifiers: EntrySignifier[];
-  count: number;
+  /** Matching entries; omitted where the view shows its own count (open loops). */
+  count?: number;
   onRemoveTag: (tag: string) => void;
   onRemoveSignifier: (signifier: EntrySignifier) => void;
   onClearAll: () => void;
@@ -45,9 +46,11 @@ export function FilterBanner({ selectedTags, selectedSignifiers, count, onRemove
           <Chip key={tag} label={tag} className={getTagColor(tag)} onRemove={() => onRemoveTag(tag)} />
         ))}
       </div>
-      <span className="text-xs text-[var(--color-notebook-muted)] whitespace-nowrap shrink-0">
-        {count} {count === 1 ? "entry" : "entries"}
-      </span>
+      {count !== undefined && (
+        <span className="text-xs text-[var(--color-notebook-muted)] whitespace-nowrap shrink-0">
+          {count} {count === 1 ? "entry" : "entries"}
+        </span>
+      )}
       <div className="ml-auto flex items-center gap-1 shrink-0">
         {onSaveFilter && (
           <SaveFilterButton

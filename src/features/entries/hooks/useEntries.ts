@@ -159,9 +159,9 @@ export function useEntries() {
     return entry;
   }, []);
 
-  const writeBlocks = useCallback(async (id: string, patch: (current: WorkLedgerEntry) => { blocks: PartialBlock[] }) => {
+  const writeBlocks = useCallback(async (id: string, patch: (current: WorkLedgerEntry) => { blocks: PartialBlock[] } | null) => {
     const updated = await patchEntry(id, patch);
-    if (!updated) return false; // deleted while the save was pending
+    if (!updated) return false; // deleted while the save was pending, or the patch had nothing to change
     const { blocks } = updated;
     // `updated.blocks` is the caller's array; the editor compares by reference
     // to recognise its own save when the state comes back.
@@ -185,6 +185,16 @@ export function useEntries() {
   /** Adds blocks after the stored content, e.g. an AI reply. False when the entry is gone. */
   const appendEntryBlocks = useCallback(
     (id: string, blocks: PartialBlock[]) => writeBlocks(id, (current) => ({ blocks: [...current.blocks, ...blocks] })),
+    [writeBlocks],
+  );
+
+  /** Rewrites the stored blocks; `edit` returns null to leave the entry untouched. False when nothing was written. */
+  const editEntryBlocks = useCallback(
+    (id: string, edit: (blocks: PartialBlock[]) => PartialBlock[] | null) =>
+      writeBlocks(id, (current) => {
+        const blocks = edit(current.blocks);
+        return blocks ? { blocks } : null;
+      }),
     [writeBlocks],
   );
 
@@ -268,6 +278,7 @@ export function useEntries() {
     createEntry,
     saveEntryContent,
     appendEntryBlocks,
+    editEntryBlocks,
     updateEntryTags,
     archiveEntry,
     unarchiveEntry,

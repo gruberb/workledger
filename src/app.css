@@ -371,7 +371,7 @@ html[data-resizing], html[data-resizing] * {
 }
 
 /* Always reserve the scrollbar's width. Otherwise the long Journal gets a
-   scrollbar and the short Archive and Weekly review do not, and every centered
+   scrollbar and the short Archive and Open loops do not, and every centered
    element shifts by half its width when switching views. */
 html {
   scrollbar-gutter: stable;
@@ -622,7 +622,7 @@ button:not(:disabled), summary { cursor: pointer; }
   display: grid; place-items: center; width: 24px; height: 24px; border-radius: 6px;
   border: 1px solid #202331; color: #202331; background: #f4d66b; flex-shrink: 0;
 }
-.notebook-nav-icon[data-view="review"] { background: #bfe3cc; }
+.notebook-nav-icon[data-view="loops"] { background: #bfe3cc; }
 .notebook-nav-icon[data-view="archive"] { background: #f4b49d; }
 .mantine-Menu-item { color: var(--color-notebook-text); font-family: var(--font-sans); }
 .mantine-Menu-item:hover, .mantine-Menu-item[data-hovered] { background: var(--color-notebook-surface-alt); }
@@ -839,4 +839,11 @@ button:not(:disabled), summary { cursor: pointer; }
   .day-sheet-focus { width: auto; margin: 0 -16px; border: 0; border-radius: 0; box-shadow: none; }
   .day-sheet-focus:first-child { margin-top: 0; }
 }
+
+  /* Open loops: one row per open item, an empty box in front like the note's checklist. */
+  .open-loop-item { display: flex; align-items: center; gap: 10px; min-height: 36px; }
+  .open-loop-item::before {
+    content: ""; flex-shrink: 0; width: 14px; height: 14px;
+    border: 1.5px solid var(--color-notebook-frame); border-radius: 3px;
+  }
 }
