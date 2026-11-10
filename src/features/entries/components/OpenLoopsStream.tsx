@@ -41,7 +41,7 @@ function withoutClosing(buckets: OpenLoopBucket[], closing: Set<string>): OpenLo
 
 /**
  * Unchecked checklist items and open questions from every note. Done checks the
- * item, Drop checks it and strikes it through, Answered removes the Question
+ * item, Drop strikes it through and leaves it unchecked, Answered removes the Question
  * signifier. All three change the note itself, so undoing is editing the note.
  */
 export function OpenLoopsStream({ tags, signifiers, onEntryClick }: OpenLoopsStreamProps) {
@@ -102,49 +102,38 @@ export function OpenLoopsStream({ tags, signifiers, onEntryClick }: OpenLoopsStr
   }
 
   const buckets = withoutClosing(loaded, closing);
-  const groups = buckets.flatMap((b) => b.groups);
-  const itemCount = groups.reduce((n, g) => n + g.tasks.length + (g.isQuestion ? 1 : 0), 0);
   const filtered = tags.length > 0 || signifiers.length > 0;
 
+  // Same paper layout as the journal: each age bucket is a sheet, each note a slot in it.
   return (
     <div className="entry-stream pb-16">
-      <div className="px-1 py-4 mb-2">
-        <h2 className="font-display text-xl font-semibold tracking-[-0.03em] text-[var(--color-notebook-text)]">Open loops</h2>
-        <p className="text-xs text-[var(--color-notebook-muted)]">
-          {itemCount === 0
-            ? filtered ? "Nothing open in the filtered notes" : "Nothing open"
-            : `${itemCount} open ${itemCount === 1 ? "item" : "items"} in ${groups.length} ${groups.length === 1 ? "note" : "notes"}`}
-        </p>
-      </div>
-
-      {itemCount === 0 ? (
-        <div className="flex flex-col items-center text-center py-16 px-4">
-          <ChecklistIcon size={48} strokeWidth={1} className="text-gray-300 dark:text-gray-600 mb-4" />
-          <p className="max-w-sm text-sm text-[var(--color-notebook-muted)]">
-            Unchecked checklist items and notes marked Question show up here, from every note, oldest ones included.
-          </p>
-        </div>
+      {buckets.length === 0 ? (
+        <section className="day-sheet">
+          <div className="day-head">
+            <h2 className="text-[var(--color-notebook-text)] day-header-font">{filtered ? "Nothing open in the filtered notes" : "Nothing open"}</h2>
+          </div>
+          <div className="open-loop-empty">
+            <ChecklistIcon size={40} strokeWidth={1.25} className="text-[var(--color-notebook-muted)]" />
+            <p>Unchecked checklist items and notes marked Question show up here, from every note, oldest ones included.</p>
+          </div>
+        </section>
       ) : (
-        <div className="space-y-6">
-          {buckets.map((bucket) => (
-            <section key={bucket.label} aria-label={bucket.label}>
-              <h3 className="px-1 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-[var(--color-notebook-muted)]">
-                {bucket.label}
-              </h3>
-              <div className="divide-y divide-[var(--color-notebook-border)] border-y border-[var(--color-notebook-border)]">
-                {bucket.groups.map((group) => (
-                  <LoopGroup
-                    key={group.entry.id}
-                    group={group}
-                    onOpen={onEntryClick}
-                    onClose={handleClose}
-                    onAnswered={handleAnswered}
-                  />
-                ))}
+        buckets.map((bucket) => {
+          const count = bucket.groups.reduce((n, g) => n + g.tasks.length + (g.isQuestion ? 1 : 0), 0);
+          return (
+            <section key={bucket.label} className="day-sheet" aria-label={bucket.label}>
+              <div className="day-head">
+                <h2 className="text-[var(--color-notebook-text)] day-header-font">{bucket.label}</h2>
+                <span className="day-head-count">{count} open</span>
               </div>
+              {bucket.groups.map((group) => (
+                <div key={group.entry.id} className="entry-slot">
+                  <LoopGroup group={group} onOpen={onEntryClick} onClose={handleClose} onAnswered={handleAnswered} />
+                </div>
+              ))}
             </section>
-          ))}
-        </div>
+          );
+        })
       )}
     </div>
   );
@@ -157,31 +146,26 @@ interface LoopGroupProps {
   onAnswered: (entryId: string) => void;
 }
 
+/** One note, laid out like a folded journal entry, with its open items below the title. */
 function LoopGroup({ group, onOpen, onClose, onAnswered }: LoopGroupProps) {
   const { entry, title, ageDays, tasks, isQuestion } = group;
   const signifier = entry.signifier ? SIGNIFIER_CONFIG[entry.signifier] : undefined;
 
   return (
-    <div className="px-1 py-3">
-      <div className="flex items-baseline gap-3">
-        <button
-          onClick={() => onOpen(entry.id)}
-          className="flex-1 min-w-0 truncate text-left font-display text-[15px] font-medium text-[var(--color-notebook-text)] hover:underline"
-          title="Open note"
-        >
-          {title}
-        </button>
-        <span className="shrink-0 font-mono text-xs text-[var(--color-notebook-muted)]" title={formatDayKey(entry.dayKey)}>
-          {formatAge(ageDays)}
-        </span>
+    <div className="open-loop-group">
+      <div className="entry-folded-meta">
+        <span className="entry-time" title={formatDayKey(entry.dayKey)}>{formatAge(ageDays)}</span>
+        {signifier && <span className="sticker" data-signifier={entry.signifier}>{signifier.label}</span>}
       </div>
-      {(signifier || entry.tags.length > 0) && (
-        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-          {signifier && <span className="sticker !h-5 !px-1.5 !text-[11px]" data-signifier={entry.signifier}>{signifier.label}</span>}
-          {entry.tags.map((tag) => <span key={tag} className="tag-chip !h-5 !text-[11px]">#{tag}</span>)}
+      <button onClick={() => onOpen(entry.id)} className="entry-folded-title open-loop-title" title="Open note">
+        {title}
+      </button>
+      {entry.tags.length > 0 && (
+        <div className="entry-folded-tags">
+          {entry.tags.map((tag) => <span key={tag} className="tag-chip">#{tag}</span>)}
         </div>
       )}
-      <ul className="mt-1.5">
+      <ul className="open-loop-list">
         {tasks.map((task) => (
           <LoopItem
             key={task.key}
@@ -190,7 +174,7 @@ function LoopGroup({ group, onOpen, onClose, onAnswered }: LoopGroupProps) {
               <ItemButton label="Done" title="Check it off in the note" onClick={() => onClose(entry.id, task.key, "done")}>
                 <CheckIcon size={14} />
               </ItemButton>
-              <ItemButton label="Drop" title="Won't do: check it off and strike it through in the note" onClick={() => onClose(entry.id, task.key, "drop")}>
+              <ItemButton label="Drop" title="Won't do: strike it through in the note and leave the box empty" onClick={() => onClose(entry.id, task.key, "drop")}>
                 <CloseIcon size={14} />
               </ItemButton>
             </>}
@@ -221,10 +205,10 @@ interface LoopItemProps {
 function LoopItem({ text, muted, actions }: LoopItemProps) {
   return (
     <li className="open-loop-item">
-      <span className={`flex-1 min-w-0 break-words text-sm ${muted ? "italic text-[var(--color-notebook-muted)]" : "text-[var(--color-notebook-text)]"}`}>
+      <span className={`open-loop-text ${muted ? "italic text-[var(--color-notebook-muted)]" : ""}`}>
         {text}
       </span>
-      <span className="flex shrink-0 items-center">{actions}</span>
+      <span className="open-loop-actions">{actions}</span>
     </li>
   );
 }

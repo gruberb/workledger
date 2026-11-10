@@ -177,8 +177,9 @@ export function Sidebar({ onDayClick, onEntryClick, settingsItems }: SidebarProp
         <div className="flex-1 min-h-0 flex flex-col overflow-y-auto px-2 -mx-2">
         <SidebarNav onSelect={closeOnMobile} />
 
-        {/* Open loops lists items, not days; the filters below still narrow it. */}
-        {!loopsView && (
+        {/* Open loops lists items, not days; the filters below still narrow it.
+            The spacer keeps them at the bottom, where they are in the other views. */}
+        {loopsView ? <div className="flex-1" aria-hidden="true" /> : (
           <SidebarDayList
             dayKeys={dayKeys}
             entriesByDay={entriesByDay}

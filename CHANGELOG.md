@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.8.1] - 2026-11-10
+
+### Changed
+
+- Open loops uses the journal's page layout: each age group is a page with its own header, and notes show their title, tags and items at the same sizes as in the journal. On phones the Done and Drop buttons sit under the item text
+
+### Fixed
+
+- Drop in Open loops looked the same as Done in the note, because the editor already strikes through checked items. Drop now strikes the item through and leaves its box empty, so the note shows a checked box for done and an empty, struck-through one for dropped
+- In Open loops, saved filters, signifiers and tags stay at the bottom of the sidebar instead of moving up under the views
+
 ## [4.8.0] - 2026-11-10
 
 ### Added

@@ -57,10 +57,11 @@ describe("closeTask", () => {
     expect(openTasks(next).map((t) => t.key)).toEqual(["p", "c"]);
   });
 
-  it("drop checks the item and strikes it through", () => {
+  it("drop strikes the item through and leaves it unchecked, so it differs from done in the note", () => {
     const next = closeTask(blocks, "c", "drop")!;
     const child = (next[2] as { children: PartialBlock[] }).children[0];
-    expect(child).toMatchObject({ props: { checked: true }, content: [{ text: "Child", styles: { strike: true } }] });
+    expect(child).toMatchObject({ props: { checked: false }, content: [{ text: "Child", styles: { strike: true } }] });
+    expect(openTasks(next).map((t) => t.key)).toEqual(["a", "p"]);
   });
 
   it("does not change the caller's blocks or untouched siblings", () => {
@@ -73,7 +74,7 @@ describe("closeTask", () => {
     const template = [{ type: "checkListItem", content: "Review decision in 2 weeks" }] as PartialBlock[];
     expect(openTasks(template)).toEqual([{ key: "@0", text: "Review decision in 2 weeks" }]);
     const next = closeTask(template, "@0", "drop")!;
-    expect(next[0]).toMatchObject({ props: { checked: true }, content: [{ text: "Review decision in 2 weeks", styles: { strike: true } }] });
+    expect(next[0]).toMatchObject({ content: [{ text: "Review decision in 2 weeks", styles: { strike: true } }] });
     expect(openTasks(next)).toEqual([]);
   });
 

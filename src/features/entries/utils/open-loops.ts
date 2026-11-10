@@ -108,9 +108,11 @@ function strike(content: unknown): unknown {
 }
 
 /**
- * Checks the open item `key`; `drop` also strikes its text through, so the note
- * shows it was abandoned, not finished. Returns null when the item is gone or
- * no longer open (edited elsewhere since it was listed), so nothing is written.
+ * `done` checks the open item `key`. `drop` strikes its text through and leaves
+ * the box empty: BlockNote already draws checked items struck through, so
+ * checking a dropped item would look the same as a finished one. Returns null
+ * when the item is gone or no longer open (edited elsewhere since it was
+ * listed), so nothing is written.
  */
 export function closeTask(blocks: PartialBlock[], key: string, mode: CloseMode): PartialBlock[] | null {
   let found = false;
@@ -119,11 +121,9 @@ export function closeTask(blocks: PartialBlock[], key: string, mode: CloseMode):
       const path = [...parent, i];
       if (!found && taskKey(block, path) === key && isOpenTask(block)) {
         found = true;
-        return {
-          ...block,
-          props: { ...block.props, checked: true },
-          content: mode === "drop" ? strike(block.content) : block.content,
-        };
+        return mode === "done"
+          ? { ...block, props: { ...block.props, checked: true } }
+          : { ...block, content: strike(block.content) };
       }
       if (!found && Array.isArray(block.children) && block.children.length > 0) {
         const children = map(block.children, path);

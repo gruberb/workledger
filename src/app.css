@@ -840,10 +840,34 @@ button:not(:disabled), summary { cursor: pointer; }
   .day-sheet-focus:first-child { margin-top: 0; }
 }
 
-  /* Open loops: one row per open item, an empty box in front like the note's checklist. */
-  .open-loop-item { display: flex; align-items: center; gap: 10px; min-height: 36px; }
+  /* Open loops: notes sit in sheets like folded entries; one row per open item,
+     an empty box in front like the note's checklist, body text at the editor's size. */
+  .open-loop-group { padding: 18px var(--sheet-pad) 16px; }
+  .open-loop-title { text-align: left; }
+  .open-loop-title:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .open-loop-list { margin-top: 10px; }
+  .open-loop-item { display: flex; align-items: flex-start; gap: 12px; padding: 3px 0; }
   .open-loop-item::before {
-    content: ""; flex-shrink: 0; width: 14px; height: 14px;
+    content: ""; flex-shrink: 0; width: 16px; height: 16px; margin-top: 7px;
     border: 1.5px solid var(--color-notebook-frame); border-radius: 3px;
+  }
+  .open-loop-text {
+    flex: 1; min-width: 0; overflow-wrap: anywhere;
+    font-size: 18px; line-height: 30px; color: var(--color-notebook-text);
+  }
+  .open-loop-item .entry-action { min-height: 30px; padding-top: 4px; padding-bottom: 4px; }
+  .open-loop-actions { display: flex; flex-shrink: 0; align-items: center; }
+  .open-loop-empty {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    padding: 40px var(--sheet-pad); text-align: center;
+    font-size: 16px; line-height: 25px; color: var(--color-notebook-muted);
+  }
+  @media (max-width: 767px) {
+    .open-loop-text { font-size: 16px; line-height: 26px; }
+    .open-loop-item::before { margin-top: 5px; }
+    /* Buttons beside the text would leave it a narrow column; put them under it, aligned with the text. */
+    .open-loop-item { flex-wrap: wrap; row-gap: 0; }
+    .open-loop-text { flex-basis: calc(100% - 28px); }
+    .open-loop-actions { width: 100%; padding-left: 18px; }
   }
 }
